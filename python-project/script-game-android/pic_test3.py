@@ -14,7 +14,7 @@ import tkinter as tk
 import threading 
   
 
-template  = cv.imdecode(np.fromfile('QQ截图20200529234557.jpg',dtype=np.uint8),0)
+template  = cv.imdecode(np.fromfile('test.jpg',dtype=np.uint8),0)
 target  = cv.imdecode(np.fromfile('9.战术研修首页.jpg',dtype=np.uint8),0)
 
 #创建sift检测器
@@ -35,7 +35,7 @@ MIN_MATCH_COUNT = 10 #设置最低特征点匹配数量为10
 good = []
 #舍弃大于0.7的匹配
 for m,n in matches:
-    if m.distance < 0.7*n.distance:
+    if m.distance < 0.66 *n.distance:
         good.append(m)
 if len(good) > MIN_MATCH_COUNT:
     # 获取关键点的坐标

@@ -306,8 +306,8 @@ def scanGameAdb():
     if checkBox11Value.get() == 1:
 
       # 1.读入截图
-      os.system("adb shell screencap -p /sdcard/screen.jpg")
-      os.system("adb pull /sdcard/screen.jpg " + os.getcwd())
+      os.system("adb -s 127.0.0.1:62001 shell screencap -p /sdcard/screen.jpg")
+      os.system("adb -s 127.0.0.1:62001 pull /sdcard/screen.jpg " + os.getcwd())
       img_rgb = cv.imdecode(np.fromfile("screen.jpg",dtype=np.uint8),-1)
       img_gray = cv.cvtColor(img_rgb, cv.COLOR_BGR2GRAY)
       img_hist = cv.calcHist([img_gray],[0],None,[256],[0,256])

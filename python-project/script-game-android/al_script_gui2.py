@@ -56,6 +56,9 @@ templates3.append(scriptModel.Template(sift, 1,"9.商船护卫首页.jpg"))
 templates3.append(scriptModel.Template(sift, 1,"9.斩首行动首页.jpg"))
 templates3.append(scriptModel.Template(sift, 1,"9.战术研修首页.jpg"))
 
+templates4 = []
+templates4.append(scriptModel.Template(sift, 1,"9.特别演习-埃塞克斯.jpg"))
+
 templateBoss = scriptModel.Template(sift, 8,"boss.jpg")
 
 templatePosition = scriptModel.Template(sift, 8,"7.定位图标.jpg")
@@ -125,6 +128,24 @@ def task():
           if success:
             os.system( "adb -s 127.0.0.1:62001 shell input tap "+ str(500) +" " + str(180))
 
+
+      # 特别演习
+      if checkBox6Value.get() == 1:
+        for template in templates4:
+          success = template.matchHist(img_rgb_hist)
+          if success:
+            os.system( "adb -s 127.0.0.1:62001 shell input tap "+ str(857) +" " + str(216))
+      if checkBox7Value.get() == 1:
+        for template in templates4:
+          success = template.matchHist(img_rgb_hist)
+          if success:
+            os.system( "adb -s 127.0.0.1:62001 shell input tap "+ str(826) +" " + str(302))
+      if checkBox8Value.get() == 1:
+        for template in templates4:
+          success = template.matchHist(img_rgb_hist)
+          if success:
+            os.system( "adb -s 127.0.0.1:62001 shell input tap "+ str(847) +" " + str(389))
+
       for template in templates:
         time.sleep(0.01)
         success,good,matchesMask,dst = template.matchSift(flann,img_target_gray,features,kps_target)
@@ -160,13 +181,18 @@ checkBox3Value = tk.IntVar()
 checkBox4Value = tk.IntVar()
 checkBox5Value = tk.IntVar()
 checkBox6Value = tk.IntVar()
+checkBox7Value = tk.IntVar()
+checkBox8Value = tk.IntVar()
+
 c1 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='开始执行', variable=checkBox1Value)
 c11 = tk.Checkbutton(frameLeft,justify=tk.LEFT,  text='开始执行(adb)', variable=checkBox11Value)
 c2 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='自动寻路', variable=checkBox2Value)
 c3 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='任务界面', variable=checkBox3Value)
 c4 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='优先BOSS', variable=checkBox4Value)
 c5 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特殊地图', variable=checkBox5Value)
-c6 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='1', variable=checkBox6Value)
+c6 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特演-埃塞克斯', variable=checkBox6Value)
+c7 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特演-埃塞克斯(普通)', variable=checkBox7Value)
+c8 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特演-埃塞克斯(简单)', variable=checkBox8Value)
 c1.pack()
 c11.pack()
 c2.pack()
@@ -174,6 +200,8 @@ c3.pack()
 c4.pack()
 c5.pack()
 c6.pack()
+c7.pack()
+c8.pack()
 
 img_screen = tk.PhotoImage(file="screen.jpg")
 label_img = tk.Label(frameRight, image = img_screen)

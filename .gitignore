@@ -10,3 +10,11 @@ python-project/script-game-android/result.png
 python-project/script-game-android/screen.jpg
 
 *.exe
+
+c-project/opencv-sourec-test/.vs/
+
+c-project/opencv-sourec-test/Debug/
+
+c-project/opencv-sourec-test/opencv-sourec-test/Debug/
+
+c-project/opencv-sourec-test/opencv-sourec-test/opencv-sourec-test.vcxproj.user

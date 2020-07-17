@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:\\WorkEnv\\opencv\\build\\include",
+                "C:\\WorkEnv\\opencv\\build\\include\\opencv",
+                "C:\\WorkEnv\\opencv\\build\\include\\opencv2"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "10.0.18362.0",
+            "compilerPath": "C:\\WorkEnv\\mingw-w64-x86_64-5.4.0-release-posix-seh-rt_v5-rev0\\bin\\g++.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x86"
+        }
+    ],
+    "version": 4
+}

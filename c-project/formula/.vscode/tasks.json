@@ -6,15 +6,35 @@
         { 
             "type": "shell",
             "label": "task g++", 
-            "command": "C:\\WorkEnv\\Mingw\\bin\\g++.exe",      
-            "args": ["-g", "${file}", "-o", "${fileDirname}\\${fileBasenameNoExtension}.exe"],
+            "command": "C:\\WorkEnv\\mingw-w64-x86_64-5.4.0-release-posix-seh-rt_v5-rev0\\bin\\g++.exe",      
+            "args": [
+                "-g", 
+                "${file}", 
+                "-o", "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "-I", "C:\\WorkEnv\\opencv\\build\\include", 
+                "-I", "C:\\WorkEnv\\opencv\\build\\include\\opencv2", 
+                "-I", "C:\\WorkEnv\\opencv\\build\\include\\opencv", 
+                "-L", "C:\\WorkEnv\\opencv_cmake_mingw\\lib",
+                "-l", "opencv_core342",
+                "-l", "opencv_imgproc342",
+                "-l", "opencv_imgcodecs342",
+                "-l", "opencv_video342",
+                "-l", "opencv_ml342",
+                "-l", "opencv_highgui342",
+                "-l", "opencv_objdetect342",
+                "-l", "opencv_flann342",
+                "-l", "opencv_imgcodecs342",
+                "-l", "opencv_photo342",
+                "-l", "opencv_videoio342"
+
+            ],
             "options": {
-                "cwd": "C:\\WorkEnv\\Mingw\\bin"
+                "cwd": "C:\\WorkEnv\\mingw-w64-x86_64-5.4.0-release-posix-seh-rt_v5-rev0\\bin"
             },      
             "problemMatcher": ["$gcc"],
             "group": {
-              "kind": "build",
-              "isDefault": true
+              "kind": "build"
+            //   "isDefault": true
             }
         }
     ]

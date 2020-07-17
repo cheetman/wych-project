@@ -4,7 +4,6 @@
     // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        
         {
             "name": "g++ build and debug active file",
             "type": "cppdbg",
@@ -16,7 +15,7 @@
             "environment": [],
             "externalConsole": true,
             "MIMode": "gdb",
-            "miDebuggerPath": "C:\\WorkEnv\\Mingw\\bin\\gdb.exe",
+            "miDebuggerPath": "C:\\WorkEnv\\mingw-w64-x86_64-5.4.0-release-posix-seh-rt_v5-rev0\\bin\\gdb.exe",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

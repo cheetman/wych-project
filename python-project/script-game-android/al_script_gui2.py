@@ -124,7 +124,7 @@ def task():
             os.system( "adb -s 127.0.0.1:62001 shell input tap "+ str((dst[0][0][0] + dst[2][0][0])//2) +" " + str((dst[0][0][1] + dst[2][0][1])//2))
             showSiftMatchImage(label_img,templateBoss,img_target_gray,kps_target,good,matchesMask)
             return
-            
+
         # 普通敌人
         for template in templates2:
           time.sleep(0.01)
@@ -181,6 +181,12 @@ def scanGameAdb():
     task()
     sleepTime = 3
 
+def showSetting():
+  top1=tk.Toplevel()
+  canvas1 = tk.Canvas(top1, width = 500 ,height = 400, bg = 'white')
+  canvas1.pack()   
+  top1.mainloop()
+
 
 window = tk.Tk()            #主窗口
 window.title('碧蓝航线脚本(夜神模拟器)')   #窗口标题
@@ -209,6 +215,9 @@ c5 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特殊地图', variable=ch
 c6 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特演-埃塞克斯', variable=checkBox6Value)
 c7 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特演-埃塞克斯(普通)', variable=checkBox7Value)
 c8 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特演-埃塞克斯(简单)', variable=checkBox8Value)
+b1 = tk.Button(frameLeft,text='设置',command=showSetting)
+
+
 c1.pack()
 c11.pack()
 c2.pack()
@@ -218,6 +227,8 @@ c5.pack()
 c6.pack()
 c7.pack()
 c8.pack()
+b1.pack()
+
 
 img_screen = tk.PhotoImage(file="screen.jpg")
 label_img = tk.Label(frameRight, image = img_screen)

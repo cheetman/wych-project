@@ -102,7 +102,7 @@ def task():
           success,good,matchesMask,dst = templateBoss.matchSift(flann,img_target_gray,features,kps_target)
           if success:
             cv.polylines(img_target_gray,[np.int32(dst)],True,0,2, cv.LINE_AA)
-            os.system( "adb -s 127.0.0.1:62001 shell input tap "+ str((dst[0][0][0] + dst[2][0][0])//2) +" " + str((dst[0][0][1] + dst[2][0][1])//2))
+            os.system( entry1Value.get() + " shell input tap "+ str((dst[0][0][0] + dst[2][0][0])//2) +" " + str((dst[0][0][1] + dst[2][0][1])//2))
             showSiftMatchImage(label_img,templateBoss,img_target_gray,kps_target,good,matchesMask)
             return
 
@@ -112,7 +112,7 @@ def task():
           success,good,matchesMask,dst = template.matchSift(flann,img_target_gray,features,kps_target)
           if success:
             cv.polylines(img_target_gray,[np.int32(dst)],True,0,2, cv.LINE_AA)
-            os.system( "adb -s 127.0.0.1:62001 shell input tap "+ str((dst[0][0][0] + dst[2][0][0])//2) +" " + str((dst[0][0][1] + dst[2][0][1])//2))
+            os.system( entry1Value.get() + " shell input tap "+ str((dst[0][0][0] + dst[2][0][0])//2) +" " + str((dst[0][0][1] + dst[2][0][1])//2))
             showSiftMatchImage(label_img,template,img_target_gray,kps_target,good,matchesMask)
       else:
 
@@ -121,7 +121,7 @@ def task():
           success,good,matchesMask,dst = templateBoss.matchSift(flann,img_target_gray,features,kps_target)
           if success:
             cv.polylines(img_target_gray,[np.int32(dst)],True,0,2, cv.LINE_AA)
-            os.system( "adb -s 127.0.0.1:62001 shell input tap "+ str((dst[0][0][0] + dst[2][0][0])//2) +" " + str((dst[0][0][1] + dst[2][0][1])//2))
+            os.system( entry1Value.get() + " shell input tap "+ str((dst[0][0][0] + dst[2][0][0])//2) +" " + str((dst[0][0][1] + dst[2][0][1])//2))
             showSiftMatchImage(label_img,templateBoss,img_target_gray,kps_target,good,matchesMask)
             return
 
@@ -131,7 +131,7 @@ def task():
           success,good,matchesMask,dst = template.matchSift(flann,img_target_gray,features,kps_target)
           if success:
             cv.polylines(img_target_gray,[np.int32(dst)],True,0,2, cv.LINE_AA)
-            os.system( "adb -s 127.0.0.1:62001 shell input tap "+ str((dst[0][0][0] + dst[2][0][0])//2) +" " + str((dst[0][0][1] + dst[2][0][1])//2))
+            os.system( entry1Value.get() + " shell input tap "+ str((dst[0][0][0] + dst[2][0][0])//2) +" " + str((dst[0][0][1] + dst[2][0][1])//2))
             showSiftMatchImage(label_img,template,img_target_gray,kps_target,good,matchesMask)
             return
     
@@ -142,7 +142,7 @@ def task():
         for template in templates3:
           success = template.matchHist(img_rgb_hist)
           if success:
-            os.system( "adb -s 127.0.0.1:62001 shell input tap "+ str(500) +" " + str(180))
+            os.system( entry1Value.get() + " shell input tap "+ entry1Value.get().split(',')[0] +" " + entry1Value.get().split(',')[1])
 
 
       # 特别演习
@@ -150,17 +150,17 @@ def task():
         for template in templates4:
           success = template.matchHist(img_rgb_hist)
           if success:
-            os.system( "adb -s 127.0.0.1:62001 shell input tap "+ str(857) +" " + str(216))
+            os.system( entry1Value.get() + " shell input tap "+ str(857) +" " + str(216))
       if checkBox7Value.get() == 1:
         for template in templates4:
           success = template.matchHist(img_rgb_hist)
           if success:
-            os.system( "adb -s 127.0.0.1:62001 shell input tap "+ str(826) +" " + str(302))
+            os.system( entry1Value.get() + " shell input tap "+ str(826) +" " + str(302))
       if checkBox8Value.get() == 1:
         for template in templates4:
           success = template.matchHist(img_rgb_hist)
           if success:
-            os.system( "adb -s 127.0.0.1:62001 shell input tap "+ str(847) +" " + str(389))
+            os.system( entry1Value.get() + " shell input tap "+ str(847) +" " + str(389))
 
       for template in templates:
         time.sleep(0.01)
@@ -181,20 +181,25 @@ def scanGameAdb():
     task()
     sleepTime = 3
 
-def showSetting():
-  top1=tk.Toplevel()
-  canvas1 = tk.Canvas(top1, width = 500 ,height = 400, bg = 'white')
-  canvas1.pack()   
-  top1.mainloop()
 
 
 window = tk.Tk()            #主窗口
 window.title('碧蓝航线脚本(夜神模拟器)')   #窗口标题
 window.geometry('700x400')  #窗口尺寸
 
+menubar = tk.Menu(window)
+filemenu = tk.Menu(menubar, tearoff=0)
+menubar.add_cascade(label='File', menu=filemenu)
+filemenu.add_command(label='Exit', command=window.quit)
+window.config(menu=menubar)
+
 frameLeft = tk.Frame(window)
 frameRight = tk.Frame(window)
+frameBottom = tk.Frame(window)
 
+frameLeft.pack(side=tk.LEFT, fill='y', expand='no')
+frameRight.pack(side=tk.TOP, fill='x')
+frameBottom.pack(side=tk.RIGHT, expand='yes', fill='both')
 
 checkBox1Value = tk.IntVar()
 checkBox11Value = tk.IntVar()
@@ -205,29 +210,33 @@ checkBox5Value = tk.IntVar()
 checkBox6Value = tk.IntVar()
 checkBox7Value = tk.IntVar()
 checkBox8Value = tk.IntVar()
+entry1Value = tk.StringVar(value='adb -s 127.0.0.1:62001')
+entry2Value = tk.StringVar(value='500,180')
+entry3Value = tk.StringVar(value='500,180')
 
-c1 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='开始执行', variable=checkBox1Value)
-c11 = tk.Checkbutton(frameLeft,justify=tk.LEFT,  text='开始执行(adb)', variable=checkBox11Value)
-c2 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='自动寻路', variable=checkBox2Value)
-c3 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='任务界面', variable=checkBox3Value)
-c4 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='优先BOSS', variable=checkBox4Value)
-c5 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特殊地图', variable=checkBox5Value)
-c6 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特演-埃塞克斯', variable=checkBox6Value)
-c7 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特演-埃塞克斯(普通)', variable=checkBox7Value)
-c8 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特演-埃塞克斯(简单)', variable=checkBox8Value)
-b1 = tk.Button(frameLeft,text='设置',command=showSetting)
+c1 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='开始执行', variable=checkBox1Value).pack()
+c11 = tk.Checkbutton(frameLeft,justify=tk.LEFT,  text='开始执行(adb)', variable=checkBox11Value).pack()
+c2 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='自动寻路', variable=checkBox2Value).pack()
+c3 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='任务界面', variable=checkBox3Value).pack()
+c4 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='优先BOSS', variable=checkBox4Value).pack()
+c5 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特殊地图', variable=checkBox5Value).pack()
+c6 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特演-埃塞克斯', variable=checkBox6Value).pack()
+c7 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特演-埃塞克斯(普通)', variable=checkBox7Value).pack()
+c8 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特演-埃塞克斯(简单)', variable=checkBox8Value).pack()
 
 
-c1.pack()
-c11.pack()
-c2.pack()
-c3.pack()
-c4.pack()
-c5.pack()
-c6.pack()
-c7.pack()
-c8.pack()
-b1.pack()
+tk.Label(frameBottom,text="命令地址:").grid(row=0,column=0)
+tk.Entry(frameBottom,textvariable = entry1Value).grid(row=0,column=1,columnspan=4,sticky=tk.EW)
+
+tk.Label(frameBottom,text="任务1坐标:").grid(row=1,column=0)
+tk.Label(frameBottom,text="任务2坐标:").grid(row=1,column=2)
+
+tk.Entry(frameBottom,textvariable = entry2Value).grid(row=1,column=1)
+tk.Entry(frameBottom,textvariable = entry3Value).grid(row=1,column=3)
+
+# e1.grid(row=0, column=0, padx=10, pady=10, ipadx=10, ipady=10)
+# e2.grid(row=0, column=1, padx=10, pady=10, ipadx=10, ipady=10)
+# e3.grid(row=1, column=0, padx=10, pady=10, ipadx=10, ipady=10)
 
 
 img_screen = tk.PhotoImage(file="screen.jpg")
@@ -235,8 +244,7 @@ label_img = tk.Label(frameRight, image = img_screen)
 label_img.pack()
 
 
-frameLeft.pack(side=tk.LEFT)
-frameRight.pack(side=tk.RIGHT)
+
 
 th2 = threading.Thread(target=scanGameAdb)
 th2.setDaemon(True)

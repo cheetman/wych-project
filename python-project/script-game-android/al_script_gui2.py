@@ -13,6 +13,7 @@ import glob
 import tkinter as tk
 import threading
 import scriptModel
+import subprocess
 from PIL import Image, ImageFilter
 
 def showSiftMatchImage(label_img,template,img_target_gray,kps_target,good,matchesMask):
@@ -60,7 +61,9 @@ templates3 = []
 templates3.append(scriptModel.Template(sift, 1,"9.海域突进首页.jpg"))
 templates3.append(scriptModel.Template(sift, 1,"9.商船护卫首页.jpg"))
 templates3.append(scriptModel.Template(sift, 1,"9.斩首行动首页.jpg"))
-templates3.append(scriptModel.Template(sift, 1,"9.战术研修首页.jpg"))
+
+templates3_2 = []
+templates3_2.append(scriptModel.Template(sift, 1,"9.战术研修首页.jpg"))
 
 templates4 = []
 templates4.append(scriptModel.Template(sift, 1,"9.特别演习-埃塞克斯.jpg"))
@@ -80,8 +83,11 @@ flann=cv.FlannBasedMatcher(indexParams,searchParams)
 def task():
   if checkBox11Value.get() == 1:
       # 1.读入截图
-    os.system("adb -s 127.0.0.1:62001 shell screencap -p /sdcard/screen.jpg")
-    os.system("adb -s 127.0.0.1:62001 pull /sdcard/screen.jpg " + os.getcwd())
+
+    subprocess.getstatusoutput([entry1Value.get(),"-s",entry4Value.get(),"shell", "screencap", "-p", "/sdcard/screen.jpg"])
+    subprocess.getstatusoutput([entry1Value.get(),"-s",entry4Value.get(),"pull", "/sdcard/screen.jpg", os.getcwd()])
+    # os.system(entry1Value.get() + " shell screencap -p /sdcard/screen.jpg")
+    # os.system(entry1Value.get() + " pull /sdcard/screen.jpg " + os.getcwd())
     img_target_rgb = cv.imdecode(np.fromfile("screen.jpg",dtype=np.uint8),-1)
     img_target_gray = cv.cvtColor(img_target_rgb, cv.COLOR_BGR2GRAY)
     kps_target, features = sift.detectAndCompute(img_target_gray ,None)
@@ -102,7 +108,7 @@ def task():
           success,good,matchesMask,dst = templateBoss.matchSift(flann,img_target_gray,features,kps_target)
           if success:
             cv.polylines(img_target_gray,[np.int32(dst)],True,0,2, cv.LINE_AA)
-            os.system( entry1Value.get() + " shell input tap "+ str((dst[0][0][0] + dst[2][0][0])//2) +" " + str((dst[0][0][1] + dst[2][0][1])//2))
+            subprocess.getstatusoutput([entry1Value.get(),"-s",entry4Value.get(),"shell","input","tap",str((dst[0][0][0] + dst[2][0][0])//2) ,str((dst[0][0][1] + dst[2][0][1])//2)])
             showSiftMatchImage(label_img,templateBoss,img_target_gray,kps_target,good,matchesMask)
             return
 
@@ -112,7 +118,7 @@ def task():
           success,good,matchesMask,dst = template.matchSift(flann,img_target_gray,features,kps_target)
           if success:
             cv.polylines(img_target_gray,[np.int32(dst)],True,0,2, cv.LINE_AA)
-            os.system( entry1Value.get() + " shell input tap "+ str((dst[0][0][0] + dst[2][0][0])//2) +" " + str((dst[0][0][1] + dst[2][0][1])//2))
+            subprocess.getstatusoutput([entry1Value.get(),"-s",entry4Value.get(),"shell","input","tap",str((dst[0][0][0] + dst[2][0][0])//2) ,str((dst[0][0][1] + dst[2][0][1])//2)])
             showSiftMatchImage(label_img,template,img_target_gray,kps_target,good,matchesMask)
       else:
 
@@ -121,7 +127,7 @@ def task():
           success,good,matchesMask,dst = templateBoss.matchSift(flann,img_target_gray,features,kps_target)
           if success:
             cv.polylines(img_target_gray,[np.int32(dst)],True,0,2, cv.LINE_AA)
-            os.system( entry1Value.get() + " shell input tap "+ str((dst[0][0][0] + dst[2][0][0])//2) +" " + str((dst[0][0][1] + dst[2][0][1])//2))
+            subprocess.getstatusoutput([entry1Value.get(),"-s",entry4Value.get(),"shell","input","tap", str((dst[0][0][0] + dst[2][0][0])//2) , str((dst[0][0][1] + dst[2][0][1])//2)])
             showSiftMatchImage(label_img,templateBoss,img_target_gray,kps_target,good,matchesMask)
             return
 
@@ -131,7 +137,7 @@ def task():
           success,good,matchesMask,dst = template.matchSift(flann,img_target_gray,features,kps_target)
           if success:
             cv.polylines(img_target_gray,[np.int32(dst)],True,0,2, cv.LINE_AA)
-            os.system( entry1Value.get() + " shell input tap "+ str((dst[0][0][0] + dst[2][0][0])//2) +" " + str((dst[0][0][1] + dst[2][0][1])//2))
+            subprocess.getstatusoutput([entry1Value.get(),"-s",entry4Value.get(),"shell","input","tap",str((dst[0][0][0] + dst[2][0][0])//2) , str((dst[0][0][1] + dst[2][0][1])//2)])
             showSiftMatchImage(label_img,template,img_target_gray,kps_target,good,matchesMask)
             return
     
@@ -142,8 +148,13 @@ def task():
         for template in templates3:
           success = template.matchHist(img_rgb_hist)
           if success:
-            os.system( entry1Value.get() + " shell input tap "+ entry1Value.get().split(',')[0] +" " + entry1Value.get().split(',')[1])
-
+            subprocess.getstatusoutput([entry1Value.get(),"-s",entry4Value.get(),"shell","input","tap",entry2Value.get().split(',')[0] , entry2Value.get().split(',')[1]])
+            return
+        
+        for template in templates3_2:
+          success = template.matchHist(img_rgb_hist)
+          if success:
+            subprocess.getstatusoutput([entry1Value.get(),"-s",entry4Value.get(),"shell","input","tap", entry3Value.get().split(',')[0] ,entry3Value.get().split(',')[1]])
 
       # 特别演习
       if checkBox6Value.get() == 1:
@@ -167,7 +178,7 @@ def task():
         success,good,matchesMask,dst = template.matchSift(flann,img_target_gray,features,kps_target)
         if success:
           cv.polylines(img_target_gray,[np.int32(dst)],True,0,2, cv.LINE_AA)
-          os.system( "adb -s 127.0.0.1:62001 shell input tap "+ str((dst[0][0][0] + dst[2][0][0])//2) +" " + str((dst[0][0][1] + dst[2][0][1])//2))
+          subprocess.getstatusoutput([entry1Value.get(),"-s",entry4Value.get(),"shell","input","tap",str((dst[0][0][0] + dst[2][0][0])//2) , str((dst[0][0][1] + dst[2][0][1])//2)])
           showSiftMatchImage(label_img,template,img_target_gray,kps_target,good,matchesMask)
 
 
@@ -210,7 +221,8 @@ checkBox5Value = tk.IntVar()
 checkBox6Value = tk.IntVar()
 checkBox7Value = tk.IntVar()
 checkBox8Value = tk.IntVar()
-entry1Value = tk.StringVar(value='adb -s 127.0.0.1:62001')
+entry1Value = tk.StringVar(value='C:/Program Files (x86)/Nox/bin/adb')
+entry4Value = tk.StringVar(value='127.0.0.1:62001')
 entry2Value = tk.StringVar(value='500,180')
 entry3Value = tk.StringVar(value='500,180')
 
@@ -226,10 +238,11 @@ c8 = tk.Checkbutton(frameLeft, justify=tk.LEFT, text='特演-埃塞克斯(简单
 
 
 tk.Label(frameBottom,text="命令地址:").grid(row=0,column=0)
-tk.Entry(frameBottom,textvariable = entry1Value).grid(row=0,column=1,columnspan=4,sticky=tk.EW)
+tk.Entry(frameBottom,textvariable = entry1Value).grid(row=0,column=1,columnspan=2,sticky=tk.EW)
+tk.Entry(frameBottom,textvariable = entry4Value).grid(row=0,column=3)
 
-tk.Label(frameBottom,text="任务1坐标:").grid(row=1,column=0)
-tk.Label(frameBottom,text="任务2坐标:").grid(row=1,column=2)
+tk.Label(frameBottom,text="普通任务坐标:").grid(row=1,column=0)
+tk.Label(frameBottom,text="战术研修坐标:").grid(row=1,column=2)
 
 tk.Entry(frameBottom,textvariable = entry2Value).grid(row=1,column=1)
 tk.Entry(frameBottom,textvariable = entry3Value).grid(row=1,column=3)

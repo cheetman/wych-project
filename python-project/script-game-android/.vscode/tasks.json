@@ -6,7 +6,7 @@
         {
             "label": "python3",
             "type": "shell",
-            "command": "C:\\Users\\cheet\\AppData\\Local\\Programs\\Python\\Python37",
+            "command": "C:\\Users\\han1\\AppData\\Local\\Programs\\Python\\Python37\\",
             "args": ["${file}"]
         }
     ]

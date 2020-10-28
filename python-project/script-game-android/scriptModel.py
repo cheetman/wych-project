@@ -41,15 +41,16 @@ class Template:
             # 使用得到的变换矩阵对原图像的四个角进行变换，获得在目标图像上对应的坐标
             pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
             dst = cv.perspectiveTransform(pts,M)
+            print( "特征匹配 - " + str(self.name) )
             return True,good,matchesMask,dst
         else:
-            print( "Not enough matches are found - " + str(self.name) )
+            print( "特征未匹配 - " + str(self.name) )
             return False,good,None,None
 
     def matchHist(self, imgHist):
         match = cv.compareHist(imgHist,self.imageHist,cv.HISTCMP_BHATTACHARYYA)
         if match < self.histThreshold:
-            print('直方图匹配-' + str(self.name) + ' - ' + str(match))
+            print('直方图匹配成功-' + str(self.name) + ' - ' + str(match))
             return True
         else:
             print('直方图未匹配-'+ str(self.name) + ' - ' + str(match))

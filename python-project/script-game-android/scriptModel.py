@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 class Template:
     def __init__(self, sift, name, filename, siftRatio=0.2,histThreshold = 0.02):
         self.name = name
+        self.filename = filename
         self.image = cv.imdecode(np.fromfile(filename,dtype=np.uint8),-1)
         self.garyImage = cv.cvtColor(self.image, cv.COLOR_BGR2GRAY)
         if self.image is None:

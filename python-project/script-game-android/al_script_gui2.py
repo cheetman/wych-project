@@ -14,8 +14,17 @@ import tkinter as tk
 import tkinter.font as tkFont
 import threading
 import scriptModel
+import scriptConfig
+
 import subprocess
 from PIL import Image, ImageFilter
+
+import tkinter as tk
+from tkinter import ttk
+from tkinter import scrolledtext
+from tkinter import Menu
+from tkinter import Spinbox
+from tkinter import messagebox as mBox
 
 def showSiftMatchImage(label_img,template,img_target_gray,kps_target,good,matchesMask):
   draw_params = dict(matchColor=(0,255,0), 
@@ -31,7 +40,7 @@ def showSiftMatchImage(label_img,template,img_target_gray,kps_target,good,matche
 #创建sift检测器
 sift=cv.xfeatures2d.SIFT_create()
 
-  
+
 templates = []
 templatesDir = './1.图标点击'
 files = os.listdir(templatesDir)
@@ -338,6 +347,14 @@ tk.Entry(frameBottom,textvariable = entry2Value).grid(row=1,column=1)
 tk.Entry(frameBottom,textvariable = entry3Value).grid(row=1,column=3)
 
 
+tree = ttk.Treeview(frameBottom, columns=('name','path'))
+tree.grid(row=3,column=0,columnspan=4)
+tree.column("name", width=100)        
+tree.column("path", width=100)
+tree.heading("name", text="名称")        # #设置显示的表头名
+tree.heading("path", text="路径")
+# tree.insert("", 0, text="line1", values=("卡恩", "18", "180", "65"))  
+# tree.insert("", 0, text="line1", values=("卡恩", "18", "180", "65"))  
 
 img_screen = tk.PhotoImage(file="screen.jpg")
 label_img = tk.Label(frameRight, image = img_screen)

@@ -34,10 +34,10 @@ from tkinter import messagebox as mBox
 ui = scriptUI.ScriptUI()
 
 
-config = scriptConfig.ScriptConfig()
-config.AddPicConfig('点击素材','./1.图标点击',config.TemplateType.CLICK,ui.frameRight)
-# config.AddPicConfig('敌人素材','./1.敌人目录',config.TemplateType.CLICK,ui.frameRight)
-# config.AddPicConfig('特殊敌人素材','./1.敌人目录',config.TemplateType.CLICK,ui.frameRight)
+config = scriptConfig.ScriptConfig(ui.frameCenter)
+config.AddPicConfig('点击素材','./1.图标点击',config.TemplateType.CLICK)
+config.AddPicConfig('敌人素材','./8.敌人目录',config.TemplateType.CLICK)
+config.AddPicConfig('特殊敌人素材','./9.特殊敌人目录',config.TemplateType.CLICK)
 
 
 

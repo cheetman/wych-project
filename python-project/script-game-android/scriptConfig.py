@@ -18,29 +18,21 @@ from tkinter import messagebox as mBox
 sift=cv.xfeatures2d.SIFT_create()
 
 class ScriptConfig:
-    def __init__(self,frame):
+    def __init__(self,tree):
         self.templateConfigs = {}
-        
-        self.frame = frame
-        tree = ttk.Treeview(frame,  columns=('index','name','path','count'),show='headings')
-        tree.grid(sticky=NSEW)
-
-        scroll = tk.Scrollbar(frame)
-        scroll.grid(column=1,row=0,sticky=NSEW)
-        scroll.config(command=tree.yview)
-        tree.config(yscrollcommand = scroll.set)
-
-        tree.column("index", width=35,anchor=CENTER) 
-        tree.column("name", width=100,anchor=CENTER) 
-        tree.column("path", width=300)
-        tree.column("count", width=80,anchor=CENTER)
-        tree.heading("name", text="名称") 
-        tree.heading("path", text="路径")
-        tree.heading("count", text="识别次数")
         self.tree = tree
+
 
     def AddPicConfig(self,name,path,type):
         self.templateConfigs[name] = ScriptConfig.TemplateConfig(name,path,type,self.tree)
+
+    def scanDevice(self):
+        items=self.tree.get_children()
+        for index,item in enumerate(items):
+            # row = self.tree.item(item)
+            self.tree.set(item, column='status', value='1212')
+
+
 
     class TemplateConfig:
         def __init__(self,name,path,type,tree):
@@ -52,8 +44,7 @@ class ScriptConfig:
             for index,file in enumerate(files):
                 tmpPath = os.path.join(path, file)
                 self.model = scriptModel.Template(sift, name,tmpPath)
-                    
-                tree.insert("", 'end',  values=(index +1,name, tmpPath))  
+                tree.insert("", 'end',  values=(len(tree.get_children()) +1,'√',  name, tmpPath,'全部',0))  
 
     class TemplateType(Enum):
         CLICK = 1

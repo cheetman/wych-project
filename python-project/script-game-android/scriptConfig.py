@@ -1,4 +1,4 @@
-
+import re
 from tkinter.constants import BOTH, CENTER, EW, NSEW, W
 import numpy as np
 import cv2 as cv
@@ -26,11 +26,12 @@ class ScriptConfig:
     def AddPicConfig(self,name,path,type):
         self.templateConfigs[name] = ScriptConfig.TemplateConfig(name,path,type,self.tree)
 
-    def scanDevice(self):
+    def scanDevice(self,success):
         items=self.tree.get_children()
         for index,item in enumerate(items):
-            # row = self.tree.item(item)
-            self.tree.set(item, column='status', value='1212')
+            row = self.tree.item(item,"values")
+            if row[1] == '√' :
+                model = self.templateConfigs[row[2]].models[row[3]]
 
 
 
@@ -39,12 +40,26 @@ class ScriptConfig:
             self.name = name
             self.path = path
             self.type = type
+            self.models = {}
 
             files = os.listdir(path)
             for index,file in enumerate(files):
                 tmpPath = os.path.join(path, file)
-                self.model = scriptModel.Template(sift, name,tmpPath)
-                tree.insert("", 'end',  values=(len(tree.get_children()) +1,'√',  name, tmpPath,'全部',0))  
+                self.models[tmpPath] = scriptModel.Template(sift, name,tmpPath)
+
+                tmpName = os.path.basename(tmpPath)
+                
+                area = '全部'
+                area2 = re.findall(r"\[\(([0-9 ]*),([0-9 ]*)\),\(([0-9 ]*),([0-9 ]*)\)\]", tmpName)
+                if len(area2) > 0:
+                    area = '{0},{1} | {2},{3} '.format(area2[0][0], area2[0][1],area2[0][2],area2[0][3])
+                tap = '默认'
+                tap2 = re.findall(r"\{([0-9 ]*),([0-9 ]*)\}", tmpName)
+                if len(tap2) > 0:
+                    tap = '{0},{1} '.format(tap2[0][0], tap2[0][1])
+                
+                type = 'sfit'
+                tree.insert("", 'end',  values=(len(tree.get_children()) +1,'',  name, tmpPath,type,area,tap,0))  
 
     class TemplateType(Enum):
         CLICK = 1

@@ -22,16 +22,16 @@ class ScriptConfig:
         self.templateConfigs = {}
         self.tree = tree
 
-
     def AddPicConfig(self,name,path,type):
         self.templateConfigs[name] = ScriptConfig.TemplateConfig(name,path,type,self.tree)
-
-    def scanDevice(self,success):
+    
+    def RefreshPicConfig(self):
         items=self.tree.get_children()
-        for index,item in enumerate(items):
-            row = self.tree.item(item,"values")
-            if row[1] == '√' :
-                model = self.templateConfigs[row[2]].models[row[3]]
+        for item in items:
+            self.tree.delete(item)
+        for key,item in self.templateConfigs.items():
+            item.initData()
+
 
 
 
@@ -40,12 +40,18 @@ class ScriptConfig:
             self.name = name
             self.path = path
             self.type = type
-            self.models = {}
+            self.tree = tree
+            
+            self.initData()
 
-            files = os.listdir(path)
+
+        def initData(self):
+
+            self.models = {}
+            files = os.listdir(self.path)
             for index,file in enumerate(files):
-                tmpPath = os.path.join(path, file)
-                self.models[tmpPath] = scriptModel.Template(sift, name,tmpPath)
+                tmpPath = os.path.join(self.path, file)
+                self.models[tmpPath] = scriptModel.Template(sift, self.name,tmpPath)
 
                 tmpName = os.path.basename(tmpPath)
                 
@@ -59,7 +65,9 @@ class ScriptConfig:
                     tap = '{0},{1} '.format(tap2[0][0], tap2[0][1])
                 
                 type = 'sfit'
-                tree.insert("", 'end',  values=(len(tree.get_children()) +1,'',  name, tmpPath,type,area,tap,0))  
+                self.tree.insert("", 'end',  values=(len(self.tree.get_children()) +1,'',  self.name, tmpPath,type,area,tap,0,0))  
+
 
     class TemplateType(Enum):
-        CLICK = 1
+        FIND = 0,
+        CLICK = 1,

@@ -2,7 +2,7 @@ from enum import auto
 import os
 import sys
 import json
-from tkinter.constants import CENTER, EW, LEFT, NS, NSEW, NW, W
+from tkinter.constants import CENTER, EW, HORIZONTAL, LEFT, NS, NSEW, NW, VERTICAL, W
 import win32gui
 import win32api
 import win32con, win32ui
@@ -40,8 +40,14 @@ class ScriptUI:
         self.configs = {
             'entryadb' : tk.StringVar(value='adb'),
             'entryscrcpy' : tk.StringVar(value='scrcpy-console.bat'),
+            'entryrate' : tk.StringVar(value='5'),
+            'entrysuccessrate' : tk.StringVar(value='2'),
+            'entrypiclength' : tk.StringVar(value='1000'),
+
+
             'cbstart' : tk.IntVar(value=0),
             'cbstartdebug' : tk.IntVar(value=0),
+            'cbppalert' : tk.IntVar(value=0),
             
             'pptime' : tk.StringVar(value='无'),
             'ppname' : tk.StringVar(value='无'),
@@ -99,7 +105,7 @@ class ScriptUI:
 
         
         right_labelframe2 = ttk.LabelFrame(frameRight, text='截图')
-        right_labelframe2.grid( padx=5, pady=5,sticky=NSEW) 
+        right_labelframe2.grid( padx=5, pady=5,sticky=NSEW)
         right_labelframe2.columnconfigure(0,weight=1)
         right_labelframe2.rowconfigure(0,weight=1)
 
@@ -108,7 +114,7 @@ class ScriptUI:
         center2_labelframe.columnconfigure(0,weight=1)
         center2_labelframe.rowconfigure(0,weight=1)
 
-        center3_labelframe = ttk.LabelFrame(frameCenter4, text='操作')
+        center3_labelframe = ttk.LabelFrame(frameCenter4, text='设置')
         center3_labelframe.grid( padx=5, pady=5,sticky=NSEW) 
         # center3_labelframe.columnconfigure(0,weight=1)
         # center3_labelframe.rowconfigure(0,weight=1)
@@ -132,8 +138,9 @@ class ScriptUI:
 
 
         # tk.Checkbutton(frameLeft, justify=LEFT,text='adb启动', variable=cb1,width=15).grid(sticky=NW)
-        ttk.Checkbutton(frameLeft,  text='启动adb', variable = self.configs["cbstart"],width=15).grid(padx=5, pady=5)
-        ttk.Checkbutton(frameLeft,  text='启动adb(调试)', variable = self.configs["cbstartdebug"],width=15).grid(padx=5, pady=5)
+        ttk.Checkbutton(frameLeft,  text='启动adb', variable = self.configs["cbstart"],width=15).grid(padx=5, pady=1)
+        ttk.Checkbutton(frameLeft,  text='启动adb(调试)', variable = self.configs["cbstartdebug"],width=15).grid(padx=5, pady=1)
+        ttk.Checkbutton(frameLeft,  text='长时间未匹配提醒', variable = self.configs["cbppalert"],width=15).grid(padx=5, pady=1)
         # ttk.Checkbutton(frameLeft,  text='启动3', variable=cb1,width=15).grid(sticky=NW)
         # tk.Checkbutton(frameLeft, justify=tk.LEFT, text='启动2', variable=cb1).grid()
 
@@ -143,6 +150,8 @@ class ScriptUI:
         ttk.Button(center_frame_top,  text = '刷新',  width = 10, command = self.refreshDevices).grid(padx=5, pady=5,sticky=W)
         ttk.Button(center_frame_top,  text = '截图',  width = 10, command = self.screenCap).grid(row=0,column=1, padx=5, pady=5,sticky=W)
         ttk.Button(center_frame_top,  text = 'scrcpy投屏',  width = 10, command = self.scrcpyDevice).grid(row=0,column=2, padx=5, pady=5,sticky=W)
+
+
 
         tree1 = ttk.Treeview(labelframeCenter, height=3,  columns=('index','device','status'),show='headings')
         tree1.grid(padx=5, pady=5,sticky=EW)
@@ -158,8 +167,11 @@ class ScriptUI:
         ttk.Label(labelframeCenter3, textvariable=self.configs['ppname']).grid(column=1, row=1,sticky=W,padx=2, pady=1)
 
 
-        ttk.Button(frameCenter2,  text = '测试：显示检测范围、点击坐标',  command = self.signArea).grid(padx=5, pady=5,sticky=W)
-
+        ttk.Button(frameCenter2,  text = '⬆',   width = 3,command = self.treeMoveUp).grid(padx=5, pady=5,sticky=W)
+        ttk.Button(frameCenter2,  text = '⬇',  width = 3, command = self.treeMoveDown).grid(row=0,column=1, padx=5, pady=5,sticky=W)
+        ttk.Button(frameCenter2,  text = '刷新列表',  command = self.refreshFile).grid(row=0,column=2,padx=5, pady=5,sticky=W)
+        ttk.Button(frameCenter2,  text = '保存配置',  command = self.treeSave).grid(row=0,column=3,padx=5, pady=5,sticky=W)
+        ttk.Button(frameCenter2,  text = '测试：显示检测范围、点击坐标',  command = self.signArea).grid(row=0,column=4,padx=5, pady=5,sticky=W)
 
         # right
         img2 = ttk.Label(right_labelframe2, image = None)
@@ -174,26 +186,40 @@ class ScriptUI:
         ttk.Entry(center3_labelframe, width=25, textvariable=self.configs['entryadb']).grid(column=1, row=0,sticky=W,padx=2, pady=1)
         ttk.Label(center3_labelframe, text="scrcpy路径:").grid(column=0, row=1,sticky=W,padx=2, pady=1)
         ttk.Entry(center3_labelframe, width=25, textvariable=self.configs['entryscrcpy']).grid(column=1, row=1,sticky=W,padx=2, pady=1)
+        ttk.Label(center3_labelframe, text="扫描频率(秒)").grid(column=2, row=0,sticky=W,padx=2, pady=1)
+        ttk.Entry(center3_labelframe, width=10, textvariable=self.configs['entryrate']).grid(column=3, row=0,sticky=W,padx=2, pady=1)
+        ttk.Label(center3_labelframe, text="扫描成功等待(秒)").grid(column=2, row=1,sticky=W,padx=2, pady=1)
+        ttk.Entry(center3_labelframe, width=10, textvariable=self.configs['entrysuccessrate']).grid(column=3, row=1,sticky=W,padx=2, pady=1)
+        ttk.Label(center3_labelframe, text="图片长边(500~1500)").grid(column=4, row=0,sticky=W,padx=2, pady=1)
+        ttk.Entry(center3_labelframe, width=10, textvariable=self.configs['entrypiclength']).grid(column=5, row=0,sticky=W,padx=2, pady=1)
 
         # center3_button = ttk.Button(center3_labelframe,  text = '选择',  width = 10, command = None)
         # center3_button.grid(padx=5, pady=5,sticky=W)
 
     
 
-        tree2 = ttk.Treeview(center2_labelframe,  columns=('index','status','name','path','type','area','tap','count'),show='headings')
+        tree2 = ttk.Treeview(center2_labelframe,  columns=('index','status','name','path','type','area','tap','count','countLimit'),show='headings')
         tree2.grid(padx=5, pady=5,sticky=NSEW)
-        scroll = tk.Scrollbar(center2_labelframe)
+
+        scroll = tk.Scrollbar(center2_labelframe,orient=VERTICAL)
         scroll.grid(column=1,row=0,sticky=NSEW)
         scroll.config(command=tree2.yview)
         tree2.config(yscrollcommand = scroll.set)
+
+        scrollx = tk.Scrollbar(center2_labelframe,orient=HORIZONTAL)
+        scrollx.grid(column=0,row=1,sticky=NSEW)
+        scrollx.config(command=tree2.xview)
+        tree2.config(xscrollcommand = scrollx.set)
+
         tree2.column("index", width=35,anchor=CENTER) 
         tree2.column("status", width=35,anchor=CENTER) 
-        tree2.column("name", width=100,anchor=CENTER) 
+        tree2.column("name", width=90,anchor=CENTER) 
         tree2.column("path", width=260)
         tree2.column("type", width=60,anchor=CENTER)
         tree2.column("area", width=90,anchor=CENTER)
         tree2.column("tap", width=70,anchor=CENTER)
-        tree2.column("count", width=80,anchor=CENTER)
+        tree2.column("count", width=60,anchor=CENTER)
+        tree2.column("countLimit", width=60,anchor=CENTER)
         tree2.heading("status", text="启用")
         tree2.heading("name", text="名称")
         tree2.heading("path", text="路径")
@@ -201,9 +227,11 @@ class ScriptUI:
         tree2.heading("area", text="识别范围")
         tree2.heading("tap", text="点击坐标")
         tree2.heading("count", text="识别次数")
+        tree2.heading("countLimit", text="次数限制")
         tree2.bind('<Double-1>', self.gridRightClick)
 
 
+        self.templateConfig = {}
         self.img2 = img2
         self.img = img
         self.tree1 = tree1
@@ -258,22 +286,29 @@ class ScriptUI:
         im1 = cv.imread(file)
         maxValue = max(im1.shape[0],im1.shape[1])
         minValue = min(im1.shape[0],im1.shape[1])
-        if maxValue > 500 :
-            newMaxValue = 500
+        entrypiclength = int(self.configs['entrypiclength'].get())
+        if maxValue > entrypiclength :
+            newMaxValue = entrypiclength
             radio = maxValue/newMaxValue
             # radio = maxValue/minValue
             newMinValue = int(minValue /radio)
-            
             if im1.shape[0] > im1.shape[1]:
                 im2 = cv.resize(im1, (newMinValue,newMaxValue), interpolation=cv.INTER_CUBIC)
             else :
                 im2 = cv.resize(im1, (newMaxValue,newMinValue), interpolation=cv.INTER_CUBIC)
             cv.imwrite('screen2.png', im2)
-            img_screen = tk.PhotoImage(file="screen2.png")
-            image.config(image=img_screen)  
-            image.image= img_screen
+        else:
+            cv.imwrite('screen2.png', im1)
 
-    
+        img_screen = tk.PhotoImage(file="screen2.png")
+        image.config(image=img_screen)  
+        image.image= img_screen
+
+    def refreshFile(self):
+        self.templateConfig.RefreshPicConfig()
+        
+
+
     def signArea(self):
         
         select=self.tree2.selection()
@@ -287,13 +322,13 @@ class ScriptUI:
             return
 
         image = cv.imread('screen.png')
-        if area is not "全部":
+        if area != "全部":
             area2 = re.findall(r"([0-9 ]*),([0-9 ]*)\|([0-9 ]*),([0-9 ]*)", area)
             lefttop =  (int(int(area2[0][0]) / 100 * image.shape[1] ),int(int(area2[0][1])/ 100 * image.shape[0]) )
             rightbottm =  (int(int(area2[0][2]) / 100 * image.shape[1] ),int(int(area2[0][3])/ 100 * image.shape[0]) )
             cv.rectangle(image,lefttop,  rightbottm, (0, 0, 255), 5)
 
-        if tap is not "默认":
+        if tap != "默认":
             tap2 = re.findall(r"([0-9 ]*),([0-9 ]*)", tap)
             lefttop =  (int(int(tap2[0][0]) / 100 * image.shape[1] -50) ,int(int(tap2[0][1])/ 100 * image.shape[0] -50))
             rightbottm =  (int(int(tap2[0][0]) / 100 * image.shape[1]+ 50 ),int(int(tap2[0][1])/ 100 * image.shape[0] + 50 ))
@@ -321,9 +356,12 @@ class ScriptUI:
         print(result)
 
 
-    def scan(self):
+    def treeMoveUp(self):
         sleepTime = 3
-        while True:
-            time.sleep(sleepTime)
-            # print('是否启动：【%s】' %str(checkBox11Value.get()))
-            sleepTime = 3
+        
+    def treeMoveDown(self):
+        sleepTime = 3
+
+    def treeSave(self):
+        sleepTime = 3
+        

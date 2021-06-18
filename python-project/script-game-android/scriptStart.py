@@ -16,6 +16,7 @@ import threading
 import scriptModel
 import scriptConfig
 import scriptUI
+import re
 
 import subprocess
 from PIL import Image, ImageFilter
@@ -36,6 +37,7 @@ config.AddPicConfig('点击素材','./1.图标点击',config.TemplateType.CLICK)
 config.AddPicConfig('敌人素材','./8.敌人目录',config.TemplateType.CLICK)
 config.AddPicConfig('特殊敌人素材','./9.特殊敌人目录',config.TemplateType.CLICK)
 
+ui.templateConfig = config
 
 # img_screen = tk.PhotoImage(file="screen.jpg")
 # ui.img.config(image=img_screen)  
@@ -56,6 +58,7 @@ def scan():
     sleepTime = 3
     while True:
         time.sleep(sleepTime)
+        sleepTime = int(ui.configs['entryrate'].get())
         cbstartdebugFlag = ui.configs['cbstartdebug'].get()
         if ui.configs['cbstart'].get() == 1 or cbstartdebugFlag == 1 :
             print('启动扫描......')
@@ -69,7 +72,6 @@ def scan():
                     subprocess.getstatusoutput([adbpath,"-s",device,"pull", "/sdcard/" + screenFileName, os.getcwd()])
                 img_target_rgb = cv.imdecode(np.fromfile(screenFileName,dtype=np.uint8),-1)
                 img_target_gray = cv.cvtColor(img_target_rgb, cv.COLOR_BGR2GRAY)
-                kps_target_gray, features_gray = sift.detectAndCompute(img_target_gray ,None)
                 ui.image2Update()
                 # 直方图信息
                 # img_hist = cv.calcHist([img_target_gray],[0],None,[256],[0,256])
@@ -81,20 +83,48 @@ def scan():
                 for index,item in enumerate(items):
                     row = ui.tree2.item(item,"values")
                     if row[1] == '√' :
+                        area = re.findall(r"([0-9 ]*),([0-9 ]*)\|([0-9 ]*),([0-9 ]*)", row[5])
+                        if len(area) == 1:
+                            lefttop =  (int(int(area[0][0]) / 100 * img_target_gray.shape[1] ),int(int(area[0][1])/ 100 * img_target_gray.shape[0]) )
+                            rightbottm =  (int(int(area[0][2]) / 100 * img_target_gray.shape[1] ),int(int(area[0][3])/ 100 * img_target_gray.shape[0]) )
+                            img_targent = img_target_gray[lefttop[1]:rightbottm[1], lefttop[0]:rightbottm[0]]
+                            kps_target, features = sift.detectAndCompute(img_targent ,None)
+                        else:
+                            img_targent = img_target_gray
+                            kps_target, features = sift.detectAndCompute(img_targent ,None)
+
                         model = config.templateConfigs[row[2]].models[row[3]]
-                        success,good,matchesMask,dst  = model.matchSift(flann,img_target_rgb,features_gray,kps_target_gray)
+                        success,good,matchesMask,dst  = model.matchSift(flann,img_targent,features,kps_target)
                         if success:
-                            cv.polylines(img_target_gray,[np.int32(dst)],True,0,2, cv.LINE_AA)
+                            cv.polylines(img_targent,[np.int32(dst)],True,0,2, cv.LINE_AA)
                             # 点击
                             if cbstartdebugFlag == 0:
-                                subprocess.getstatusoutput([adbpath,"-s",device,"shell","input","tap",str((dst[0][0][0] + dst[2][0][0])//2) ,str((dst[0][0][1] + dst[2][0][1])//2)])
+                                if len(area) == 1:
+                                    x = int((dst[0][0][0] + dst[2][0][0])//2) + lefttop[0]
+                                    y = int((dst[0][0][1] + dst[2][0][1])//2) + lefttop[1]
+
+                                    subprocess.getstatusoutput([adbpath,"-s",device,"shell","input","tap",str(x) ,str(y)])
+                                else:
+                                    subprocess.getstatusoutput([adbpath,"-s",device,"shell","input","tap",str((dst[0][0][0] + dst[2][0][0])//2) ,str((dst[0][0][1] + dst[2][0][1])//2)])
+                            
+                            
                             draw_params = dict(matchColor=(0,255,0), singlePointColor=None,matchesMask=matchesMask, flags=2)
-                            successResult = cv.drawMatches(model.image,model.kps,img_target_gray,kps_target_gray,good,None,**draw_params)
+                            successResult = cv.drawMatches(model.image,model.kps,img_targent,kps_target,good,None,**draw_params)
                             cv.imwrite("successResult.png",successResult)
+                            # 增加次数
+                            count = int(row[7])
+                            ui.tree2.set(item, column='count', value=count+1)
+                            # 更新图片
                             ui.image1Update()
+
+                            # 更新匹配信息
+                            ui.configs['pptime'].set( time.strftime("%H:%M:%S", time.localtime()) )
+
+                            ui.configs['ppname'].set( os.path.splitext(os.path.basename(row[3]))[0])
+                            
+                            sleepTime = int(ui.configs['entrysuccessrate'].get())
                             break
 
-            sleepTime = 3
 
 
 th = threading.Thread(target=scan)
@@ -103,6 +133,7 @@ th.start()
 
 ui.image1Update()
 ui.image2Update()
+ui.refreshDevices()
 
 ui.start()
 

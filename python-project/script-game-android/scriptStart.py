@@ -55,7 +55,7 @@ def scan():
     searchParams= dict(checks=50)
     flann=cv.FlannBasedMatcher(indexParams,searchParams)
 
-    sleepTime = 3
+    sleepTime = 10
     while True:
         time.sleep(sleepTime)
         sleepTime = int(ui.configs['entryrate'].get())

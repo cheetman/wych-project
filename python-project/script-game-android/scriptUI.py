@@ -284,25 +284,26 @@ class ScriptUI:
 
     def imageUpdate(self,file ,image):
         im1 = cv.imread(file)
-        maxValue = max(im1.shape[0],im1.shape[1])
-        minValue = min(im1.shape[0],im1.shape[1])
-        entrypiclength = int(self.configs['entrypiclength'].get())
-        if maxValue > entrypiclength :
-            newMaxValue = entrypiclength
-            radio = maxValue/newMaxValue
-            # radio = maxValue/minValue
-            newMinValue = int(minValue /radio)
-            if im1.shape[0] > im1.shape[1]:
-                im2 = cv.resize(im1, (newMinValue,newMaxValue), interpolation=cv.INTER_CUBIC)
-            else :
-                im2 = cv.resize(im1, (newMaxValue,newMinValue), interpolation=cv.INTER_CUBIC)
-            cv.imwrite('screen2.png', im2)
-        else:
-            cv.imwrite('screen2.png', im1)
+        if im1 is not None:
+            maxValue = max(im1.shape[0],im1.shape[1])
+            minValue = min(im1.shape[0],im1.shape[1])
+            entrypiclength = int(self.configs['entrypiclength'].get())
+            if maxValue > entrypiclength :
+                newMaxValue = entrypiclength
+                radio = maxValue/newMaxValue
+                # radio = maxValue/minValue
+                newMinValue = int(minValue /radio)
+                if im1.shape[0] > im1.shape[1]:
+                    im2 = cv.resize(im1, (newMinValue,newMaxValue), interpolation=cv.INTER_CUBIC)
+                else :
+                    im2 = cv.resize(im1, (newMaxValue,newMinValue), interpolation=cv.INTER_CUBIC)
+                cv.imwrite('screen2.png', im2)
+            else:
+                cv.imwrite('screen2.png', im1)
 
-        img_screen = tk.PhotoImage(file="screen2.png")
-        image.config(image=img_screen)  
-        image.image= img_screen
+            img_screen = tk.PhotoImage(file="screen2.png")
+            image.config(image=img_screen)  
+            image.image= img_screen
 
     def refreshFile(self):
         self.templateConfig.RefreshPicConfig()

@@ -914,7 +914,7 @@ UINT32 encode_image(UINT8* input_ptr, UINT8* output_ptr, UINT32 quality_factor, 
 	output_ptr = close_bitstream(output_ptr);
 	return (UINT32)(output_ptr - output);
 }
-int main()
+int main2()
 {
 
 	int size = 1280 * 720 * 3, sizeout = 0, x, y;

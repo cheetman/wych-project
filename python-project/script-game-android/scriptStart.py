@@ -16,6 +16,7 @@ import threading
 import scriptModel
 import scriptConfig
 import scriptUI
+import simplePackage
 import re
 
 import subprocess
@@ -96,6 +97,9 @@ def scan():
                         model = config.templateConfigs[row[2]].models[row[3]]
                         success,good,matchesMask,dst  = model.matchSift(flann,img_targent,features,kps_target)
                         if success:
+                            # 报警时间清空
+                            ui.alertTime = 0
+
                             cv.polylines(img_targent,[np.int32(dst)],True,0,2, cv.LINE_AA)
                             # 点击
                             if cbstartdebugFlag == 0:
@@ -130,6 +134,30 @@ def scan():
 th = threading.Thread(target=scan)
 th.setDaemon(True)
 th.start()
+
+
+th2 = threading.Thread(target=simplePackage.startTimeTask ,args= (ui.forceRefreshDevices, 10))
+th2.setDaemon(True)
+th2.start()
+
+
+# 长时间不操作，定时激活
+def timeAlert():
+    time.sleep(5)
+    while True:
+        time.sleep(1)
+        if ui.configs['cbppalert'].get() == 1:
+            ui.alertTime = ui.alertTime + 1
+            if ui.alertTime > 60 :
+                ui.alertTime = 0
+                ui.focus()
+                
+th3 = threading.Thread(target=timeAlert)
+th3.setDaemon(True)
+th3.start()
+
+
+
 
 ui.image1Update()
 ui.image2Update()

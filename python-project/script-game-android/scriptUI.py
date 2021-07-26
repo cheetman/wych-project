@@ -54,6 +54,9 @@ class ScriptUI:
             
         }
 
+        self.alertTime = 0
+     
+
         frameLeft = tk.Frame(window,width=250)
         frameCenter = tk.Frame(window,height=100,width=600)
         frameCenter2 = tk.Frame(window,height=100,width=600)
@@ -240,6 +243,13 @@ class ScriptUI:
         self.center2_labelframe = center2_labelframe
         self.window = window
 
+
+            
+    def focus(self):
+        # self.window.focus()
+        self.window.attributes('-topmost', 1)
+        self.window.attributes('-topmost', 0)
+
     def start(self):
         self.window.mainloop()
 
@@ -263,6 +273,19 @@ class ScriptUI:
         for index,item in  enumerate(filter(lambda x:x.find('\t') > 0 , result[1].split('\n'))):
             self.tree1.insert("", 'end',  values=(index +1,item.split('\t')[0], item.split('\t')[1]))  
         print(result)
+
+    def forceRefreshDevices(self):
+        items=self.tree1.get_children()
+        if len(items) == 0 :
+            result = subprocess.getstatusoutput([self.configs['entryadb'].get(),"devices"])
+            for index,item in  enumerate(filter(lambda x:x.find('\t') > 0 , result[1].split('\n'))):
+                self.tree1.insert("", 'end',  values=(index +1,item.split('\t')[0], item.split('\t')[1])) 
+            print(result)
+            items=self.tree1.get_children()
+            if len(items) > 0 :
+                item = self.tree1.get_children()[0]
+                self.tree1.focus(item)
+            
 
     def screenCap(self):
         select=self.tree1.selection()

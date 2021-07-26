@@ -23,7 +23,14 @@ class Template:
         self.histThreshold = histThreshold
 
     def matchSift(self, flann,targetImg,targetFeatures,kps):
-        matches = flann.knnMatch(self.features, targetFeatures, 2)
+
+        # 某些情况下此处会报错
+        try:
+            matches = flann.knnMatch(self.features, targetFeatures, 2)
+        except Exception as e:
+            print('Error:',e)
+            return False,[],None,None
+
         good = []
         for m, n in matches:
             if m.distance < n.distance * 0.66:

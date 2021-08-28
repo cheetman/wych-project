@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <U8x8lib.h>
+#include <U8g2lib.h>
 // #include <dht11.h>
 #include "protothreads.h"
 #include "pt-sem.h"
@@ -8,10 +9,13 @@
 #ifdef U8X8_HAVE_HW_SPI
 #include <SPI.h>
 #endif
+#ifdef U8X8_HAVE_HW_I2C
+#include <Wire.h>
+#endif
 #define DHTPIN 3
 #define DHTTYPE DHT11
 
-
+U8G2_SSD1306_128X64_NONAME_F_SW_I2C u8g2(U8G2_R0, /* clock=*/ SCL, /* data=*/ SDA, /* reset=*/ U8X8_PIN_NONE);   // All Boards without Reset of the Display
 U8X8_SSD1306_128X64_NONAME_SW_I2C u8x8(/* clock=*/ SCL, /* data=*/ SDA, /* reset=*/ U8X8_PIN_NONE);   // OLEDs without Reset of the Display
 static struct pt_sem sem_LED;
 pt ptBlink;
@@ -26,14 +30,19 @@ char* Temperature = new char[40];
 
 void pre(void)
 {
-  u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);    
-  u8x8.clear();
+  // u8x8.setFont(u8x8_font_amstrad_cpc_extended_f);    
+  // u8x8.clear();
 
-  u8x8.inverse();
-  u8x8.print(" 128X64 Led ");
-  u8x8.setFont(u8x8_font_chroma48medium8_r);  
-  u8x8.noInverse();
-  u8x8.setCursor(0,1);
+  // u8x8.inverse();
+  // u8x8.print(" 128X64 Led ");
+  // u8x8.setFont(u8x8_font_chroma48medium8_r);  
+  // u8x8.noInverse();
+  // u8x8.setCursor(0,1);
+
+  
+  u8g2.setFont(u8g2_font_unifont_t_chinese1);  // use chinese2 for all the glyphs of "你好世界"
+  u8g2.setFontDirection(0);
+
 }
 
 
@@ -44,9 +53,9 @@ int Dht11Thread(struct pt* pt) {
     float h = dht.readHumidity();
     float t = dht.readTemperature();
     if (isnan(h) || isnan(t) ) {
-      Serial.println(F("Failed to read from DHT sensor!"));
-      strcpy(Humidity ,"Failed to read");
-      strcpy(Temperature ,"from DHT sensor!");
+       Serial.println(F("Failed to read from DHT sensor!"));
+       strcpy(Humidity ,"Failed to read");
+       strcpy(Temperature ,"from DHT sensor!");
 
     }else{
       Serial.print(F("Humidity: "));
@@ -56,11 +65,11 @@ int Dht11Thread(struct pt* pt) {
       Serial.println(F("°C "));
 
       char Humidityc[40] ;  
-      sprintf(Humidityc, " Hum:%.1f%%",h);  
+      sprintf(Humidityc, "Hum:%.1f%%",h);  
       strcpy(Humidity ,Humidityc);
 
       char Temperaturec[40] ;  
-      sprintf(Temperaturec, " Tem:%.1fC",t);  
+      sprintf(Temperaturec, "Tem:%.1fC",t);  
       strcpy(Temperature ,Temperaturec);
       
     }
@@ -77,9 +86,18 @@ int Led8x8Thread(struct pt* pt) {
   for(;;) {
 
     pre();
-    u8x8.drawString(0, 2, Humidity);
-    // u8x8.draw2x2String(0, 5, Temperature);
-    u8x8.drawString(0, 3, Temperature);
+    // u8x8.drawString(0, 2, Humidity);
+    // u8x8.drawString(0, 3, Temperature); 
+    u8g2.clearBuffer();
+    u8g2.setCursor(0, 15);
+
+    u8g2.print(Humidity);
+    u8g2.setCursor(0, 35);
+    u8g2.print(Temperature);	
+    
+    u8g2.sendBuffer();
+    Serial.println(Humidity);
+    Serial.println(Temperature);
     PT_SLEEP(pt,2000);
 
     PT_YIELD(pt); //看看别人要用么？
@@ -216,8 +234,13 @@ void setup() {
   PT_INIT(&ptDht11);
   
   pinMode(LED_BUILTIN, OUTPUT);
-  u8x8.begin();
+  // u8x8.begin();
   dht.begin();
+
+  
+  u8g2.begin();
+  u8g2.enableUTF8Print();	
+
 }
 
 void loop() {

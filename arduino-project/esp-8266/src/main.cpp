@@ -284,7 +284,7 @@ void setup() {
   u8g2.enableUTF8Print();
 
   wifiMulti.addAP("BFDA_Office","");
-  wifiMulti.addAP("dfsdf","");
+  wifiMulti.addAP("501","Doubi123..");
 
   pre();
 

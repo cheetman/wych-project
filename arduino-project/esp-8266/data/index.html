@@ -16,22 +16,25 @@
     <div class="container">
     <h1 class="header-dividing">开发板信息</h1>
     <h3>闪存信息</h3>
-    <div>全部容量： <span id="22">NA</span></div>
-    <div>已用容量： <span id="22">NA</span></div>
+    <div>全部容量： <span id="SDTotalBytes" class="text-primary">NA</span> (字节)</div>
+    <div>已用容量： <span id="SDUsedBytes" class="text-primary">NA</span> (字节)</div>
+    <button class="btn" type="button"><i class="icon icon-th-list"></i> 列出闪存文件</button>
     
     <h1 class="header-dividing">引脚状态</h1>
-    <div>D0: <span id="22">开</span></div>
-    <div>D1: <span id="22">开</span></div>
-    <div>D2: <span id="22">开</span></div>
+    <div>D0: <span id="D0" class="text-primary">NA</span></div>
+    <div>D1: <span id="D1" class="text-primary">NA</span></div>
+    <div>D2: <span id="D2" class="text-primary">NA</span></div>
+    <div>D3: <span id="D3" class="text-primary">NA</span></div>
+    <div>D4: <span id="D4" class="text-primary">NA</span></div>
 
     <h1 class="header-dividing">网络状态</h1>
-    <div>SSID: <span id="SSID">test</span></div>
-    <div>IP: <span id="IP">192.168.19.1</span></div>
+    <div>SSID: <span id="WIFI_SSID" class="text-primary">NA</span></div>
+    <div>IP: <span id="WIFI_IP" class="text-primary">NA</span></div>
     
     <h1 class="header-dividing">传感器状态</h1>
     <h3>温度传感器</h3>
-    <div>温度: <span id="SSID">test</span></div>
-    <div>湿度: <span id="IP">192.168.19.1</span></div>
+    <div>温度: <span id="Humidity" class="text-primary">NA</span></div>
+    <div>湿度: <span id="Temperature" class="text-primary">NA</span></div>
 
     <h1 class="header-dividing">控制</h1>
 
@@ -74,35 +77,45 @@
 
 
 
-<!-- <script>
-function sendData(led) {
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      document.getElementById("LEDState").innerHTML =
-      this.responseText;
-    }
-  };
-  xhttp.open("GET", "setLED?LEDstate="+led, true);
-  xhttp.send();
-}
+<script>
+// function sendData(led) {
+//   var xhttp = new XMLHttpRequest();
+//   xhttp.onreadystatechange = function() {
+//     if (this.readyState == 4 && this.status == 200) {
+//       document.getElementById("LEDState").innerHTML =
+//       this.responseText;
+//     }
+//   };
+//   xhttp.open("GET", "setLED?LEDstate="+led, true);
+//   xhttp.send();
+// }
  
 setInterval(function() {
-  // Call a function repetatively with 2 Second interval
   getData();
-}, 2000); //2000mSeconds update rate
+}, 2000);
  
 function getData() {
   var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
-      document.getElementById("ADCValue").innerHTML =
-      this.responseText;
+      var obj = JSON.parse(this.responseText);
+
+      document.getElementById("WIFI_SSID").innerHTML = obj.WIFI_SSID;
+      document.getElementById("WIFI_IP").innerHTML = obj.WIFI_IP;
+      document.getElementById("Humidity").innerHTML = obj.Humidity;
+      document.getElementById("Temperature").innerHTML = obj.Temperature;
+      document.getElementById("SDTotalBytes").innerHTML = obj.SDTotalBytes;
+      document.getElementById("SDUsedBytes").innerHTML = obj.SDUsedBytes;
+      document.getElementById("D0").innerHTML = obj.D0 == 1 ? "高电平" : "低电平";
+      document.getElementById("D1").innerHTML = obj.D1 == 1 ? "高电平" : "低电平";
+      document.getElementById("D2").innerHTML = obj.D2 == 1 ? "高电平" : "低电平";
+      document.getElementById("D3").innerHTML = obj.D3 == 1 ? "高电平" : "低电平";
+      document.getElementById("D4").innerHTML = obj.D4 == 1 ? "高电平" : "低电平";
     }
   };
-  xhttp.open("GET", "readADC", true);
+  xhttp.open("GET", "status", true);
   xhttp.send();
-} -->
+}
 </script>
 
 </body>

@@ -9,6 +9,7 @@
 #include <ESP8266WiFiMulti.h>
 #include <ESP8266WebServer.h>
 #include "LittleFS.h"
+#include <ArduinoJson.h>
 
 #ifdef U8X8_HAVE_HW_SPI
 #include <SPI.h>
@@ -32,6 +33,7 @@ pt ptIn;
 pt ptLed8x8;
 pt ptDht11;
 pt ptFlashBtn;
+pt ptWebServer;
 
 static struct pt_sem sem_LED;
 
@@ -41,8 +43,9 @@ String WIFI_PASSWORD = "";
 String WIFI_IP = "";
 char* Humidity = new char[20];  
 char* Temperature = new char[20];  
+size_t SDTotalBytes ;
+size_t SDUsedBytes ;
  
-
 void pre(void)
 {
   // u8g2.setFont(u8g2_font_unifont_t_chinese3);  // use chinese2 for all the glyphs of "你好世界"
@@ -200,43 +203,23 @@ int inThread(struct pt* pt) {
         }
       }
 
-
     inString += (char)inChar; 
     }
     if (inChar == ' '||inChar=='\n') {
-      
       PT_SEM_WAIT(pt,&sem_LED);//我要用LED！
       inString = ""; 
-      //抢到使用权了，虐5次
+      //抢到使用权了
       digitalWrite(LED_BUILTIN,HIGH);
-      Serial.print("闪烁");
       PT_SLEEP(pt,100);
       digitalWrite(LED_BUILTIN,LOW);
-      Serial.print("闪烁");
       PT_SLEEP(pt,100);
       digitalWrite(LED_BUILTIN,HIGH);
-      Serial.print("闪烁");
       PT_SLEEP(pt,100);
       digitalWrite(LED_BUILTIN,LOW);
-      Serial.print("闪烁");
       PT_SLEEP(pt,100);
       digitalWrite(LED_BUILTIN,HIGH);
-      Serial.print("闪烁");
       PT_SLEEP(pt,100);
       digitalWrite(LED_BUILTIN,LOW);
-      Serial.print("闪烁");
-      PT_SLEEP(pt,100);
-      digitalWrite(LED_BUILTIN,HIGH);
-      Serial.print("闪烁");
-      PT_SLEEP(pt,100);
-      digitalWrite(LED_BUILTIN,LOW);
-      Serial.print("闪烁");
-      PT_SLEEP(pt,100);
-      digitalWrite(LED_BUILTIN,HIGH);
-      Serial.print("闪烁");
-      PT_SLEEP(pt,100);
-      digitalWrite(LED_BUILTIN,LOW);
-      Serial.print("闪烁");
       PT_SLEEP(pt,100);
       
       PT_SEM_SIGNAL(pt,&sem_LED); //归还LED使用权了
@@ -253,18 +236,103 @@ int FlashBtnThread(struct pt* pt) {
   PT_BEGIN(pt);
   // Loop forever
   for(;;) {
-      
-      PT_SEM_WAIT(pt,&sem_LED);//我要用LED！
-      //抢到使用权了，虐5次
       int value = digitalRead(D3);
-      Serial.print(value);
-      PT_SLEEP(pt,100);
+      if(value == LOW){
+        // 切换页面
+        Serial.print("点击了Flash按钮");
+        PT_SLEEP(pt,1000);
+      }
 	    PT_YIELD(pt);
-    
   }
 
   PT_END(pt);
 }
+
+int WebServerThread(struct pt* pt) {
+  PT_BEGIN(pt);
+  // Loop forever
+  for(;;) {
+      esp8266_server.handleClient();
+	    PT_YIELD(pt);
+  }
+  PT_END(pt);
+}
+
+
+// 获取文件类型
+String getContentType(String filename){
+  if(filename.endsWith(".htm")) return "text/html";
+  else if(filename.endsWith(".html")) return "text/html";
+  else if(filename.endsWith(".css")) return "text/css";
+  else if(filename.endsWith(".js")) return "application/javascript";
+  else if(filename.endsWith(".png")) return "image/png";
+  else if(filename.endsWith(".gif")) return "image/gif";
+  else if(filename.endsWith(".jpg")) return "image/jpeg";
+  else if(filename.endsWith(".ico")) return "image/x-icon";
+  else if(filename.endsWith(".xml")) return "text/xml";
+  else if(filename.endsWith(".pdf")) return "application/x-pdf";
+  else if(filename.endsWith(".zip")) return "application/x-zip";
+  else if(filename.endsWith(".gz")) return "application/x-gzip";
+  return "text/plain";
+}
+
+bool handleFileRead(String resource) {            //处理浏览器HTTP访问
+
+  if (resource.endsWith("/")) {                   // 如果访问地址以"/"为结尾
+    resource = "/index.html";                     // 则将访问地址修改为/index.html便于SPIFFS访问
+  } 
+  
+  String contentType = getContentType(resource);  // 获取文件类型
+  
+  if (LittleFS.exists(resource)) {                     // 如果访问的文件可以在SPIFFS中找到
+    File file = LittleFS.open(resource, "r");          // 则尝试打开该文件
+    esp8266_server.streamFile(file, contentType);// 并且将该文件返回给浏览器
+    file.close();                                // 并且关闭文件
+    return true;                                 // 返回true
+  }
+  return false;                                  // 如果文件未找到，则返回false
+}
+
+// 处理用户浏览器的HTTP访问
+void handleUserRequest() {         
+     
+  // 获取用户请求资源(Request Resource）
+  String reqResource = esp8266_server.uri();
+  Serial.printf("请求资源: %s\r\n",reqResource.c_str());
+  
+  // 通过handleFileRead函数处处理用户请求资源
+  // bool fileReadOK = false;
+  bool fileReadOK = handleFileRead(reqResource);
+
+  // 如果在SPIFFS无法找到用户访问的资源，则回复404 (Not Found)
+  if (!fileReadOK){                                                 
+    esp8266_server.send(404, "text/plain", "404 Not Found"); 
+  }
+}
+
+void handleStatus() {
+//  int a = analogRead(A0);
+//  String adcValue = String(a);
+
+  String jsonStr;  
+  DynamicJsonDocument doc(1024);
+  doc["WIFI_SSID"] = WIFI_SSID;
+  doc["WIFI_IP"]   = WIFI_IP;
+  doc["Humidity"] = Humidity;
+  doc["Temperature"] = Temperature;
+  doc["SDTotalBytes"] = SDTotalBytes;
+  doc["SDUsedBytes"] = SDUsedBytes;
+  doc["D0"] =  digitalRead(D0);
+  doc["D1"] =  digitalRead(D1);
+  doc["D2"] =  digitalRead(D2);
+  doc["D3"] =  digitalRead(D3);
+  doc["D4"] = digitalRead(D4);
+  serializeJson(doc, jsonStr);
+ 
+ esp8266_server.send(200, "application/json", jsonStr); //发送模拟输入引脚到客户端ajax请求
+}
+
+
 
 
 void setup() {
@@ -283,7 +351,8 @@ void setup() {
   u8g2.begin();
   u8g2.enableUTF8Print();
 
-  wifiMulti.addAP("BFDA_Office","");
+  wifiMulti.addAP("Redmi K30 Ultra","564778358");
+  // wifiMulti.addAP("BFDA_Office","");
   wifiMulti.addAP("501","Doubi123..");
 
   pre();
@@ -316,9 +385,15 @@ void setup() {
     return;
   }
   LittleFS.info(x);
+  SDTotalBytes = x.totalBytes;
+  SDUsedBytes = x.usedBytes;
+  Serial.printf("闪存总容量:%d字节\r\n",SDTotalBytes);
+  Serial.printf("已使用:%d字节\r\n",SDUsedBytes);
 
-  Serial.printf("闪存总容量:%d字节\r\n",x.totalBytes);
-  Serial.printf("已使用:%d字节\r\n",x.usedBytes);
+  esp8266_server.on("/status", handleStatus);  
+  esp8266_server.onNotFound(handleUserRequest); // 处理网络请求
+  // 启动网站服务
+  esp8266_server.begin();
 }
 
 void loop() {
@@ -328,5 +403,6 @@ void loop() {
   PT_SCHEDULE(Led8x8Thread(&ptLed8x8));
   PT_SCHEDULE(Dht11Thread(&ptDht11));
   PT_SCHEDULE(FlashBtnThread(&ptFlashBtn));
+  PT_SCHEDULE(WebServerThread(&ptWebServer));
 
 }

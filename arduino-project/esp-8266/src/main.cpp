@@ -41,6 +41,7 @@ StreamString stream;
 String WIFI_SSID = "";
 String WIFI_PASSWORD = "";
 String WIFI_IP = "";
+String Hostname = "ESP";
 char *Humidity = new char[20];
 char *Temperature = new char[20];
 size_t SDTotalBytes;
@@ -383,7 +384,7 @@ void setup()
   u8g2.enableUTF8Print();
 
   wifiMulti.addAP("Redmi K30 Ultra", "564778358");
-  // wifiMulti.addAP("BFDA_Office","");
+  wifiMulti.addAP("BFDA_Office","");
   wifiMulti.addAP("501", "Doubi123..");
 
   pre();
@@ -404,12 +405,12 @@ void setup()
     Serial.print('.');
   }
 
-  Serial.println('');
-
+  Serial.println("");
+  WiFi.hostname(Hostname);
   WIFI_SSID = WiFi.SSID();
   WIFI_IP = WiFi.localIP().toString();
-  Serial.printf("SSID:%s\r\n", WIFI_SSID);
-  Serial.printf("IP:%s\r\n", WIFI_IP);
+  Serial.printf("SSID:%s\r\n", WIFI_SSID.c_str());
+  Serial.printf("IP:%s\r\n", WIFI_IP.c_str());
 
   struct FSInfo x;
   if (!LittleFS.begin())

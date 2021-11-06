@@ -44,9 +44,9 @@ public slots:
     void replySkipRead();
 
 private:
-    QString ip;
+    QString host;
     int port;
-    QString account;
+    QString username;
     QString password;
     QString path;
     QStandardItemModel *fileGridModel;
@@ -69,7 +69,7 @@ private:
     QList<QNetworkReply *> m_replyList;
 
 signals:
-    void sendVideoPlayer();
+    void sendVideoPlayer(QString url);
 
 };
 

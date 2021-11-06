@@ -3,6 +3,9 @@
 
 #include <QTextCodec>
 #include <QCloseEvent>
+#include <QThreadPool>
+#include <QFuture>
+#include <QtConcurrent>
 
 
 ItemView7VlcPlayer::ItemView7VlcPlayer(QWidget *parent) : QDialog(parent)
@@ -24,7 +27,7 @@ ItemView7VlcPlayer::ItemView7VlcPlayer(QWidget *parent) : QDialog(parent)
     auto btnTest3 = new QPushButton(tr("测试位置"),this);
     sliderVolume = new QSlider(Qt::Horizontal,this);
     sliderVolume->setFixedWidth(80);
-    sliderVolume->installEventFilter(this);
+//    sliderVolume->installEventFilter(this);
     btnslayout->addWidget(btnTest);
     btnslayout->addWidget(btnStop);
     btnslayout->addWidget(btnPlay);
@@ -39,7 +42,7 @@ ItemView7VlcPlayer::ItemView7VlcPlayer(QWidget *parent) : QDialog(parent)
     auto sliderlayout = new QHBoxLayout(this);
     sliderGroupBox->setLayout(sliderlayout);
     sliderPosition = new QSlider(Qt::Horizontal,this);
-    sliderPosition->installEventFilter(this);
+//    sliderPosition->installEventFilter(this);
     lineEdit1 = new QLineEdit(this);
     lineEdit2 = new QLineEdit(this);
     sliderlayout->addWidget(lineEdit1);
@@ -56,17 +59,23 @@ ItemView7VlcPlayer::ItemView7VlcPlayer(QWidget *parent) : QDialog(parent)
     lineEdit2->setFixedWidth(50);
 
 
-    layout->addWidget(playWidget);
+      layout->addWidget(playWidget);
     layout->addWidget(btnsGroupBox);
     layout->addWidget(sliderGroupBox);
     setLayout(layout);
-    player = new VlcLib(playWidget);
+    player = new VlcLib(this);
 
 
 
     connect(btnTest,&QPushButton::clicked,[=](){
-        player->stop();
-        auto url =QUrl("http://xxx:xxxxx@xxxx:xxxx/video/中文测试.mkv").url().toStdString().data();
+//        player->stop();
+
+
+//        playWidget = new QWidget(this);
+//        playWidget->setMinimumSize(QSize(200,200));
+//        layout->addWidget(playWidget);
+
+        auto url =QUrl("http://admin:564778358q.nasnew@cheat.imwork.net:55005/video/中文测试.mkv").url().toStdString().data();
         player->playFile(url, (HWND)playWidget->winId());
     });
 
@@ -74,7 +83,21 @@ ItemView7VlcPlayer::ItemView7VlcPlayer(QWidget *parent) : QDialog(parent)
         player->play();
     });
     connect(btnStop,&QPushButton::clicked,[=](){
-        player->stop();
+
+//        QtConcurrent::run([player]()
+//            {
+//             player->stop();
+
+//            });
+
+
+//        if (playWidget != nullptr)
+//          {
+//            delete playWidget;
+//            playWidget = nullptr;
+//          }
+            player->stop();
+
     });
     connect(btnTest2,&QPushButton::clicked,[=](){
        qDebug() << "播放位置："<< player->getPosition();
@@ -87,46 +110,46 @@ ItemView7VlcPlayer::ItemView7VlcPlayer(QWidget *parent) : QDialog(parent)
 
 
 
-    QTimer * timer = new QTimer(this);
-    timer->start(100);
-    connect(timer, &QTimer::timeout,[=](){
-        QTime n(0, 0, 0), cur, tol;
-        float position = player->getPosition();
-        int volume = player->getVolume();
-        libvlc_time_t curtime = player->getTime();
-        libvlc_time_t toltime = player->getLength();
-        cur = n.fromMSecsSinceStartOfDay(curtime);
-        tol = n.fromMSecsSinceStartOfDay(toltime);
-        if (toltime > 3600000)
-        {
-        lineEdit1->setText(cur.toString("hh:mm:ss"));
-        lineEdit2->setText(tol.toString("hh:mm:ss"));
-        }
-        else if (toltime > 60000)
-        {
-            lineEdit1->setText(cur.toString("mm:ss"));
-            lineEdit2->setText(tol.toString("mm:ss"));
-        }
-        else if (toltime > 1000)
-        {
-            lineEdit1->setText(cur.toString("ss"));
-            lineEdit2->setText(tol.toString("ss"));
-        }
-        else if (toltime > 0)
-        {
-            lineEdit1->setText(cur.toString("zzz"));
-            lineEdit2->setText(tol.toString("zzz"));
-        }
-        sliderPosition->setValue(position * sliderPosition->maximum());
-        // lineEdit1_3->setText(QString::number(volume) + "%");
-        sliderVolume->setValue(sliderVolume->maximum() * volume / 100.0);
-        if (player->isEnd())
-        {
-            player->stop();
-            sliderPosition->setValue(0);
-            lineEdit1->clear();
-        }
-    });
+//    QTimer * timer = new QTimer(this);
+//    timer->start(100);
+//    connect(timer, &QTimer::timeout,[=](){
+//        QTime n(0, 0, 0), cur, tol;
+//        float position = player->getPosition();
+//        int volume = player->getVolume();
+//        libvlc_time_t curtime = player->getTime();
+//        libvlc_time_t toltime = player->getLength();
+//        cur = n.fromMSecsSinceStartOfDay(curtime);
+//        tol = n.fromMSecsSinceStartOfDay(toltime);
+//        if (toltime > 3600000)
+//        {
+//        lineEdit1->setText(cur.toString("hh:mm:ss"));
+//        lineEdit2->setText(tol.toString("hh:mm:ss"));
+//        }
+//        else if (toltime > 60000)
+//        {
+//            lineEdit1->setText(cur.toString("mm:ss"));
+//            lineEdit2->setText(tol.toString("mm:ss"));
+//        }
+//        else if (toltime > 1000)
+//        {
+//            lineEdit1->setText(cur.toString("ss"));
+//            lineEdit2->setText(tol.toString("ss"));
+//        }
+//        else if (toltime > 0)
+//        {
+//            lineEdit1->setText(cur.toString("zzz"));
+//            lineEdit2->setText(tol.toString("zzz"));
+//        }
+//        sliderPosition->setValue(position * sliderPosition->maximum());
+//        // lineEdit1_3->setText(QString::number(volume) + "%");
+//        sliderVolume->setValue(sliderVolume->maximum() * volume / 100.0);
+//        if (player->isEnd())
+//        {
+//            player->stop();
+//            sliderPosition->setValue(0);
+//            lineEdit1->clear();
+//        }
+//    });
 
 }
 
@@ -134,6 +157,7 @@ ItemView7VlcPlayer::ItemView7VlcPlayer(QWidget *parent) : QDialog(parent)
 // 重写closeEvent: 确认退出对话框
 void ItemView7VlcPlayer::closeEvent(QCloseEvent *event)
 {
+     player->stop();
      emit closeDialog();
      event->accept();
 //    QMessageBox::StandardButton button;
@@ -148,45 +172,46 @@ void ItemView7VlcPlayer::closeEvent(QCloseEvent *event)
 //    }
 }
 
-void ItemView7VlcPlayer::getVideoData(){
+void ItemView7VlcPlayer::getVideoData(QString url){
 
-qDebug() << "sdfdsf";
-
+    qDebug() << "准备播放：" << url;
+    //player->stop();
+    player->playFile(url.toStdString().data(), (HWND)playWidget->winId());
 }
 
 
 
-bool ItemView7VlcPlayer::eventFilter(QObject *watched, QEvent *event)
-{
+//bool ItemView7VlcPlayer::eventFilter(QObject *watched, QEvent *event)
+//{
 
-    if (event->type() == QEvent::MouseButtonPress)
-    {
-        if (watched == sliderPosition)
-        {
-            QMouseEvent * mouset = (QMouseEvent *)event;
-            if (mouset->button() == Qt::LeftButton)
-            {
-                double pro = (double)mouset->x() /sliderPosition->width();
-                double pos = pro * sliderPosition->maximum();
-                sliderPosition->setValue(pos);
-                player->setPosition(pro);
-                return true;
-            }
-        }
-        else if (watched == sliderVolume)
-        {
-            QMouseEvent * mouset = (QMouseEvent *)event;
-            if (mouset->button() == Qt::LeftButton)
-            {
-                double pro = (double)mouset->x() /sliderVolume->width();
-                double pos = pro * sliderVolume->maximum();
-               sliderVolume->setValue(pos);
-                player->setVolume(pro * 101);
-                return true;
-            }
-        }
-    }
-    return false;
-}
+//    if (event->type() == QEvent::MouseButtonPress)
+//    {
+//        if (watched == sliderPosition)
+//        {
+//            QMouseEvent * mouset = (QMouseEvent *)event;
+//            if (mouset->button() == Qt::LeftButton)
+//            {
+//                double pro = (double)mouset->x() /sliderPosition->width();
+//                double pos = pro * sliderPosition->maximum();
+//                sliderPosition->setValue(pos);
+//                player->setPosition(pro);
+//                return true;
+//            }
+//        }
+//        else if (watched == sliderVolume)
+//        {
+//            QMouseEvent * mouset = (QMouseEvent *)event;
+//            if (mouset->button() == Qt::LeftButton)
+//            {
+//                double pro = (double)mouset->x() /sliderVolume->width();
+//                double pos = pro * sliderVolume->maximum();
+//               sliderVolume->setValue(pos);
+//                player->setVolume(pro * 101);
+//                return true;
+//            }
+//        }
+//    }
+//    return false;
+//}
 
 

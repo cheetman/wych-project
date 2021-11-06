@@ -111,10 +111,6 @@ ItemView7::ItemView7(QWidget *parent) : QWidget(parent)
 
 
 
-
-
-
-
         setLayout(mainLayout);
 //        connect(btnOpenPlayer, SIGNAL(clicked()), this, SLOT(openPlayer()));
         connect(btnUpDir, SIGNAL(clicked()), this, SLOT(btnUpDir()));
@@ -193,7 +189,7 @@ void ItemView7::btnPlayer()
         playerDialog->setModal(false);
         playerDialog->show();
     }else{
-        emit sendVideoPlayer();
+        emit sendVideoPlayer("");
     }
 }
 void ItemView7::getFlagFromDialog()

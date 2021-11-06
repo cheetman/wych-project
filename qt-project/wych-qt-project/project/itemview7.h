@@ -64,7 +64,7 @@ private:
 //    ItemView7VlcPlayer *playerDialog;
 
 signals:
-    void sendVideoPlayer();
+    void sendVideoPlayer(QString url);
 
 };
 

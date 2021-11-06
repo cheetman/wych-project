@@ -125,7 +125,7 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
         connect(leftTabFavorTableView,SIGNAL(doubleClicked(const QModelIndex &)),this,SLOT(leftTabFavorTableRowDoubleClicked(const QModelIndex &)));
 
 
-        w.setConnectionSettings(QWebdav::HTTP, "127.0.0.1", "/", "USERNAME", "PASSWORD", 80);
+//        w.setConnectionSettings(QWebdav::HTTP, "127.0.0.1", "/", "USERNAME", "PASSWORD", 80);
         connect(&p, SIGNAL(finished()), this, SLOT(printList()));
         connect(&p, SIGNAL(errorChanged(QString)), this, SLOT(printError(QString)));
         connect(&w, SIGNAL(errorChanged(QString)), this, SLOT(printError(QString)));
@@ -150,11 +150,10 @@ void ItemView8::fileTableRowDoubleClicked(const QModelIndex &current)
 void ItemView8::leftTabFavorTableRowDoubleClicked(const QModelIndex &current)
 {
 
-      auto host =  leftTabFavorTableModel->item(current.row(),1)->text();
-      auto port =  leftTabFavorTableModel->item(current.row(),2)->text().toUInt();
-      auto username =  leftTabFavorTableModel->item(current.row(),4)->text();
-      auto password =  leftTabFavorTableModel->item(current.row(),5)->text();
-
+    host =  leftTabFavorTableModel->item(current.row(),1)->text();
+    port =  leftTabFavorTableModel->item(current.row(),2)->text().toUInt();
+    username =  leftTabFavorTableModel->item(current.row(),4)->text();
+    password =  leftTabFavorTableModel->item(current.row(),5)->text();
 
 
     fileGridModel->clear();
@@ -194,7 +193,12 @@ void ItemView8::btnPlayer()
         playerDialog->setModal(false);
         playerDialog->show();
     }else{
-        emit sendVideoPlayer();
+       auto rowIndex = fileTableView->currentIndex().row();
+       if(rowIndex >= 0){
+           auto path =fileGridModel->item(rowIndex,5)->text();
+           auto url = QString("http://%1:%2@%3:%4%5").arg(username).arg(password).arg(host).arg(port).arg(path);
+           emit sendVideoPlayer(url);
+       }
     }
 }
 void ItemView8::getFlagFromDialog()

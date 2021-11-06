@@ -66,6 +66,6 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-VLCPATH=C:/WorkEnv/vlc-3.0.16
+VLCPATH=C:/WorkEnv/vlc-3.0.0
 INCLUDEPATH += $$VLCPATH/sdk/include
 LIBS += -L$$VLCPATH/sdk/lib -llibvlc -llibvlccore

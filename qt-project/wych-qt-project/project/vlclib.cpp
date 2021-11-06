@@ -98,6 +98,12 @@ void VlcLib::mute()
     libvlc_audio_toggle_mute(vlc_player);
 }
 
+void VlcLib::release()
+{
+
+    libvlc_release(vlc_inst);
+}
+
 libvlc_time_t VlcLib::getLength()
 {
     if (vlc_player == nullptr)

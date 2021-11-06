@@ -26,7 +26,7 @@ public slots:
 
     void setPosition(float pos);
     void setVolume(int vol);
-
+    void release();
     bool isEnd();
 
 signals:

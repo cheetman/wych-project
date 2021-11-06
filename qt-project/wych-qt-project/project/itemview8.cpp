@@ -192,11 +192,19 @@ void ItemView8::btnPlayer()
         connect(playerDialog,&ItemView7VlcPlayer::closeDialog ,this,&ItemView8::getFlagFromDialog);
         playerDialog->setModal(false);
         playerDialog->show();
+
+
+
     }else{
        auto rowIndex = fileTableView->currentIndex().row();
        if(rowIndex >= 0){
            auto path =fileGridModel->item(rowIndex,5)->text();
            auto url = QString("http://%1:%2@%3:%4%5").arg(username).arg(password).arg(host).arg(port).arg(path);
+//           auto newurl = url.toLocal8Bit().toPercentEncoding("/:");
+           url = QUrl::toPercentEncoding(url,"/:@");
+           qDebug() << "url1   " << url ;
+           auto url2 = QUrl(url).url(QUrl::FullyEncoded);
+           qDebug() << "url2   " << url2 ;
            emit sendVideoPlayer(url);
        }
     }

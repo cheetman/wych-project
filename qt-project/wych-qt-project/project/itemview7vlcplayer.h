@@ -32,7 +32,7 @@ private:
 
     void closeEvent(QCloseEvent *event);
 protected:
-//    bool eventFilter(QObject *watched, QEvent *event);
+    bool eventFilter(QObject *watched, QEvent *event);
 
 public slots:
    void getVideoData(QString url);

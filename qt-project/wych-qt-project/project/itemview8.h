@@ -23,6 +23,7 @@
 #include <QString>
 #include <qwebdav.h>
 #include <qwebdavdirparser.h>
+#include <QTableWidget>
 
 
 class ItemView8 : public QWidget
@@ -35,6 +36,7 @@ public slots:
     void openPlayer();
     void btnUpDir();
     void btnPlayer();
+    void btnRename();
     void fileTableRowDoubleClicked(const QModelIndex &);
     void leftTabFavorTableRowDoubleClicked(const QModelIndex &);
     void getFlagFromDialog();
@@ -42,6 +44,9 @@ public slots:
     void printList();
     void printError(QString errorMsg);
     void replySkipRead();
+//    void addOperateButton(QTableWidget *table, int row);
+//    void slot_remove_row();
+//    void slot_edit_row();
 
 private:
     QString host;

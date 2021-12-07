@@ -34,6 +34,7 @@ pt ptLed8x8;
 pt ptDht11;
 pt ptFlashBtn;
 pt ptWebServer;
+pt ptZW;
 
 static struct pt_sem sem_LED;
 
@@ -116,6 +117,98 @@ int Led8x8Thread(struct pt *pt)
 
     u8g2.sendBuffer();
     PT_SLEEP(pt, 2000);
+    PT_YIELD(pt); //看看别人要用么？
+  }
+
+  PT_END(pt);
+}
+
+int sensorValue; //传感器输出的数据包
+long sum = 0;    //由于测试中发现数据会溢出，就用了long，long目前还未溢出过
+int vout = 0;    //由于通信中输出的是整一串数据包，所以需要翻译，vout是处理好的数据，也就是CJMCU-GUVA-S12SD传感器光电流的输出电压
+int uv = 0;      //紫外线等级
+
+int ZWThread(struct pt *pt)
+{
+  PT_BEGIN(pt);
+
+  // Loop forever
+  for (;;)
+  {
+
+    PT_SLEEP(pt, 5000);
+    sensorValue = 0;
+    sum = 0;
+    int j = 0;
+    Serial.println("开始");
+    // for (j = 0; j < 1024; j++) //这里我用的是最简单的filter算法
+    // {
+    //   sensorValue = analogRead(A0);
+    //   sum = sensorValue + sum;
+    // }
+    sensorValue = analogRead(A0);
+
+    Serial.println(sensorValue);
+
+    Serial.println(j);
+    Serial.println(sum);
+
+    vout = sum >> 10; //开始数据处理
+    vout = vout * 4980.0 / 1024;
+    Serial.print("The Photocurrent value : ");
+    Serial.print(vout);
+    Serial.println("mV");
+    if (vout < 50)
+    { //查表，把得到的光电流值转换成紫外线等级
+      uv = 0;
+    }
+    else if (vout < 227)
+    {
+      uv = 1;
+    }
+    else if (vout < 318)
+    {
+      uv = 2;
+    }
+    else if (vout < 408)
+    {
+      uv = 3;
+    }
+    else if (vout < 503)
+    {
+      uv = 4;
+    }
+    else if (vout < 606)
+    {
+      uv = 5;
+    }
+    else if (vout < 696)
+    {
+      uv = 6;
+    }
+    else if (vout < 795)
+    {
+      uv = 7;
+    }
+    else if (vout < 881)
+    {
+      uv = 8;
+    }
+    else if (vout < 976)
+    {
+      uv = 9;
+    }
+    else if (vout < 1079)
+    {
+      uv = 10;
+    }
+    else
+    {
+      uv = 11;
+    }
+    PT_SLEEP(pt, 20);
+    Serial.print("UV Index = ");
+    Serial.println(uv);
     PT_YIELD(pt); //看看别人要用么？
   }
 
@@ -369,7 +462,21 @@ void handleStatus()
 void setup()
 {
 
+
+
   Serial.begin(115200); //串口波特率配置
+
+
+  
+  bool b = 4;
+  if(b == true){
+    Serial.println("true");
+  }else{
+    Serial.println("false");
+  }
+
+
+
   PT_SEM_INIT(&sem_LED, 1);
   PT_INIT(&ptBlink);
   // PT_INIT(&ptOut);
@@ -384,8 +491,13 @@ void setup()
   u8g2.enableUTF8Print();
 
   wifiMulti.addAP("Redmi K30 Ultra", "564778358");
-  wifiMulti.addAP("BFDA_Office","");
+  wifiMulti.addAP("BFDA_Office", "");
   wifiMulti.addAP("501", "Doubi123..");
+  wifiMulti.addAP("NEWIFI3", "22263940");
+  wifiMulti.addAP("CHAM-TS", "");
+
+  // uint8_t newMACAddress[] = {0x50, 0xEB, 0x71, 0x1D, 0x9F, 0x7A};
+  // wifi_set_macaddr(STATION_IF,newMACAddress);
 
   pre();
 
@@ -439,4 +551,6 @@ void loop()
   PT_SCHEDULE(Dht11Thread(&ptDht11));
   PT_SCHEDULE(FlashBtnThread(&ptFlashBtn));
   PT_SCHEDULE(WebServerThread(&ptWebServer));
+
+  // PT_SCHEDULE(ZWThread(&ptZW));
 }

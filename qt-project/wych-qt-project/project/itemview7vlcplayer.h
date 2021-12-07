@@ -21,6 +21,7 @@ class ItemView7VlcPlayer : public QDialog
     Q_OBJECT
 public:
     explicit ItemView7VlcPlayer(QWidget *parent = nullptr);
+//     ~ItemView7VlcPlayer();
 
 private:
     VlcLib *player;
@@ -40,5 +41,7 @@ signals:
    void closeDialog();
 
 };
+
+
 
 #endif // ITEMVIEW7VLCPLAYER_H

@@ -82,6 +82,7 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
         auto layout1_2 = new QHBoxLayout(this);
         auto btnUpDir = new QPushButton(tr("向上"),fileBtnGroupBox);
         auto btnPlay = new QPushButton(tr("播放"),fileBtnGroupBox);
+        auto btnRename = new QPushButton(tr("重命名"),fileBtnGroupBox);
         labelWorkDir = new QLabel(fileBtnGroupBox);
         labelWorkDir->setText("无");
         btnUpDir->setFixedWidth(80);
@@ -92,6 +93,7 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
         layout1_2->addWidget(labelWorkDir);
         layout1_2->addWidget(btnUpDir);
         layout1_2->addWidget(btnPlay);
+        layout1_2->addWidget(btnRename);
         fileBtnGroupBox->setLayout(layout1_2);
 
 
@@ -110,15 +112,11 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
         mainLayout->setColumnMinimumWidth(0,200);
 
 
-
-
-
-
-
         setLayout(mainLayout);
 //        connect(btnOpenPlayer, SIGNAL(clicked()), this, SLOT(openPlayer()));
         connect(btnUpDir, SIGNAL(clicked()), this, SLOT(btnUpDir()));
         connect(btnPlay, SIGNAL(clicked()), this, SLOT(btnPlayer()));
+        connect(btnRename, SIGNAL(clicked()), this, SLOT(btnRename()));
 
         ftpStatus = -1;
         connect(fileTableView,SIGNAL(doubleClicked(const QModelIndex &)),this,SLOT(fileTableRowDoubleClicked(const QModelIndex &)));
@@ -192,8 +190,10 @@ void ItemView8::btnPlayer()
         connect(playerDialog,&ItemView7VlcPlayer::closeDialog ,this,&ItemView8::getFlagFromDialog);
         playerDialog->setModal(false);
         playerDialog->show();
-
-
+        playerDialog->exec();
+//        QString param1=playerDialog->getParam();
+        qDebug()<< "关闭Dialog";
+        delete playerDialog;
 
     }else{
        auto rowIndex = fileTableView->currentIndex().row();
@@ -209,6 +209,15 @@ void ItemView8::btnPlayer()
        }
     }
 }
+
+
+void ItemView8::btnRename()
+{
+
+
+}
+
+
 void ItemView8::getFlagFromDialog()
 {
        existDialog = false;
@@ -254,6 +263,8 @@ void ItemView8::printList()
     }
 
     fileTableView->setModel(fileGridModel);
+    fileTableView->setColumnHidden(5, true);
+
 
 
 }
@@ -277,6 +288,51 @@ void ItemView8::replySkipRead()
     qDebug() << "QWebdav::replySkipRead()   skipped " << ba.size() << " reply->url() == " << reply->url().toString(QUrl::RemoveUserInfo);
 }
 
+struct MyProperty
+{
+    QTableWidget *table;
+    int row;
+};
+Q_DECLARE_METATYPE(MyProperty)  //注意声明
+
+//void ItemView8::addOperateButton(QTableWidget *table, int row)
+//{
+//    QPushButton* delBtn = new QPushButton;
+//     QPushButton* edtBtn = new QPushButton;
+//    QHBoxLayout *h_box_layout = new QHBoxLayout(); //添加水平布局控件
+//    MyProperty myProperty; //自定义类，后面有解释
+//    memset(&myProperty, 0, sizeof(MyProperty));
+//    myProperty.row = row;
+//    myProperty.table = table;
+//    QVariant v;
+//    v.setValue(myProperty);
+//    QWidget *widget = new QWidget(); //添加部件
+
+//    delBtn->setIcon(QIcon(":/res/button/delete.png"));
+//    delBtn->setToolTip("删除");
+//    delBtn->setProperty("sender", v);
+//    QObject::connect(delBtn, SIGNAL(clicked()), this, SLOT(slot_remove_row())); //设置删除动作槽函数
+
+//    edtBtn->setIcon(QIcon(":/res/button/edit.png"));
+//    edtBtn->setToolTip("修改");
+//    edtBtn->setProperty("sender", v);
+//    QObject::connect(edtBtn, SIGNAL(clicked()), this, SLOT(slot_edit_row())); //设置编辑动作槽函数
+
+//    h_box_layout->addWidget(edtBtn);
+//    h_box_layout->addWidget(delBtn);
+//    h_box_layout->setContentsMargins(0, 0, 0, 0);
+//    h_box_layout->setSpacing(1);
+//    widget->setLayout(h_box_layout);
+//    table->setCellWidget(row, 0, widget);
+//}
+
+//void ItemView8::slot_remove_row()
+//{
 
 
+//}
+//void ItemView8::slot_edit_row()
+//{
 
+
+//}

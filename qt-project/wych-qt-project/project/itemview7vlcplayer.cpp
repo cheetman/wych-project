@@ -68,7 +68,7 @@ ItemView7VlcPlayer::ItemView7VlcPlayer(QWidget *parent) : QDialog(parent)
 
 
     connect(btnTest,&QPushButton::clicked,[=](){
-        player->playFile(QString("http://xxx:xxx@xxx:111/video/中文测试.mkv").toStdString().data(), (HWND)playWidget->winId());
+        player->playFile(QString("http://admin:564778358q.nas233@cheat.imwork.net:55005/video/中文测试.mkv").toStdString().data(), (HWND)playWidget->winId());
     });
 
     connect(btnPlay,&QPushButton::clicked,[=](){

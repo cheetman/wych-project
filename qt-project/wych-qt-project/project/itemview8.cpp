@@ -5,7 +5,6 @@
 #include "qftp.h"
 #include "utils.h"
 
-#include <QTextCodec>
 
 
 
@@ -42,27 +41,31 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
         leftTabFavorTableModel = new QStandardItemModel(this);
         leftTabFavorTableModel->setHorizontalHeaderLabels({  "名称","Host","端口", "路径", "用户名","密码"});
 
+        // 读取配置
+        QSettings settings("configs/setting.ini", QSettings::IniFormat);
+        QFile file(settings.value("DefaultDir/FtpFavorDirList","D:\\ftpFavorDirList2.json").toString());
+        if(file.open(QIODevice::ReadOnly | QIODevice::Text)){
+            QString value = file.readAll();
+            file.close();
+            QJsonParseError parseJsonErr;
+            QJsonDocument document = QJsonDocument::fromJson(value.toUtf8(), &parseJsonErr);
+            if (! (parseJsonErr.error == QJsonParseError::NoError)) {
+                QMessageBox::about(this, "提示", "配置文件错误！");
+                return;
+            }
 
-        QFile file("D:\\ftpFavorDirList.json");
-        file.open(QIODevice::ReadOnly | QIODevice::Text);
-        QString value = file.readAll();
-        file.close();
-        QJsonParseError parseJsonErr;
-        QJsonDocument document = QJsonDocument::fromJson(value.toUtf8(), &parseJsonErr);
-        if (! (parseJsonErr.error == QJsonParseError::NoError)) {
-            QMessageBox::about(NULL, "提示", "配置文件错误！");
-            return;
-        }
-
-        QJsonArray jsonArray = document.array();
-        for (int i = 0; i < jsonArray.size(); i++) {
-               QJsonObject jsonObj = jsonArray.at(i).toObject();
-               leftTabFavorTableModel->setItem(i, 0, new QStandardItem(jsonObj["name"].toString()));
-               leftTabFavorTableModel->setItem(i, 1, new QStandardItem(jsonObj["host"].toString()));
-               leftTabFavorTableModel->setItem(i, 2, new QStandardItem(jsonObj["port"].toString()));
-               leftTabFavorTableModel->setItem(i, 3, new QStandardItem(jsonObj["dir"].toString()));
-               leftTabFavorTableModel->setItem(i, 4, new QStandardItem(jsonObj["username"].toString()));
-               leftTabFavorTableModel->setItem(i, 5, new QStandardItem(jsonObj["password"].toString()));
+            QJsonArray jsonArray = document.array();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                   QJsonObject jsonObj = jsonArray.at(i).toObject();
+                   leftTabFavorTableModel->setItem(i, 0, new QStandardItem(jsonObj["name"].toString()));
+                   leftTabFavorTableModel->setItem(i, 1, new QStandardItem(jsonObj["host"].toString()));
+                   leftTabFavorTableModel->setItem(i, 2, new QStandardItem(jsonObj["port"].toString()));
+                   leftTabFavorTableModel->setItem(i, 3, new QStandardItem(jsonObj["dir"].toString()));
+                   leftTabFavorTableModel->setItem(i, 4, new QStandardItem(jsonObj["username"].toString()));
+                   leftTabFavorTableModel->setItem(i, 5, new QStandardItem(jsonObj["password"].toString()));
+            }
+        }else{
+                 QMessageBox::warning(this,tr("错误"), tr("配置文件打开失败！"));
         }
 
         leftTabFavorTableView->setModel(leftTabFavorTableModel);
@@ -70,9 +73,80 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
         labelFtpStatus->setText(tr("FTP状态：无"));
         leftTabLayout1->addWidget(labelFtpStatus);
         leftTabLayout1->addWidget(leftTabFavorTableView);
+
+        // 图片
+
+
+
         auto leftTabWidget2 = new QWidget(this);
         auto leftTabLayout2 = new QVBoxLayout(this);
         leftTabWidget2->setLayout(leftTabLayout2);
+
+
+         imgLabel = new QLabel(this);
+         imgLabel2 = new QLabel(this);
+
+//        auto img=new QImage();
+//        if(! ( img->load("C:\\Users\\汪意超\\Pictures\\Saved Pictures\\001OdAkagy1gyybblipk3j60h00fvajh02.jpg") ) ) //加载图像
+//             {
+//                 QMessageBox::information(this,
+//                                          tr("打开图像失败"),
+//                                          tr("打开图像失败!"));
+//                 delete img;
+//                 return;
+//             }
+
+//        img->scaled(100,
+//                    100,
+//                    Qt::KeepAspectRatio);
+//        imgLabel->setPixmap(QPixmap::fromImage(*img));
+//        imgLabel->setMinimumWidth(50);
+//        imgLabel->setScaledContents(true);
+
+
+        pixmap = new QPixmap("C:\\Users\\汪意超\\Pictures\\Saved Pictures\\001OdAkagy1gyybblipk3j60h00fvajh02.jpg");
+
+//        imgLabel->setScaledContents(true);
+//        imgLabel->setPixmap(pixmap->scaled(imgLabel->size(),Qt::KeepAspectRatioByExpanding));
+//        imgLabel->setMinimumWidth(100);
+//        imgLabel->setMinimumHeight(100);
+//        imgLabel->setMaximumWidth(500);
+//        imgLabel->setMaximumHeight(500);
+
+//         imgLabel->setFixedWidth(300);
+//          imgLabel->setFixedHeight(300);
+//        imgLabel->resizeEvent();
+//        imgLabel->setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
+//        ->setAlignment(Qt::AlignTop);
+//        leftTabLayout2->addStretch();
+
+        scrollArea = new QScrollArea(this);
+        scrollAreaWidgetContents = new QWidget(scrollArea);
+        scrollAreaWidgetContents->setBackgroundRole(QPalette::Mid);
+//        scrollAreaWidgetContents->setMinimumSize(QSize(400, 400));
+        scrollArea->setBackgroundRole(QPalette::Dark);  // 背景色
+//        scrollArea->setWidget(imgLabel);
+//        scrollArea->setWidget(imgLabel2);
+
+        QVBoxLayout *pLayout=new QVBoxLayout(scrollAreaWidgetContents);
+        pLayout->setMargin(0);
+        pLayout->setSpacing(0);
+        pLayout->addWidget(imgLabel);
+        pLayout->addWidget(imgLabel2);
+
+//        auto *pLayout = new QGridLayout(scrollAreaWidgetContents);
+//        pLayout->addWidget(imgLabel, 0, 0);
+//        pLayout->addWidget(imgLabel2, 1, 0);
+
+//            imgLabel->setPixmap(pixmap->scaled(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width(),Qt::KeepAspectRatio));
+//            imgLabel->setFixedSize(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width());
+//            imgLabel2->setPixmap(pixmap->scaled(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width(),Qt::KeepAspectRatio));
+//            imgLabel2->setFixedSize(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width());
+
+        scrollArea->setWidget(scrollAreaWidgetContents);
+        leftTabLayout2->addWidget(scrollArea);
+
+
         leftTabWidget->addTab(leftTabWidget1, tr("WebDav收藏夹"));
         leftTabWidget->addTab(leftTabWidget2, tr("信息"));
 
@@ -83,6 +157,7 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
         auto btnUpDir = new QPushButton(tr("向上"),fileBtnGroupBox);
         auto btnPlay = new QPushButton(tr("播放"),fileBtnGroupBox);
         auto btnRename = new QPushButton(tr("重命名"),fileBtnGroupBox);
+        btnRename->setShortcut(Qt::Key_F2);
         labelWorkDir = new QLabel(fileBtnGroupBox);
         labelWorkDir->setText("无");
         btnUpDir->setFixedWidth(80);
@@ -118,6 +193,7 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
         connect(btnPlay, SIGNAL(clicked()), this, SLOT(btnPlayer()));
         connect(btnRename, SIGNAL(clicked()), this, SLOT(btnRename()));
 
+
         ftpStatus = -1;
         connect(fileTableView,SIGNAL(doubleClicked(const QModelIndex &)),this,SLOT(fileTableRowDoubleClicked(const QModelIndex &)));
         connect(leftTabFavorTableView,SIGNAL(doubleClicked(const QModelIndex &)),this,SLOT(leftTabFavorTableRowDoubleClicked(const QModelIndex &)));
@@ -133,6 +209,21 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
 
 
 }
+
+
+void ItemView8::resizeEvent(QResizeEvent *event)
+{
+    imgLabel->setPixmap(pixmap->scaled(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width(),Qt::KeepAspectRatio));
+    imgLabel->setFixedSize(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width());
+    imgLabel2->setPixmap(pixmap->scaled(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width(),Qt::KeepAspectRatio));
+    imgLabel2->setFixedSize(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width());
+    scrollAreaWidgetContents->setFixedWidth(scrollArea->width() - 2);
+    scrollAreaWidgetContents->setFixedHeight((float)pixmap->height()/ pixmap->width() * scrollArea->width() * 2);
+    //      qDebug() <<scrollArea->size();
+//      qDebug() << (float)pixmap->height()/ pixmap->width() * scrollArea->width();
+    QWidget::resizeEvent(event);
+}
+
 
 void ItemView8::fileTableRowDoubleClicked(const QModelIndex &current)
 {
@@ -214,7 +305,27 @@ void ItemView8::btnPlayer()
 void ItemView8::btnRename()
 {
 
+    auto rowIndex = fileTableView->currentIndex().row();
+    if(rowIndex >= 0){
+        auto path =fileGridModel->item(rowIndex,5)->text();
+        auto filename =fileGridModel->item(rowIndex,1)->text();
+        auto workname =labelWorkDir->text();
+        bool ok;
+       QString text = QInputDialog::getText(this, tr("重命名"),tr("请输入新的名称"), QLineEdit::Normal,filename, &ok);
+       if (ok && !text.isEmpty())
+       {
 
+           auto response =  w.move( path,  workname + text ,false);
+
+             if( response->error() == QNetworkReply::NoError) {
+                 fileGridModel->setItem(rowIndex,1,new QStandardItem(text));
+                 fileGridModel->setItem(rowIndex,5,new QStandardItem(workname + text));
+                 //fileGridModel->removeRow(1);
+             }else{
+                 QMessageBox::warning(this,tr("错误"), tr("重命名失败[%1]").arg(response->error()) );
+             }
+       }
+    }
 }
 
 

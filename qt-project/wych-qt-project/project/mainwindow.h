@@ -4,6 +4,7 @@
 #include "qftp.h"
 #include "itemview7.h"
 #include "itemview8.h"
+#include "itemview9.h"
 
 #include <QMainWindow>
 #include <QCheckBox>
@@ -18,7 +19,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-
+//    static QString FtpFavorDirList;
 
 };
 #endif // MAINWINDOW_H

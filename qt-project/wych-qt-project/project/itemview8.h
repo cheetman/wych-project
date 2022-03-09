@@ -2,6 +2,7 @@
 #define ITEMVIEW8_H
 
 #include "itemview7vlcplayer.h"
+#include "mainwindow.h"
 
 #include <QDir>
 #include <QLabel>
@@ -24,6 +25,9 @@
 #include <qwebdav.h>
 #include <qwebdavdirparser.h>
 #include <QTableWidget>
+#include <QScrollArea>
+#include <QInputDialog>
+#include <QTextCodec>
 
 
 class ItemView8 : public QWidget
@@ -72,6 +76,14 @@ private:
     QString m_path;
     QString pathParent;
     QList<QNetworkReply *> m_replyList;
+
+    QPixmap *pixmap ;
+    QLabel *imgLabel;
+    QLabel *imgLabel2;
+    QScrollArea *scrollArea;
+    QWidget *scrollAreaWidgetContents;
+protected:
+    void resizeEvent(QResizeEvent *event);
 
 signals:
     void sendVideoPlayer(QString url);

@@ -27,6 +27,7 @@ SOURCES += \
     itemview7player.cpp \
     itemview7vlcplayer.cpp \
     itemview8.cpp \
+    itemview9.cpp \
     main.cpp \
     mainwindow.cpp \
     qftp.cpp \
@@ -40,6 +41,7 @@ HEADERS += \
     itemview7player.h \
     itemview7vlcplayer.h \
     itemview8.h \
+    itemview9.h \
     mainwindow.h \
     qftp.h \
     qurlinfo.h \

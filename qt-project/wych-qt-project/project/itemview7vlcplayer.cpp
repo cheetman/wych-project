@@ -10,6 +10,11 @@
 
 ItemView7VlcPlayer::ItemView7VlcPlayer(QWidget *parent) : QDialog(parent)
 {
+
+    Qt::WindowFlags flags=Qt::Dialog;
+    flags |=Qt::WindowCloseButtonHint;
+     setWindowFlags(flags);
+
     playWidget = new QWidget(this);
     auto layout = new QVBoxLayout(this);
     playWidget->setMinimumSize(QSize(200,200));
@@ -68,7 +73,7 @@ ItemView7VlcPlayer::ItemView7VlcPlayer(QWidget *parent) : QDialog(parent)
 
 
     connect(btnTest,&QPushButton::clicked,[=](){
-        player->playFile(QString("http://admin:564778358q.nas233@cheat.imwork.net:55005/video/中文测试.mkv").toStdString().data(), (HWND)playWidget->winId());
+        player->playFile(QString("http://admin:xxx.xxx@xxx.imwork.net:55005/video/中文测试.mkv").toStdString().data(), (HWND)playWidget->winId());
     });
 
     connect(btnPlay,&QPushButton::clicked,[=](){

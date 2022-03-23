@@ -11,80 +11,173 @@
 ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
 {
 
+    //  一.数据
 
-        fileTableView = new QTableView(this);
-        fileGridModel = new QStandardItemModel();
-        /* 设置表格标题行(输入数据为QStringList类型) */
-        fileGridModel->setHorizontalHeaderLabels({  "操作","文件名", "类型", "大小"});
-        fileTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-        fileTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-        fileTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-        /* 自适应所有列，让它布满空间 */
-//        tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-        /* 设置表格视图数据 */
-        fileTableView->setModel(fileGridModel);
+    // 视频信息数据
+    labelVideoCode = new QLabel("",this);
+    labelVideoName = new QLabel("",this);
+    labelVideoName->setMaximumWidth(400);
+    labelVideoPubDate = new QLabel("",this);
+    labelVideoLevel = new QLabel("",this);
+    labelVideoDetail = new QLabel("",this);
+    labelVideoQuality = new QLabel("",this);
+    labelVideoIsU = new QLabel("",this);
+    labelVideoPublisher = new QLabel("",this);
+    labelVideoActor = new QLabel("",this);
+    labelVideoSize = new QLabel("",this);
+    labelVideoDirector = new QLabel("",this);
+
+    comboAvPage = new QComboBox(this);
+    comboDownloadPage = new QComboBox(this);
+    auto btnOpenWiki = new QPushButton(tr("打开Wiki"),this);
+    auto btnSearch = new QPushButton(tr("搜索资源"),this);
+    auto leftTabWidget2InfoGridLayout = new QGridLayout(this);
+    leftTabWidget2InfoGridLayout->addWidget(new QLabel("编号:",this), 0,0);
+    leftTabWidget2InfoGridLayout->addWidget(new QLabel("名称:",this),1,0);
+    leftTabWidget2InfoGridLayout->addWidget(new QLabel("发行日期:",this), 2,0);
+    leftTabWidget2InfoGridLayout->addWidget(new QLabel("评价:",this), 3,0);
+    leftTabWidget2InfoGridLayout->addWidget(new QLabel("细节:",this), 4,0);
+    leftTabWidget2InfoGridLayout->addWidget(new QLabel("画质:",this), 5,0);
+    leftTabWidget2InfoGridLayout->addWidget(new QLabel("去:",this), 6,0);
+    leftTabWidget2InfoGridLayout->addWidget(new QLabel("主要演员:",this), 7,0);
+    leftTabWidget2InfoGridLayout->addWidget(new QLabel("导演:",this), 4,2);
+    leftTabWidget2InfoGridLayout->addWidget(new QLabel("发行商:",this), 3,2);
+    leftTabWidget2InfoGridLayout->addWidget(new QLabel("视频大小:",this), 5,2);
+    leftTabWidget2InfoGridLayout->addWidget(btnOpenWiki, 6,2);
+    leftTabWidget2InfoGridLayout->addWidget(btnSearch, 7,2);
+
+    leftTabWidget2InfoGridLayout->addWidget(labelVideoCode, 0,1);
+    leftTabWidget2InfoGridLayout->addWidget(labelVideoName, 1,1,1,3);
+    leftTabWidget2InfoGridLayout->addWidget(labelVideoPubDate, 2,1);
+    leftTabWidget2InfoGridLayout->addWidget(labelVideoLevel, 3,1);
+    leftTabWidget2InfoGridLayout->addWidget(labelVideoDetail, 4,1);
+    leftTabWidget2InfoGridLayout->addWidget(labelVideoQuality, 5,1);
+    leftTabWidget2InfoGridLayout->addWidget(labelVideoIsU, 6,1);
+    leftTabWidget2InfoGridLayout->addWidget(labelVideoActor, 7,1);
+    leftTabWidget2InfoGridLayout->addWidget(labelVideoDirector, 4,3);
+    leftTabWidget2InfoGridLayout->addWidget(labelVideoPublisher, 3,3);
+    leftTabWidget2InfoGridLayout->addWidget(labelVideoSize, 5,3);
+
+    leftTabWidget2InfoGridLayout->addWidget(comboAvPage, 6,3);
+    leftTabWidget2InfoGridLayout->addWidget(comboDownloadPage, 7,3);
+
+    comboAvPage->addItem("df");
+    comboDownloadPage->addItem("df");
+
+    // 按钮
+    auto btnUpDir = new QPushButton(tr("向上"),this);
+    auto btnPlay = new QPushButton(tr("播放"),this);
+    auto btnRename = new QPushButton(tr("重命名"),this);
+    btnRename->setShortcut(Qt::Key_F2);
+    btnUpDir->setFixedWidth(80);
+    btnPlay->setFixedWidth(80);
 
 
-        /* 左侧浏览区域 */
-        auto leftGroupBox = new QGroupBox(tr("浏览"),this);
-        auto leftLayout = new QHBoxLayout(this);
-        auto leftTabWidget = new QTabWidget(this);
-        leftGroupBox->setLayout(leftLayout);
-        leftLayout->addWidget(leftTabWidget);
-        auto leftTabWidget1 = new QWidget(this);
-        auto leftTabLayout1 = new QVBoxLayout(this);
-        leftTabWidget1->setLayout(leftTabLayout1);
-        auto leftTabFavorTableView = new QTableView(this);
-        leftTabFavorTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-        leftTabFavorTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-        leftTabFavorTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-        leftTabFavorTableModel = new QStandardItemModel(this);
-        leftTabFavorTableModel->setHorizontalHeaderLabels({  "名称","Host","端口", "路径", "用户名","密码"});
+    // 目录表格
+    fileTableView = new QTableView(this);
+    fileGridModel = new QStandardItemModel();
+    /* 设置表格标题行(输入数据为QStringList类型) */
+    fileGridModel->setHorizontalHeaderLabels({  "操作","文件名", "类型", "大小"});
+    fileTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    fileTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    fileTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    /* 自适应所有列，让它布满空间 */
+    //tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    /* 设置表格视图数据 */
+    fileTableView->setModel(fileGridModel);
 
-        // 读取配置
-        QSettings settings("configs/setting.ini", QSettings::IniFormat);
-        QFile file(settings.value("DefaultDir/FtpFavorDirList","D:\\ftpFavorDirList2.json").toString());
-        if(file.open(QIODevice::ReadOnly | QIODevice::Text)){
-            QString value = file.readAll();
-            file.close();
-            QJsonParseError parseJsonErr;
-            QJsonDocument document = QJsonDocument::fromJson(value.toUtf8(), &parseJsonErr);
-            if (! (parseJsonErr.error == QJsonParseError::NoError)) {
-                QMessageBox::about(this, "提示", "配置文件错误！");
-                return;
-            }
+    // 文件表格
+    auto leftTabFavorTableView = new QTableView(this);
+    leftTabFavorTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    leftTabFavorTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    leftTabFavorTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    leftTabFavorTableModel = new QStandardItemModel(this);
+    leftTabFavorTableModel->setHorizontalHeaderLabels({  "名称","Host","端口", "路径", "用户名","密码"});
 
-            QJsonArray jsonArray = document.array();
-            for (int i = 0; i < jsonArray.size(); i++) {
-                   QJsonObject jsonObj = jsonArray.at(i).toObject();
-                   leftTabFavorTableModel->setItem(i, 0, new QStandardItem(jsonObj["name"].toString()));
-                   leftTabFavorTableModel->setItem(i, 1, new QStandardItem(jsonObj["host"].toString()));
-                   leftTabFavorTableModel->setItem(i, 2, new QStandardItem(jsonObj["port"].toString()));
-                   leftTabFavorTableModel->setItem(i, 3, new QStandardItem(jsonObj["dir"].toString()));
-                   leftTabFavorTableModel->setItem(i, 4, new QStandardItem(jsonObj["username"].toString()));
-                   leftTabFavorTableModel->setItem(i, 5, new QStandardItem(jsonObj["password"].toString()));
-            }
-        }else{
-                 QMessageBox::warning(this,tr("错误"), tr("配置文件打开失败！"));
+
+
+    // Label
+    labelFtpStatus = new QLabel(this);
+    labelFtpStatus->setText(tr("FTP状态：无"));
+
+
+
+
+    // 初始化
+    // 读取配置
+    QSettings settings("configs/setting.ini", QSettings::IniFormat);
+    QFile file(settings.value("DefaultDir/FtpFavorDirList","D:\\ftpFavorDirList.json").toString());
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text)){
+        QString value = file.readAll();
+        file.close();
+        QJsonParseError parseJsonErr;
+        auto document = QJsonDocument::fromJson(value.toUtf8(), &parseJsonErr);
+        if (! (parseJsonErr.error == QJsonParseError::NoError)) {
+            QMessageBox::about(this, "提示", "配置文件错误！");
+            return;
         }
 
+        QJsonArray jsonArray = document.array();
+        for (int i = 0; i < jsonArray.size(); i++) {
+               QJsonObject jsonObj = jsonArray.at(i).toObject();
+               leftTabFavorTableModel->setItem(i, 0, new QStandardItem(jsonObj["name"].toString()));
+               leftTabFavorTableModel->setItem(i, 1, new QStandardItem(jsonObj["host"].toString()));
+               leftTabFavorTableModel->setItem(i, 2, new QStandardItem(jsonObj["port"].toString()));
+               leftTabFavorTableModel->setItem(i, 3, new QStandardItem(jsonObj["dir"].toString()));
+               leftTabFavorTableModel->setItem(i, 4, new QStandardItem(jsonObj["username"].toString()));
+               leftTabFavorTableModel->setItem(i, 5, new QStandardItem(jsonObj["password"].toString()));
+        }
+    }else{
+             QMessageBox::warning(this,tr("错误"), tr("配置文件打开失败！"));
+    }
+
+    QString videoInfoPath("D:\\TesData\\AppConsole\\Data\\VideoInfo");
+
+
+
+        auto splitterMain = new QSplitter(Qt::Horizontal,this);
+
+
+        // 二、布局
+
+        // 1.1 左侧浏览
+        auto leftGroupBox = new QGroupBox(tr("浏览"),splitterMain);
+        auto leftLayout = new QHBoxLayout(leftGroupBox);
+        auto leftTabWidget = new QTabWidget(this);
+        leftLayout->addWidget(leftTabWidget);
+        auto leftTabWidget1 = new QWidget(this);
+        auto leftTabLayout1 = new QVBoxLayout(leftTabWidget1);
         leftTabFavorTableView->setModel(leftTabFavorTableModel);
-        labelFtpStatus = new QLabel(this);
-        labelFtpStatus->setText(tr("FTP状态：无"));
         leftTabLayout1->addWidget(labelFtpStatus);
         leftTabLayout1->addWidget(leftTabFavorTableView);
 
-        // 图片
-
-
-
+        // 1.2 左侧图片
         auto leftTabWidget2 = new QWidget(this);
-        auto leftTabLayout2 = new QVBoxLayout(this);
-        leftTabWidget2->setLayout(leftTabLayout2);
+        auto leftTabLayout2 = new QVBoxLayout(leftTabWidget2);
+        imgLabel = new QLabel(this);
+        pixmap = new QPixmap("C:\\Users\\汪意超\\Pictures\\Saved Pictures\\001OdAkagy1gyybblipk3j60h00fvajh02.jpg");
+        scrollArea = new QScrollArea(this);
+        scrollAreaWidgetContents = new QWidget(scrollArea);
+        scrollAreaWidgetContents->setBackgroundRole(QPalette::Mid);
+//      scrollAreaWidgetContents->setMinimumSize(QSize(400, 400));
+        scrollArea->setBackgroundRole(QPalette::Dark);  // 背景色
+//        scrollArea->setWidget(imgLabel);
+//        scrollArea->setWidget(imgLabel2);
+        QVBoxLayout *pLayout=new QVBoxLayout(scrollAreaWidgetContents);
+        pLayout->setMargin(0);
+        pLayout->setSpacing(0);
+        pLayout->addWidget(imgLabel);
+        scrollArea->setWidget(scrollAreaWidgetContents);
+        leftTabLayout2->addWidget(scrollArea);
+        auto leftTabWidget2Info = new QWidget(this);
+        leftTabLayout2->addWidget(leftTabWidget2Info);
+        leftTabWidget2Info->setLayout(leftTabWidget2InfoGridLayout);
+        leftTabWidget->addTab(leftTabWidget1, tr("WebDav收藏夹"));
+        leftTabWidget->addTab(leftTabWidget2, tr("信息"));
 
 
-         imgLabel = new QLabel(this);
-         imgLabel2 = new QLabel(this);
+
+//         imgLabel2 = new QLabel(this);
 
 //        auto img=new QImage();
 //        if(! ( img->load("C:\\Users\\汪意超\\Pictures\\Saved Pictures\\001OdAkagy1gyybblipk3j60h00fvajh02.jpg") ) ) //加载图像
@@ -104,7 +197,6 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
 //        imgLabel->setScaledContents(true);
 
 
-        pixmap = new QPixmap("C:\\Users\\汪意超\\Pictures\\Saved Pictures\\001OdAkagy1gyybblipk3j60h00fvajh02.jpg");
 
 //        imgLabel->setScaledContents(true);
 //        imgLabel->setPixmap(pixmap->scaled(imgLabel->size(),Qt::KeepAspectRatioByExpanding));
@@ -120,19 +212,8 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
 //        ->setAlignment(Qt::AlignTop);
 //        leftTabLayout2->addStretch();
 
-        scrollArea = new QScrollArea(this);
-        scrollAreaWidgetContents = new QWidget(scrollArea);
-        scrollAreaWidgetContents->setBackgroundRole(QPalette::Mid);
-//        scrollAreaWidgetContents->setMinimumSize(QSize(400, 400));
-        scrollArea->setBackgroundRole(QPalette::Dark);  // 背景色
-//        scrollArea->setWidget(imgLabel);
-//        scrollArea->setWidget(imgLabel2);
 
-        QVBoxLayout *pLayout=new QVBoxLayout(scrollAreaWidgetContents);
-        pLayout->setMargin(0);
-        pLayout->setSpacing(0);
-        pLayout->addWidget(imgLabel);
-        pLayout->addWidget(imgLabel2);
+//        pLayout->addWidget(imgLabel2);
 
 //        auto *pLayout = new QGridLayout(scrollAreaWidgetContents);
 //        pLayout->addWidget(imgLabel, 0, 0);
@@ -143,48 +224,40 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
 //            imgLabel2->setPixmap(pixmap->scaled(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width(),Qt::KeepAspectRatio));
 //            imgLabel2->setFixedSize(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width());
 
-        scrollArea->setWidget(scrollAreaWidgetContents);
-        leftTabLayout2->addWidget(scrollArea);
 
 
-        leftTabWidget->addTab(leftTabWidget1, tr("WebDav收藏夹"));
-        leftTabWidget->addTab(leftTabWidget2, tr("信息"));
+        // 2.1 文件按钮
 
-        /* 文件操作按钮区域 */
-
+        auto widgetMainRigth = new QWidget(splitterMain);
+        auto mainLayoutRight = new QVBoxLayout(widgetMainRigth);
         auto fileBtnGroupBox = new QGroupBox(tr("操作"),this);
-        auto layout1_2 = new QHBoxLayout(this);
-        auto btnUpDir = new QPushButton(tr("向上"),fileBtnGroupBox);
-        auto btnPlay = new QPushButton(tr("播放"),fileBtnGroupBox);
-        auto btnRename = new QPushButton(tr("重命名"),fileBtnGroupBox);
-        btnRename->setShortcut(Qt::Key_F2);
+        auto layout1_2 = new QHBoxLayout(fileBtnGroupBox);
         labelWorkDir = new QLabel(fileBtnGroupBox);
         labelWorkDir->setText("无");
-        btnUpDir->setFixedWidth(80);
-        btnPlay->setFixedWidth(80);
         layout1_2->setAlignment(Qt::AlignLeft);
-
         layout1_2->addWidget(new QLabel("当前目录：",fileBtnGroupBox));
         layout1_2->addWidget(labelWorkDir);
         layout1_2->addWidget(btnUpDir);
         layout1_2->addWidget(btnPlay);
         layout1_2->addWidget(btnRename);
-        fileBtnGroupBox->setLayout(layout1_2);
 
 
-
-
+        // 2.2 文件列表
         auto fileGroupBox = new QGroupBox(tr("列表"),this);
-        auto fileGroupBoxLayout = new QVBoxLayout(this);
+        auto fileGroupBoxLayout = new QVBoxLayout(fileGroupBox);
         fileGroupBoxLayout->addWidget(fileTableView);
-        fileGroupBox->setLayout(fileGroupBoxLayout);
-
-        auto mainLayout = new QGridLayout(this);
+         mainLayoutRight->addWidget(fileBtnGroupBox);
+         mainLayoutRight->addWidget(fileGroupBox);
+//        auto mainLayout = new QGridLayout(this);
 //        mainLayout->addWidget(btnOpenPlayer, 0,0);
-        mainLayout->addWidget(leftGroupBox, 1,0,2,1);
-        mainLayout->addWidget(fileBtnGroupBox,1,1);
-        mainLayout->addWidget(fileGroupBox, 2,1);
-        mainLayout->setColumnMinimumWidth(0,200);
+//        mainLayout->addWidget(leftGroupBox, 1,0,2,1);
+//        mainLayout->addWidget(fileBtnGroupBox,1,1);
+//        mainLayout->addWidget(fileGroupBox, 2,1);
+//        mainLayout->setColumnMinimumWidth(0,200);
+        auto mainLayout = new QVBoxLayout(this);
+        mainLayout->addWidget(splitterMain);
+
+
 
 
         setLayout(mainLayout);
@@ -193,8 +266,13 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
         connect(btnPlay, SIGNAL(clicked()), this, SLOT(btnPlayer()));
         connect(btnRename, SIGNAL(clicked()), this, SLOT(btnRename()));
 
+        connect(btnOpenWiki,&QPushButton::clicked,[=](){
+
+
+        });
 
         ftpStatus = -1;
+        connect(fileTableView,SIGNAL(clicked(const QModelIndex &)),this,SLOT(fileTableRowClicked(const QModelIndex &)));
         connect(fileTableView,SIGNAL(doubleClicked(const QModelIndex &)),this,SLOT(fileTableRowDoubleClicked(const QModelIndex &)));
         connect(leftTabFavorTableView,SIGNAL(doubleClicked(const QModelIndex &)),this,SLOT(leftTabFavorTableRowDoubleClicked(const QModelIndex &)));
 
@@ -204,26 +282,88 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
         connect(&p, SIGNAL(errorChanged(QString)), this, SLOT(printError(QString)));
         connect(&w, SIGNAL(errorChanged(QString)), this, SLOT(printError(QString)));
 
-
-
-
-
 }
 
 
+//
 void ItemView8::resizeEvent(QResizeEvent *event)
 {
+    //    imgLabel2->setPixmap(pixmap->scaled(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width(),Qt::KeepAspectRatio));
+    //    imgLabel2->setFixedSize(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width());
+
     imgLabel->setPixmap(pixmap->scaled(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width(),Qt::KeepAspectRatio));
     imgLabel->setFixedSize(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width());
-    imgLabel2->setPixmap(pixmap->scaled(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width(),Qt::KeepAspectRatio));
-    imgLabel2->setFixedSize(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width());
     scrollAreaWidgetContents->setFixedWidth(scrollArea->width() - 2);
-    scrollAreaWidgetContents->setFixedHeight((float)pixmap->height()/ pixmap->width() * scrollArea->width() * 2);
-    //      qDebug() <<scrollArea->size();
-//      qDebug() << (float)pixmap->height()/ pixmap->width() * scrollArea->width();
+    scrollAreaWidgetContents->setFixedHeight((float)pixmap->height()/ pixmap->width() * scrollArea->width() );
+
     QWidget::resizeEvent(event);
 }
 
+
+void ItemView8::fileTableRowClicked(const QModelIndex &current)
+{
+
+    auto filename =  fileGridModel->item(current.row(),1)->text();
+    auto path =  fileGridModel->item(current.row(),5)->text();
+
+    auto code = filename;
+    auto index = code.indexOf(" ");
+    if(index > 0){
+        code =  code.left(index);
+    }
+    index = code.indexOf("(");
+    if(index > 0){
+        code =  code.left(index);
+    }
+
+      QFile file(tr("D:\\TesData\\AppConsole\\Data\\VideoInfo\\Cover\\%1%2").arg(code).arg(".jpg"));
+      if(file.exists()){
+        pixmap->load(file.fileName());
+        imgLabel->setPixmap(pixmap->scaled(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width(),Qt::KeepAspectRatio));
+        imgLabel->setFixedSize(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width());
+        scrollAreaWidgetContents->setFixedWidth(scrollArea->width() - 2);
+        scrollAreaWidgetContents->setFixedHeight((float)pixmap->height()/ pixmap->width() * scrollArea->width() );
+      }
+
+      QFile file2(tr("D:\\TesData\\AppConsole\\Data\\VideoInfo\\Info\\%1%2").arg(code).arg(".json"));
+      if(file2.exists()){
+          if(file2.open(QIODevice::ReadOnly | QIODevice::Text)){
+              auto value = file2.readAll();
+              file2.close();
+              QJsonParseError parseJsonErr;
+              auto document = QJsonDocument::fromJson(value, &parseJsonErr);
+              if (! (parseJsonErr.error == QJsonParseError::NoError)) {
+                  QMessageBox::about(this, "提示", "配置文件错误！");
+                  return;
+              }
+             auto jsonObj = document.object();
+             labelVideoCode->setText(jsonObj["Code"].toString());
+             labelVideoName ->setText(jsonObj["Name"].toString());
+             labelVideoActor->setText(jsonObj["Actor"].toString());
+             labelVideoDirector->setText(jsonObj["Director"].toString());
+             labelVideoPubDate->setText(jsonObj["SaleDate"].toString());
+             labelVideoLevel->setText(jsonObj["Evaluation"].toString());
+             labelVideoPublisher ->setText(jsonObj["Producer"].toString());
+        }
+      }
+
+      QFile file3(tr("D:\\TesData\\AppConsole\\Data\\VideoInfo\\FileInfo\\%1%2").arg(code).arg(".json"));
+      if(file3.exists()){
+          if(file3.open(QIODevice::ReadOnly | QIODevice::Text)){
+              auto value = file3.readAll();
+              file3.close();
+              QJsonParseError parseJsonErr;
+              auto document = QJsonDocument::fromJson(value, &parseJsonErr);
+              if (! (parseJsonErr.error == QJsonParseError::NoError)) {
+                  QMessageBox::about(this, "提示", "配置文件错误！");
+                  return;
+              }
+             auto jsonObj = document.object();
+             labelVideoSize ->setText(jsonObj["FileSize"].toString());
+        }
+      }
+
+}
 
 void ItemView8::fileTableRowDoubleClicked(const QModelIndex &current)
 {
@@ -289,14 +429,22 @@ void ItemView8::btnPlayer()
     }else{
        auto rowIndex = fileTableView->currentIndex().row();
        if(rowIndex >= 0){
+           auto type =fileGridModel->item(rowIndex,2)->text();
            auto path =fileGridModel->item(rowIndex,5)->text();
-           auto url = QString("http://%1:%2@%3:%4%5").arg(username).arg(password).arg(host).arg(port).arg(path);
-//           auto newurl = url.toLocal8Bit().toPercentEncoding("/:");
-           url = QUrl::toPercentEncoding(url,"/:@");
-           qDebug() << "url1   " << url ;
-           auto url2 = QUrl(url).url(QUrl::FullyEncoded);
-           qDebug() << "url2   " << url2 ;
-           emit sendVideoPlayer(url);
+           if(type == "目录"){
+
+                p.listDirectory(&w, path);
+                openSelectFlag = true;
+                tmpPath = path;
+           }else{
+               auto url = QString("http://%1:%2@%3:%4%5").arg(username).arg(password).arg(host).arg(port).arg(path);
+    //           auto newurl = url.toLocal8Bit().toPercentEncoding("/:");
+               url = QUrl::toPercentEncoding(url,"/:@");
+    //           qDebug() << "url1   " << url ;
+    //           auto url2 = QUrl(url).url(QUrl::FullyEncoded);
+    //           qDebug() << "url2   " << url2 ;
+               emit sendVideoPlayer(url);
+           }
        }
     }
 }
@@ -352,6 +500,39 @@ void ItemView8::openPlayer()
 
 void ItemView8::printList()
 {
+    if(openSelectFlag){
+        openSelectFlag = false;
+
+        QList<QWebdavItem> list = p.getList();
+
+        QStringList strList;
+        foreach(QWebdavItem item, list) {
+            if(!item.isDir()){
+                strList.append(item.name());
+            }
+        }
+
+        if (selectDialog==NULL) //如果对象没有被创建过，就创建对象
+               selectDialog = new SelectDialog(this);
+
+        selectDialog->setHeaderList(strList);
+        int ret=selectDialog->exec();// 以模态方式显示对话框
+         if (ret==QDialog::Accepted) //OK键被按下
+         {
+            qDebug() << "QDialog::Accepted";
+           auto url = QString("http://%1:%2@%3:%4%5%6").arg(username).arg(password).arg(host).arg(port).arg(tmpPath).arg(selectDialog->getResult());
+           qDebug() << url;
+           url = QUrl::toPercentEncoding(url,"/:@");
+           emit sendVideoPlayer(url);
+
+         }else{
+             qDebug() << "QDialog::Rejected";
+
+         }
+
+    }else{
+
+
 
     qDebug() << "QWebdav::printList() ";
     QList<QWebdavItem> list = p.getList();
@@ -377,6 +558,7 @@ void ItemView8::printList()
     fileTableView->setColumnHidden(5, true);
 
 
+    }
 
 }
 

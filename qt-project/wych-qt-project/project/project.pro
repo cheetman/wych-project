@@ -22,7 +22,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    form.cpp \
     itemview7.cpp \
     itemview7player.cpp \
     itemview7vlcplayer.cpp \
@@ -32,11 +31,11 @@ SOURCES += \
     mainwindow.cpp \
     qftp.cpp \
     qurlinfo.cpp \
+    selectdialog.cpp \
     utils.cpp \
     vlclib.cpp
 
 HEADERS += \
-    form.h \
     itemview7.h \
     itemview7player.h \
     itemview7vlcplayer.h \
@@ -45,6 +44,7 @@ HEADERS += \
     mainwindow.h \
     qftp.h \
     qurlinfo.h \
+    selectdialog.h \
     utils.h \
     vlclib.h
 
@@ -71,3 +71,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 VLCPATH=C:/WorkEnv/vlc-3.0.0
 INCLUDEPATH += $$VLCPATH/sdk/include
 LIBS += -L$$VLCPATH/sdk/lib -llibvlc -llibvlccore
+
+
+RC_ICONS = ./favicon.ico

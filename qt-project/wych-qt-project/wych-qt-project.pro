@@ -5,3 +5,4 @@ SUBDIRS += \
     project
 
 
+RC_ICONS = ./favicon.ico

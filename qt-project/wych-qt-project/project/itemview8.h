@@ -3,6 +3,7 @@
 
 #include "itemview7vlcplayer.h"
 #include "mainwindow.h"
+#include "selectdialog.h"
 
 #include <QDir>
 #include <QLabel>
@@ -28,6 +29,8 @@
 #include <QScrollArea>
 #include <QInputDialog>
 #include <QTextCodec>
+#include <QComboBox>
+#include <QSplitter>
 
 
 class ItemView8 : public QWidget
@@ -41,6 +44,8 @@ public slots:
     void btnUpDir();
     void btnPlayer();
     void btnRename();
+
+    void fileTableRowClicked(const QModelIndex &);
     void fileTableRowDoubleClicked(const QModelIndex &);
     void leftTabFavorTableRowDoubleClicked(const QModelIndex &);
     void getFlagFromDialog();
@@ -58,6 +63,7 @@ private:
     QString username;
     QString password;
     QString path;
+    QString tmpPath;
     QStandardItemModel *fileGridModel;
     QStandardItemModel *leftTabFavorTableModel;
     QTableView *fileTableView;
@@ -82,6 +88,26 @@ private:
     QLabel *imgLabel2;
     QScrollArea *scrollArea;
     QWidget *scrollAreaWidgetContents;
+
+
+    QLabel *labelVideoCode;
+    QLabel *labelVideoName;
+    QLabel *labelVideoPubDate;
+    QLabel *labelVideoLevel;
+    QLabel *labelVideoDetail;
+    QLabel *labelVideoQuality;
+    QLabel *labelVideoIsU;
+    QLabel *labelVideoPublisher;
+    QLabel *labelVideoActor;
+    QLabel *labelVideoSize;
+    QLabel *labelVideoDirector;
+
+
+    QComboBox *comboAvPage;
+    QComboBox *comboDownloadPage;
+    SelectDialog *selectDialog = NULL;
+
+    bool openSelectFlag = false;
 protected:
     void resizeEvent(QResizeEvent *event);
 

@@ -42,3 +42,5 @@ python-project/script-game-android/pyinstaller
 qt-project/build-hello-Desktop_Qt_5_14_2_MinGW_32_bit-Debug/
 
 qt-project/build-wych-qt-project-Desktop_Qt_5_14_2_MinGW_32_bit-Debug/
+
+qt-project/build-wych-qt-project-Desktop_Qt_5_14_2_MinGW_64_bit-Debug/

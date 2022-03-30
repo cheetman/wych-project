@@ -23,6 +23,27 @@
 #include <QTableWidget>
 #include <QLineEdit>
 
+#include "winsock2.h"
+#include <Windows.h>
+#include <tlhelp32.h>
+#include <winternl.h>
+
+
+
+typedef struct _THREAD_BASIC_INFORMATION
+{
+    NTSTATUS ExitStatus;
+    PVOID TebBaseAddress;
+    CLIENT_ID ClientId;
+    KAFFINITY AffinityMask;
+    KPRIORITY Priority;
+    KPRIORITY BasePriority;
+} THREAD_BASIC_INFORMATION;
+
+
+
+
+
 class ItemView9 : public QWidget
 {
     Q_OBJECT
@@ -41,6 +62,7 @@ public slots:
 //    void printList();
 //    void printError(QString errorMsg);
 //    void replySkipRead();
+//      __stdcall unsigned testThread(void * pParam);
 
 private:
 //    QString host;
@@ -59,7 +81,8 @@ private:
 //    int ftpStatus;
 //    bool existDialog;
 
-
+//      __stdcall unsigned testThread2(void * pParam);
+    HANDLE hThread;
 
 signals:
 //    void sendVideoPlayer(QString url);

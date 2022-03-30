@@ -45,6 +45,7 @@ HEADERS += \
     qftp.h \
     qurlinfo.h \
     selectdialog.h \
+    test2.h \
     utils.h \
     vlclib.h
 
@@ -56,11 +57,38 @@ win32:CONFIG(release, debug|release) {
     PRE_TARGETDEPS += $$OUT_PWD/../qwebdavlib/release/libqwebdav.a
     INCLUDEPATH += $$OUT_PWD/../qwebdavlib/
     LIBS += -L$$OUT_PWD/../qwebdavlib/release/ -lqwebdav
+    #Winsock
+    LIBS += -lws2_32
+    #LIBS += -lkernel32
+    #线程管理
+    LIBS += -lntdll
+
+
+
 } else:win32:CONFIG(debug, debug|release) {
     # WINDOWS DEBUG
     PRE_TARGETDEPS += $$OUT_PWD/../qwebdavlib/debug/libqwebdav.a
     INCLUDEPATH += $$PWD/../qwebdavlib/
     LIBS += -L$$OUT_PWD/../qwebdavlib/debug/ -lqwebdav
+    #Winsock
+    LIBS += -lws2_32
+    #LIBS += -lkernel32
+    #线程管理
+    LIBS += -lntdll
+
+    contains(DEFINES,WIN64){
+
+    VLCPATH=C:/WorkEnv/vlc-3.0.0
+    INCLUDEPATH += $$VLCPATH/sdk/include
+    LIBS += -L$$VLCPATH/sdk/lib -llibvlc -llibvlccore
+
+    }else{
+
+    VLCPATH=C:/WorkEnv/vlc-3.0.0-win64
+    INCLUDEPATH += $$VLCPATH/sdk/include
+    LIBS += -L$$VLCPATH/sdk/lib -llibvlc -llibvlccore
+    }
+
 }
 
 # Default rules for deployment.
@@ -68,9 +96,7 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-VLCPATH=C:/WorkEnv/vlc-3.0.0
-INCLUDEPATH += $$VLCPATH/sdk/include
-LIBS += -L$$VLCPATH/sdk/lib -llibvlc -llibvlccore
+
 
 
 RC_ICONS = ./favicon.ico

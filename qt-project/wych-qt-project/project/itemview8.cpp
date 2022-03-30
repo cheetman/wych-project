@@ -11,6 +11,8 @@
 ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
 {
 
+
+
     //  一.数据
 
     // 视频信息数据
@@ -30,7 +32,10 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
     comboAvPage = new QComboBox(this);
     comboDownloadPage = new QComboBox(this);
     auto btnOpenWiki = new QPushButton(tr("打开Wiki"),this);
+    auto labelVideoDirector2 = new QLabel("导演:",this);
     auto btnSearch = new QPushButton(tr("搜索资源"),this);
+    labelVideoDirector2->setFixedWidth(100);
+
     auto leftTabWidget2InfoGridLayout = new QGridLayout(this);
     leftTabWidget2InfoGridLayout->addWidget(new QLabel("编号:",this), 0,0);
     leftTabWidget2InfoGridLayout->addWidget(new QLabel("名称:",this),1,0);
@@ -40,7 +45,8 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
     leftTabWidget2InfoGridLayout->addWidget(new QLabel("画质:",this), 5,0);
     leftTabWidget2InfoGridLayout->addWidget(new QLabel("去:",this), 6,0);
     leftTabWidget2InfoGridLayout->addWidget(new QLabel("主要演员:",this), 7,0);
-    leftTabWidget2InfoGridLayout->addWidget(new QLabel("导演:",this), 4,2);
+
+    leftTabWidget2InfoGridLayout->addWidget(labelVideoDirector2, 4,2);
     leftTabWidget2InfoGridLayout->addWidget(new QLabel("发行商:",this), 3,2);
     leftTabWidget2InfoGridLayout->addWidget(new QLabel("视频大小:",this), 5,2);
     leftTabWidget2InfoGridLayout->addWidget(btnOpenWiki, 6,2);

@@ -1,8 +1,10 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
+    libuv \
     qwebdavlib \
-    project
+    project \
+    libuv
 
 
 RC_ICONS = ./favicon.ico

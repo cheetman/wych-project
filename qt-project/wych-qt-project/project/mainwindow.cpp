@@ -15,16 +15,15 @@ MainWindow::MainWindow(QWidget *parent)
 
 
 
-    auto tabWidget = new QTabWidget;
-    tabWidget->addTab(new ItemView8, tr("6.视频播放器(WebDav)"));
-    tabWidget->addTab(new ItemView7, tr("7.视频播放器(FTP)"));
-    tabWidget->addTab(new ItemView9, tr("9.游戏辅助测试"));
+    auto tabWidget = new QTabWidget(this);
+    tabWidget->addTab(new ItemView8(this), tr("6.视频播放器(WebDav)"));
+    tabWidget->addTab(new ItemView7(this), tr("7.视频播放器(FTP)"));
+    tabWidget->addTab(new ItemView9(this), tr("9.游戏辅助测试"));
 
 
-    auto mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(tabWidget);
     QWidget* widget = new QWidget(this);
-    widget->setLayout(mainLayout);
+    auto mainLayout = new QVBoxLayout(widget);
+    mainLayout->addWidget(tabWidget);
     this->setCentralWidget(widget);
 }
 

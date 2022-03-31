@@ -2,7 +2,6 @@
 #define ITEMVIEW8_H
 
 #include "itemview7vlcplayer.h"
-#include "mainwindow.h"
 #include "selectdialog.h"
 
 #include <QDir>
@@ -73,7 +72,7 @@ private:
     QString strCdPath;
     QString strNowPath;
     int ftpStatus;
-    bool existDialog;
+    bool existDialog = false;
 //    ItemView7VlcPlayer *playerDialog;
 
 

@@ -30,3 +30,6 @@ OTHER_FILES += \
     CHANGES \
     LICENSE \
     README
+
+msvc:QMAKE_CXXFLAGS += -execution-charset:utf-8
+msvc:QMAKE_CXXFLAGS += -source-charset:utf-8

@@ -44,3 +44,17 @@ qt-project/build-hello-Desktop_Qt_5_14_2_MinGW_32_bit-Debug/
 qt-project/build-wych-qt-project-Desktop_Qt_5_14_2_MinGW_32_bit-Debug/
 
 qt-project/build-wych-qt-project-Desktop_Qt_5_14_2_MinGW_64_bit-Debug/
+
+qt-project/build-wych-qt-project-Desktop_Qt_5_15_2_MSVC2019_64bit-Release/
+
+qt-project/build-wych-qt-project-Desktop_Qt_5_15_2_MSVC2019_64bit-Debug/
+
+qt-project/build-wych-qt-project-Desktop_Qt_5_15_2_MinGW_64_bit-Release/
+
+qt-project/build-wych-qt-project-Desktop_Qt_5_15_2_MinGW_64_bit-Debug/
+
+qt-project/wych-qt-project/.qtc_clangd/
+
+qt-project/wych-qt-project/project/debug/
+
+qt-project/wych-qt-project/qwebdavlib/debug/

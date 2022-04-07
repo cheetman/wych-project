@@ -28,6 +28,7 @@
 #include <tlhelp32.h>
 #include <winternl.h>
 
+#include <uv.h>
 
 
 typedef struct _THREAD_BASIC_INFORMATION
@@ -83,6 +84,8 @@ private:
 
 //      __stdcall unsigned testThread2(void * pParam);
     HANDLE hThread;
+
+
 
 signals:
 //    void sendVideoPlayer(QString url);

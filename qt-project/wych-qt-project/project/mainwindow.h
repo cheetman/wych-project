@@ -10,16 +10,31 @@
 #include <QCheckBox>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <QDateTime>
+#include <QApplication>
+
+#include "cpputil/singleton.h"
 
 class MainWindow : public QMainWindow
 {
-    Q_OBJECT
+     SINGLETON_DECL(MainWindow)
+     Q_OBJECT
 
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 //    static QString FtpFavorDirList;
-
+    void postMessage(const QString& msg);
+    void appendMessage(const QString& msg);
+    void showMessage(const QString& msg);
 };
+
+
+#define g_mainwnd MainWindow::instance()
+
+
+
+
+
 #endif // MAINWINDOW_H

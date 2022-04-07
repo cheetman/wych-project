@@ -16,6 +16,14 @@ CONFIG += c++11
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
+DEFINES += HV_WITHOUT_SSL
+DEFINES += HV_STATICLIB
+DEFINES += WIN32
+DEFINES += _WINDOWS
+DEFINES += _WIN32_WINNT=0x0600
+DEFINES += NDEBUG
+
+
 # You can also make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
@@ -27,11 +35,13 @@ SOURCES += \
     itemview7vlcplayer.cpp \
     itemview8.cpp \
     itemview9.cpp \
+    itemview9tcp.cpp \
     main.cpp \
     mainwindow.cpp \
 #    qftp.cpp \
     qurlinfo.cpp \
     selectdialog.cpp \
+    tcpserver.cpp \
     utils.cpp \
     vlclib.cpp
 
@@ -41,13 +51,16 @@ HEADERS += \
     itemview7vlcplayer.h \
     itemview8.h \
     itemview9.h \
+    itemview9tcp.h \
     mainwindow.h \
 #    qftp.h \
     qurlinfo.h \
     selectdialog.h \
+    tcpserver.h \
     test2.h \
     utils.h \
-    vlclib.h
+    vlclib.h \
+    customevent.h \
 
 FORMS +=
 
@@ -64,6 +77,12 @@ win32:CONFIG(release, debug|release) {
     mingw:PRE_TARGETDEPS += $$OUT_PWD/../libuv/release/liblibuv.a
     INCLUDEPATH += $$PWD/../libuv/
     LIBS += -L$$OUT_PWD/../libuv/release/ -llibuv
+
+    # libhv
+    msvc:PRE_TARGETDEPS += $$OUT_PWD/../libhv/release/libhv.lib
+    mingw:PRE_TARGETDEPS += $$OUT_PWD/../libhv/release/liblibhv.a
+    INCLUDEPATH += $$PWD/../libhv/
+    LIBS += -L$$OUT_PWD/../libhv/release/ -llibhv
 
 
     #Winsock
@@ -114,6 +133,12 @@ win32:CONFIG(release, debug|release) {
     mingw:PRE_TARGETDEPS += $$OUT_PWD/../libuv/debug/liblibuv.a
     INCLUDEPATH += $$PWD/../libuv/
     LIBS += -L$$OUT_PWD/../libuv/debug/ -llibuv
+
+    # libhv
+    msvc:PRE_TARGETDEPS += $$OUT_PWD/../libhv/debug/libhv.lib
+    mingw:PRE_TARGETDEPS += $$OUT_PWD/../libhv/debug/liblibhv.a
+    INCLUDEPATH += $$PWD/../libhv/
+    LIBS += -L$$OUT_PWD/../libhv/debug/ -llibhv
 
 
 

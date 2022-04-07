@@ -1,17 +1,114 @@
 
 #include "itemview9.h"
 #include "utils.h"
+#include "itemview9tcp.h"
 
 #include <Windows.h>
+
 //#include <WinUser.h>
 //#include <tlhelp32.h>
 //#include <winternl.h>
 
-#include "test2.h"
+//#include "test2.h"
 
+
+//uv_tcp_t tcpServer;
+
+//uv_loop_t* loop ;
+
+////负责为新来的消息申请空间
+//void alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
+//  buf->len = suggested_size;
+//  buf->base = static_cast<char *>(malloc(suggested_size));
+//}
+
+//void on_close(uv_handle_t *handle) {
+//  if (handle != NULL)
+//    free(handle);
+//}
+
+//void echo_write(uv_write_t *req, int status) {
+//  if (status) {
+//    fprintf(stderr, "Write error %s\n", uv_strerror(status));
+//  }
+
+//  free(req);
+//}
+
+///**
+// * @brief: 负责处理新来的消息
+// * @param: client
+// * @param: nread>0表示有数据就绪，nread<0表示异常，nread是有可能为0的，但是这并不是异常或者结束
+// * @author: sherlock
+// */
+//void read_cb(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf) {
+//  if (nread > 0) {
+////    buf->base[nread] = 0;
+//    fprintf(stdout, "recv:%s\n", buf->base);
+//    fflush(stdout);
+
+//    uv_write_t* req = (uv_write_t*)malloc(sizeof(uv_write_t));
+
+//    uv_buf_t uvBuf = uv_buf_init(buf->base, nread);//初始化write的uv_buf_t
+
+//    //发送buffer数组，第四个参数表示数组大小
+//    uv_write(req, client, &uvBuf, 1, echo_write);
+
+//    return;
+//  } else if (nread < 0) {
+//    if (nread != UV_EOF) {
+//      fprintf(stderr, "Read error %s\n", uv_err_name(nread));
+//    } else {
+//      fprintf(stderr, "client disconnect\n");
+//    }
+//    uv_close((uv_handle_t *) client, on_close);
+//  }
+
+//  //释放之前申请的资源
+//  if (buf->base != NULL) {
+//    free(buf->base);
+//  }
+//}
+
+///**
+// *
+// * @param:  server  libuv的tcp server对象
+// * @param:  status  状态，小于0表示新连接有误
+// * @author: sherlock
+// */
+//void on_new_connection(uv_stream_t *server, int status) {
+//  if (status < 0) {
+//    fprintf(stderr, "New connection error %s\n", uv_strerror(status));
+//    return;
+//  }
+
+//  uv_tcp_t *client = (uv_tcp_t *) malloc(sizeof(uv_tcp_t));//为tcp client申请资源
+
+////  auto loop = uv_default_loop();
+//  uv_tcp_init(loop, client);//初始化tcp client句柄
+
+//  //判断accept是否成功
+//  if (uv_accept(server, (uv_stream_t *) client) == 0) {
+//    //从传入的stream中读取数据，read_cb会被多次调用，直到数据读完，或者主动调用uv_read_stop方法停止
+//    uv_read_start((uv_stream_t *) client, alloc_buffer, read_cb);
+//  } else {
+//    uv_close((uv_handle_t *) client, NULL);
+//  }
+//}
+
+
+//void  start(void*){
+//    loop = uv_default_loop();
+
+//    uv_run(loop,UV_RUN_DEFAULT);
+
+//}
+
+#include <process.h>
 
 ItemView9::ItemView9(QWidget *parent) : QWidget(parent)
 {
+
 
     auto tabLayout = new QHBoxLayout(this);
     auto tabWidget = new QTabWidget(this);
@@ -51,32 +148,9 @@ ItemView9::ItemView9(QWidget *parent) : QWidget(parent)
     // https://github.com/frk1 cs基址
 
     auto tab2 = new QWidget(this);
-    auto tabLayout2 = new QGridLayout(tab2);
+//    auto tabLayout2 = new QGridLayout(tab2);
     tabWidget->addTab(tab2, tr("csgo"));
 
-//    auto btn21 = new QPushButton(tr("测试阳光"),tab2);
-//    auto btn22 = new QPushButton(tr("测试金钱"),tab2);
-//    auto label21 = new QLabel(tab2);
-//    auto label22 = new QLabel(tab2);
-
-//    auto btn23 = new QPushButton(tr("修改阳光"),tab2);
-//    auto btn24 = new QPushButton(tr("修改金钱"),tab2);
-//    auto label23 = new QLabel(tab2);
-//    auto label24 = new QLabel(tab2);
-//    auto text23 = new QLineEdit(tab2);
-//    text23->setText("2000");
-//    auto text24 = new QLineEdit(tab2);
-
-//    tabLayout2->addWidget(btn21, 1,0);
-//    tabLayout2->addWidget(btn22, 2,0);
-//    tabLayout2->addWidget(label21, 1,1);
-//    tabLayout2->addWidget(label22, 2,1);
-//    tabLayout2->addWidget(btn23, 3,0);
-//    tabLayout2->addWidget(btn24, 4,0);
-//    tabLayout2->addWidget(text23, 3,1);
-//    tabLayout2->addWidget(label23, 3,2);
-//    tabLayout2->addWidget(text24, 4,1);
-//    btn21->setFixedWidth(120);
 
 
 
@@ -172,121 +246,139 @@ ItemView9::ItemView9(QWidget *parent) : QWidget(parent)
     qHBoxLayout4->addWidget(tab4MainLeft);
     qHBoxLayout4->addWidget(infoTableView4);
 
+
+
+  tabWidget->addTab(new ItemView9Tcp(this), tr("Tcp测试"));
+
+
+//    _beginthread(start, 0, NULL);
+
+
     connect(btn41,&QPushButton::clicked,[=](){
-
-        char buffer[256];
-        SOCKET SocketArray[WSA_MAXIMUM_WAIT_EVENTS];
-        WSAEVENT EventArray[WSA_MAXIMUM_WAIT_EVENTS],NewEvent;
-        WSANETWORKEVENTS NetworkEvents;
-        SOCKADDR_IN InternetAddr;
-        SOCKET Accept,Listen;
-        DWORD EventTotal = 0;
-        DWORD Index,i;
-        Listen  = socket (PF_INET,SOCK_STREAM,0);
-        InternetAddr.sin_family =AF_INET;
-        InternetAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-        InternetAddr.sin_port =htons(9401);
-
-        bind(Listen,(PSOCKADDR) &InternetAddr,sizeof(InternetAddr));
-        NewEvent = WSACreateEvent();
-
-
-        WSAEventSelect(Listen,NewEvent,FD_ACCEPT|FD_CLOSE);
-
-        listen(Listen,20);
-        SocketArray[EventTotal] = Listen;
-        EventArray[EventTotal] = NewEvent;
-        EventTotal ++;
-
-
-        while(TRUE)
-        {
-            Index = WSAWaitForMultipleEvents(EventTotal,EventArray,FALSE,WSA_INFINITE,FALSE);
-            Index = Index - WSA_WAIT_EVENT_0;
-
-            for(i = Index;i < EventTotal;i++){
+//        struct sockaddr_in addr;
+//        uv_tcp_init(loop, &tcpServer);
+//        uv_ip4_addr("0.0.0.0",9402,&addr);
+//        uv_tcp_bind(&tcpServer,(const struct sockaddr*)&addr,0);
+//        int r = uv_listen((uv_stream_t * )&tcpServer,128,on_new_connection);
+//        if(r){
+//            qDebug() << "Listen error " << uv_strerror(r);
+//        }
 
 
 
-            Index = WSAWaitForMultipleEvents(1,&EventArray[i],TRUE,1000,FALSE);
+//        char buffer[256];
+//        SOCKET SocketArray[WSA_MAXIMUM_WAIT_EVENTS];
+//        WSAEVENT EventArray[WSA_MAXIMUM_WAIT_EVENTS],NewEvent;
+//        WSANETWORKEVENTS NetworkEvents;
+//        SOCKADDR_IN InternetAddr;
+//        SOCKET Accept,Listen;
+//        DWORD EventTotal = 0;
+//        DWORD Index,i;
+//        Listen  = socket (PF_INET,SOCK_STREAM,0);
+//        InternetAddr.sin_family =AF_INET;
+//        InternetAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+//        InternetAddr.sin_port =htons(9401);
+
+//        bind(Listen,(PSOCKADDR) &InternetAddr,sizeof(InternetAddr));
+//        NewEvent = WSACreateEvent();
 
 
-            if(Index == WSA_WAIT_FAILED || Index == WSA_WAIT_TIMEOUT)
-            {
-                continue;
-            }
-            else
-            {
-                Index = i;
-                WSAEnumNetworkEvents(SocketArray[Index],EventArray[Index],&NetworkEvents);
+//        WSAEventSelect(Listen,NewEvent,FD_ACCEPT|FD_CLOSE);
 
-                if(NetworkEvents.lNetworkEvents &FD_ACCEPT){
-
-                    if(NetworkEvents.iErrorCode[FD_ACCEPT_BIT]!= 0){
-
-                        printf("accept error %d \n",NetworkEvents.iErrorCode[FD_ACCEPT_BIT] );
-                        break;
-                    }
-                    Accept = accept(SocketArray[Index],NULL,NULL);
-
-                    if(EventTotal > WSA_MAXIMUM_WAIT_EVENTS){
-                        printf("too many connection \n" );
-                        closesocket(Accept);
-                        break;
-                    }
+//        listen(Listen,20);
+//        SocketArray[EventTotal] = Listen;
+//        EventArray[EventTotal] = NewEvent;
+//        EventTotal ++;
 
 
-                    NewEvent = WSACreateEvent();
-                    WSAEventSelect(Accept,NewEvent,FD_READ|FD_WRITE|FD_CLOSE);
+//        while(TRUE)
+//        {
+//            Index = WSAWaitForMultipleEvents(EventTotal,EventArray,FALSE,WSA_INFINITE,FALSE);
+//            Index = Index - WSA_WAIT_EVENT_0;
 
-                    EventArray[EventTotal] = NewEvent;
-                    SocketArray[EventTotal] = Accept;
-                    EventTotal ++;
-                    printf("socket %d connected \n" ,Accept);
-                }
-
-                // 处理
-                if(NetworkEvents.lNetworkEvents &FD_READ){
-                    if(NetworkEvents.iErrorCode[FD_READ_BIT]!= 0){
-
-                        printf("FD_READ error %d \n",NetworkEvents.iErrorCode[FD_READ_BIT] );
-                        break;
-                    }
-
-                    recv(SocketArray[Index - WSA_WAIT_EVENT_0],buffer,sizeof(buffer),0);
-
-                }
-
-                // 处理
-                if(NetworkEvents.lNetworkEvents &FD_WRITE){
-                    if(NetworkEvents.iErrorCode[FD_WRITE_BIT]!= 0){
-
-                        printf("FD_WRITE error %d \n",NetworkEvents.iErrorCode[FD_WRITE_BIT] );
-                        break;
-                    }
-
-                    send(SocketArray[Index - WSA_WAIT_EVENT_0],buffer,sizeof(buffer),0);
-                }
+//            for(i = Index;i < EventTotal;i++){
 
 
-                // 处理
-                if(NetworkEvents.lNetworkEvents &FD_CLOSE){
-                    if(NetworkEvents.iErrorCode[FD_CLOSE_BIT]!= 0){
 
-                        printf("FD_CLOSE error %d \n",NetworkEvents.iErrorCode[FD_CLOSE] );
-                        break;
-                    }
+//            Index = WSAWaitForMultipleEvents(1,&EventArray[i],TRUE,1000,FALSE);
 
-                    closesocket(SocketArray[Index]);
-                    for(int i = Index;Index <EventTotal; Index++ ){
-                        EventArray[i] = EventArray[i+1];
-                        SocketArray[i] = SocketArray[i+1];
-                    }
-                    EventTotal --;
-                }
-            }
-        }
-        }
+
+//            if(Index == WSA_WAIT_FAILED || Index == WSA_WAIT_TIMEOUT)
+//            {
+//                continue;
+//            }
+//            else
+//            {
+//                Index = i;
+//                WSAEnumNetworkEvents(SocketArray[Index],EventArray[Index],&NetworkEvents);
+
+//                if(NetworkEvents.lNetworkEvents &FD_ACCEPT){
+
+//                    if(NetworkEvents.iErrorCode[FD_ACCEPT_BIT]!= 0){
+
+//                        printf("accept error %d \n",NetworkEvents.iErrorCode[FD_ACCEPT_BIT] );
+//                        break;
+//                    }
+//                    Accept = accept(SocketArray[Index],NULL,NULL);
+
+//                    if(EventTotal > WSA_MAXIMUM_WAIT_EVENTS){
+//                        printf("too many connection \n" );
+//                        closesocket(Accept);
+//                        break;
+//                    }
+
+
+//                    NewEvent = WSACreateEvent();
+//                    WSAEventSelect(Accept,NewEvent,FD_READ|FD_WRITE|FD_CLOSE);
+
+//                    EventArray[EventTotal] = NewEvent;
+//                    SocketArray[EventTotal] = Accept;
+//                    EventTotal ++;
+//                    printf("socket %d connected \n" ,Accept);
+//                }
+
+//                // 处理
+//                if(NetworkEvents.lNetworkEvents &FD_READ){
+//                    if(NetworkEvents.iErrorCode[FD_READ_BIT]!= 0){
+
+//                        printf("FD_READ error %d \n",NetworkEvents.iErrorCode[FD_READ_BIT] );
+//                        break;
+//                    }
+
+//                    recv(SocketArray[Index - WSA_WAIT_EVENT_0],buffer,sizeof(buffer),0);
+
+//                }
+
+//                // 处理
+//                if(NetworkEvents.lNetworkEvents &FD_WRITE){
+//                    if(NetworkEvents.iErrorCode[FD_WRITE_BIT]!= 0){
+
+//                        printf("FD_WRITE error %d \n",NetworkEvents.iErrorCode[FD_WRITE_BIT] );
+//                        break;
+//                    }
+
+//                    send(SocketArray[Index - WSA_WAIT_EVENT_0],buffer,sizeof(buffer),0);
+//                }
+
+
+//                // 处理
+//                if(NetworkEvents.lNetworkEvents &FD_CLOSE){
+//                    if(NetworkEvents.iErrorCode[FD_CLOSE_BIT]!= 0){
+
+//                        printf("FD_CLOSE error %d \n",NetworkEvents.iErrorCode[FD_CLOSE] );
+//                        break;
+//                    }
+
+//                    closesocket(SocketArray[Index]);
+//                    for(int i = Index;Index <EventTotal; Index++ ){
+//                        EventArray[i] = EventArray[i+1];
+//                        SocketArray[i] = SocketArray[i+1];
+//                    }
+//                    EventTotal --;
+//                }
+//            }
+//        }
+//        }
 
     });
 
@@ -327,19 +419,19 @@ ItemView9::ItemView9(QWidget *parent) : QWidget(parent)
                     ULONG ReturnLength;
                     NTSTATUS Status;
 
-                    RtlFreeUnicodeString(NULL);
-                    Status = NtQueryInformationThread(hThread,
-                                                            ThreadBasicInformation,
-                                                            &ThreadBasicInfo,
-                                                            sizeof(ThreadBasicInfo),
-                                                            &ReturnLength);
-                    if (!NT_SUCCESS(Status))
-                           {
-                               /* Fail */
-                               printf("SXS: %s - Failing thread create because "
-                                              "NtQueryInformationThread() failed with status %08lx\n",
-                                              __FUNCTION__, Status);
-                           }
+//                    RtlFreeUnicodeString(NULL);
+//                    Status = NtQueryInformationThread(hThread,
+//                                                            ThreadBasicInformation,
+//                                                            &ThreadBasicInfo,
+//                                                            sizeof(ThreadBasicInfo),
+//                                                            &ReturnLength);
+//                    if (!NT_SUCCESS(Status))
+//                           {
+//                               /* Fail */
+//                               printf("SXS: %s - Failing thread create because "
+//                                              "NtQueryInformationThread() failed with status %08lx\n",
+//                                              __FUNCTION__, Status);
+//                           }
 
                     CloseHandle(hThread);
 

@@ -61,7 +61,6 @@ private:
     int ftpStatus;
     QVector<QUrlInfo> vectorListInfos;
     bool existDialog;
-//    ItemView7VlcPlayer *playerDialog;
 
 signals:
     void sendVideoPlayer(QString url);

@@ -118,8 +118,9 @@ LRESULT ItemView9CS16::WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lP
 
     case WM_DESTROY:
     {
-        g_cs16->dx->release();
-        exit(1);
+        //        g_cs16->dx->release();
+
+        //        exit(1);
         return 0;
     }
 
@@ -137,33 +138,32 @@ static void Refresh(void *param)
 
     while (true)
     {
-        // 使辅助窗口一直盖在游戏窗口上
-        if (thisObj->gameHwnd)
-        {
-            GetClientRect(thisObj->gameHwnd, &thisObj->gameRect);
-            thisObj->gamePoint.x = 0;
-            thisObj->gamePoint.y = 0;
-            ClientToScreen(thisObj->gameHwnd, &thisObj->gamePoint);
-            MoveWindow(thisObj->newHwnd, thisObj->gamePoint.x, thisObj->gamePoint.y, thisObj->gameRect.right, thisObj->gameRect.bottom, true);
-
-            // 处理窗口消息
-            MSG Message;
-            ZeroMemory(&Message, sizeof(Message));
-
-            if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))
+        if (thisObj->isStart) {
+            // 使辅助窗口一直盖在游戏窗口上
+            if (thisObj->gameHwnd)
             {
-                DispatchMessage(&Message);
-                TranslateMessage(&Message);
+                GetClientRect(thisObj->gameHwnd, &thisObj->gameRect);
+                thisObj->gamePoint.x = 0;
+                thisObj->gamePoint.y = 0;
+                ClientToScreen(thisObj->gameHwnd, &thisObj->gamePoint);
+                MoveWindow(thisObj->newHwnd, thisObj->gamePoint.x, thisObj->gamePoint.y, thisObj->gameRect.right, thisObj->gameRect.bottom, true);
+
+                // 处理窗口消息
+                MSG Message;
+                ZeroMemory(&Message, sizeof(Message));
+
+                if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))
+                {
+                    DispatchMessage(&Message);
+                    TranslateMessage(&Message);
+                }
             }
+
+            Sleep(500);
+        } else {
+            break;
         }
-
-        Sleep(500);
     }
-
-
-    thisObj->dx->release();
-    CloseWindow(thisObj->newHwnd);
-    UnregisterClass(wClass.lpszClassName, wClass.hInstance);
 }
 
 unsigned __stdcall ItemView9CS16::Start(void *param) {
@@ -175,10 +175,15 @@ unsigned __stdcall ItemView9CS16::Start(void *param) {
     thisObj->newHwnd = WychUtils::CreateTopWindow(thisObj->gameHwnd, ItemView9CS16::WinProc);
 
     thisObj->dx = new WychUtils::DX9();
+
     thisObj->dx->init(thisObj->newHwnd);
 
     // 刷新
     Refresh(param);
+    WychUtils::CloseTopWindow(thisObj->newHwnd);
+
+    // CloseHandle(thisObj->gameHwnd);
+    delete thisObj->dx;
     return 1;
 }
 
@@ -189,10 +194,17 @@ void ItemView9CS16::initConnect()
     });
 
     connect(btnStartStop, &QPushButton::clicked, [this]() {
-        unsigned threadid;
-        HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &ItemView9CS16::Start, this, NULL, &threadid);
+        if (!isStart) {
+            isStart = true;
+            unsigned threadid;
+            HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &ItemView9CS16::Start, this, NULL, &threadid);
+            btnStartStop->setText(tr("关闭"));
 
-        CloseHandle(hThread);
+            CloseHandle(hThread);
+        } else {
+            isStart = false;
+            btnStartStop->setText(tr("打开"));
+        }
 
         //        if (!isStart) {
         //            std::string host = edtHost->text().toStdString();

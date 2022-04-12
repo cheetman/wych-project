@@ -8,8 +8,7 @@
 #include <dwmapi.h>
 
 
-static WNDCLASSEX wClass;
-typedef void (*Draw)();
+// typedef void (*Draw)();
 
 namespace WychUtils {
 class DX9 {
@@ -51,5 +50,6 @@ private:
 
 HWND CreateTopWindow(HWND  SourceHwnd,
                      void *WinProc);
+void CloseTopWindow(HWND newHwnd);
 }
 #endif // WINDOW_H

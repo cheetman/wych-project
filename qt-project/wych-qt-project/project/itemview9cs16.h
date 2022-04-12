@@ -39,6 +39,8 @@ public:
     WychUtils::DX9 *dx;
     MARGINS Margin;
 
+    bool isStart = false;
+
     //    static ItemView9CS16 *instance;
 
 protected:
@@ -70,7 +72,6 @@ private:
     QCheckBox *ckRefreshClients;
 
     QPlainTextEdit *edtMsg;
-    BOOL isStart = false;
     hv::TcpServer *server;
 
     QStandardItemModel *infoGridModel;

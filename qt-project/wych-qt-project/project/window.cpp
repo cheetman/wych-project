@@ -23,6 +23,7 @@ bool DX9::init(HWND hwnd) {
 
     if (pLine == NULL) D3DXCreateLine(g_pd3dDevice, &pLine);
 
+
     // 创建D3D字体
     D3DXCreateFont(g_pd3dDevice, 16, 0, FW_DONTCARE, D3DX_DEFAULT, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, L"Vernada", &Font);
     return true;
@@ -60,10 +61,28 @@ void DX9::drawEnd() {
 }
 
 void DX9::release() {
-    if (g_pd3dDevice) { g_pd3dDevice->Release(); g_pd3dDevice = NULL; }
+    if (pLine) {
+        pLine->Release();
+        pLine = NULL;
+    }
 
-    if (g_pD3D) { g_pD3D->Release(); g_pD3D = NULL; }
+    if (Font) {
+        Font->Release();
+        Font = NULL;
+    }
+
+    if (g_pd3dDevice) {
+        g_pd3dDevice->Release();
+        g_pd3dDevice = NULL;
+    }
+
+    if (g_pD3D) {
+        g_pD3D->Release();
+        g_pD3D = NULL;
+    }
 }
+
+static WNDCLASSEX wClass;
 
 HWND CreateTopWindow(HWND SourceHwnd, void *WinProc) {
     if ((WinProc == NULL) || (SourceHwnd == 0)) return 0;
@@ -99,5 +118,11 @@ HWND CreateTopWindow(HWND SourceHwnd, void *WinProc) {
     SetLayeredWindowAttributes(newHwnd, 0, RGB(0, 0, 0), LWA_COLORKEY);
     ShowWindow(newHwnd, SW_SHOW);
     return newHwnd;
+}
+
+void CloseTopWindow(HWND newHwnd) {
+    CloseWindow(newHwnd);
+    DestroyWindow(newHwnd);
+    UnregisterClass(wClass.lpszClassName, wClass.hInstance);
 }
 }

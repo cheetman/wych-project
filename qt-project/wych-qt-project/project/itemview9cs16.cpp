@@ -148,6 +148,34 @@ static void Refresh(void *param)
                 ClientToScreen(thisObj->gameHwnd, &thisObj->gamePoint);
                 MoveWindow(thisObj->newHwnd, thisObj->gamePoint.x, thisObj->gamePoint.y, thisObj->gameRect.right, thisObj->gameRect.bottom, true);
 
+
+                int self_address = thisObj->cstrike_module.module_address + 0x11069BC;
+                int self_address_server = thisObj->amxmodx_mm_module.module_address + 0x97030;
+
+                //                int location_base_address;
+                //                WychUtils_WinAPI::read_memory(thisObj->gameProcessHwnd, self_address, &location_base_address, sizeof(int));
+                for (int i = 0; i <= 30; i++) {
+                    self_address_server +=  0x230;
+                    int location_base_address;
+                    WychUtils_WinAPI::read_memory(thisObj->gameProcessHwnd, self_address_server, &location_base_address, sizeof(int));
+
+                    if (location_base_address) {
+                        WychUtils_WinAPI::read_memory(thisObj->gameProcessHwnd, location_base_address +  0x7c, &location_base_address, sizeof(int));
+
+                        if (location_base_address) {
+                            WychUtils_WinAPI::read_memory(thisObj->gameProcessHwnd, location_base_address +  0x4, &location_base_address, sizeof(int));
+
+                            if (location_base_address) {
+                                float blood;
+                                WychUtils_WinAPI::read_memory(thisObj->gameProcessHwnd, location_base_address +  0x160, &blood, sizeof(float));
+
+                                qDebug() << " 敌人地址" << i << "：" << hex << location_base_address << "血量" << blood;
+                            }
+                        }
+                    }
+                }
+
+
                 // 处理窗口消息
                 MSG Message;
                 ZeroMemory(&Message, sizeof(Message));
@@ -169,7 +197,28 @@ static void Refresh(void *param)
 unsigned __stdcall ItemView9CS16::Start(void *param) {
     auto thisObj = (ItemView9CS16 *)param;
 
-    thisObj->gameHwnd = FindWindow(L"Direct3DWindowClass", nullptr);
+    // 1.获取进程ID
+    auto pid = WychUtils_WinAPI::get_process_id(L"cstrike.exe");
+
+    if (!pid) {
+        exit(-1);
+    }
+
+    // 2.获取进程句柄
+    thisObj->gameProcessHwnd = WychUtils_WinAPI::get_process_handle(pid);
+
+    if (!thisObj->gameProcessHwnd) {
+        exit(-1);
+    }
+
+
+    // 3.获取进程中的dll
+    WychUtils_WinAPI::get_module_info(thisObj->gameProcessHwnd, pid,    L"cstrike.exe", thisObj->cstrike_module);
+    WychUtils_WinAPI::get_module_info(thisObj->gameProcessHwnd, pid, L"amxmodx_mm.dll", thisObj->amxmodx_mm_module);
+
+
+    //    thisObj->gameHwnd = FindWindow(L"Direct3DWindowClass", nullptr);
+    thisObj->gameHwnd = FindWindow(L"Valve001", L"Compete King");
 
     // 创建透明窗口(游戏窗口, 绘制);
     thisObj->newHwnd = WychUtils::CreateTopWindow(thisObj->gameHwnd, ItemView9CS16::WinProc);
@@ -183,6 +232,7 @@ unsigned __stdcall ItemView9CS16::Start(void *param) {
     WychUtils::CloseTopWindow(thisObj->newHwnd);
 
     // CloseHandle(thisObj->gameHwnd);
+    CloseHandle(thisObj->gameProcessHwnd);
     delete thisObj->dx;
     return 1;
 }

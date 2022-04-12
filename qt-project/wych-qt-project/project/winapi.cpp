@@ -125,7 +125,7 @@ handle get_process_handle(dword process_id, dword access)
     return process_handle;
 }
 
-dword get_process_id(const wchar_t *process_name)
+dword get_process_id(LPCTSTR process_name)
 {
     handle snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
@@ -165,9 +165,10 @@ dword get_process_id(const wchar_t *process_name)
     return 0;
 }
 
-void get_module_info(handle process_handle, dword process_id, const wchar_t *module_name, struct module_information& info)
+void get_module_info(handle process_handle, dword process_id, LPCTSTR  module_name, struct module_information& info)
 {
-    handle snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, process_id);
+    // 支持64位获取32位模块
+    handle snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE32 | TH32CS_SNAPMODULE, process_id);
 
     if (snap == INVALID_HANDLE_VALUE) {
         error("CreateToolhelp32Snapshot失败");

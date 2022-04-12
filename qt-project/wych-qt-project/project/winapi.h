@@ -20,7 +20,7 @@ namespace WychUtils_WinAPI {
 /// </summary>
 /// <param name="process_name">进程名称</param>
 /// <returns>进程PID</returns>
-dword get_process_id(const char *process_name);
+dword get_process_id(LPCTSTR process_name);
 
 /// <summary>
 /// 获取进程句柄
@@ -40,7 +40,7 @@ handle get_process_handle(dword process_id,
 /// <param name="info">模块信息</param>
 void get_module_info(handle                     process_handle,
                      dword                      process_id,
-                     const char                *module_name,
+                     LPCTSTR                    module_name,
                      struct module_information& info);
 
 /// <summary>

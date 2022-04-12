@@ -19,6 +19,7 @@
 #include <d3dx9.h>
 #include <dwmapi.h>
 #include "window.h"
+#include "winapi.h"
 
 
 class ItemView9CS16 : public QWidget {
@@ -34,12 +35,14 @@ public:
     void stop();
 
     HWND newHwnd, gameHwnd;
+    HANDLE gameProcessHwnd;
     RECT gameRect;
     POINT gamePoint{ 0, 0 };
     WychUtils::DX9 *dx;
     MARGINS Margin;
 
     bool isStart = false;
+    struct WychUtils_WinAPI::module_information amxmodx_mm_module, cstrike_module;
 
     //    static ItemView9CS16 *instance;
 

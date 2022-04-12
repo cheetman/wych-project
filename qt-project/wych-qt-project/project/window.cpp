@@ -1,14 +1,13 @@
 #include "window.h"
 
-
 namespace WychUtils {
-bool InitD3D9(HWND hwnd, LPDIRECT3D9& g_pD3D, LPDIRECT3DDEVICE9& g_pd3dDevice, D3DPRESENT_PARAMETERS& g_d3dpp, LPD3DXLINE *pLine, LPD3DXFONT *Font) {
-    /*
-        D3D这玩意比较复杂，如果单纯是想搞点辅助什么的，复制粘贴我的足够了，
-        如果想深入学习，可能得另找资料了，下面的这些基本是固定的，想知道是用来干啥的
-        可以自行百度，我这个人比较懒。。。
-     */
+DX9::~DX9() {
+    release();
+}
 
+DX9::DX9() {}
+
+bool DX9::init(HWND hwnd) {
     if ((g_pD3D = Direct3DCreate9(D3D_SDK_VERSION)) == NULL) return false;
 
     // 创建D3D设备
@@ -22,11 +21,48 @@ bool InitD3D9(HWND hwnd, LPDIRECT3D9& g_pD3D, LPDIRECT3DDEVICE9& g_pd3dDevice, D
 
     if (g_pD3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &g_d3dpp, &g_pd3dDevice) < 0) return false;
 
-    if (*pLine == NULL) D3DXCreateLine(g_pd3dDevice, pLine);
+    if (pLine == NULL) D3DXCreateLine(g_pd3dDevice, &pLine);
 
     // 创建D3D字体
-    D3DXCreateFont(g_pd3dDevice, 16, 0, FW_DONTCARE, D3DX_DEFAULT, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, L"Vernada", Font);
+    D3DXCreateFont(g_pd3dDevice, 16, 0, FW_DONTCARE, D3DX_DEFAULT, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, L"Vernada", &Font);
     return true;
+}
+
+void DX9::drawLine(D3DCOLOR Color, float X1, float Y1, float X2, float Y2, float Width) {
+    D3DXVECTOR2 Vertex[2] = { { X1, Y1 }, { X2, Y2 } };
+
+    pLine->SetWidth(Width);
+    pLine->Draw(Vertex, 2, Color);
+}
+
+void DX9::drawRect(float X, float Y, float W, float H, float Width, D3DCOLOR Color) {
+    D3DXVECTOR2 Vertex[5] = { { X, Y }, { X + W, Y }, { X + W, Y + H }, { X, Y + H }, { X, Y } };
+
+    pLine->SetWidth(Width);
+    pLine->Draw(Vertex, 5, Color);
+}
+
+void DX9::drawText(float X, float Y, const char *Str, D3DCOLOR Color) {
+    RECT Rect = { (LONG)X, (LONG)Y };
+
+    Font->DrawTextA(NULL, Str, -1, &Rect, DT_CALCRECT, Color);
+    Font->DrawTextA(NULL, Str, -1, &Rect, DT_LEFT,     Color);
+}
+
+void DX9::drawStart() {
+    g_pd3dDevice->Clear(0, 0, D3DCLEAR_TARGET, 0, 1.0f, 0);
+    g_pd3dDevice->BeginScene();
+}
+
+void DX9::drawEnd() {
+    g_pd3dDevice->EndScene();
+    g_pd3dDevice->Present(0, 0, 0, 0);
+}
+
+void DX9::release() {
+    if (g_pd3dDevice) { g_pd3dDevice->Release(); g_pd3dDevice = NULL; }
+
+    if (g_pD3D) { g_pD3D->Release(); g_pD3D = NULL; }
 }
 
 HWND CreateTopWindow(HWND SourceHwnd, void *WinProc) {

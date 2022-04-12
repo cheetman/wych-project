@@ -35,6 +35,7 @@ SOURCES += \
     itemview7vlcplayer.cpp \
     itemview8.cpp \
     itemview9.cpp \
+    itemview9cs16.cpp \
     itemview9tcp.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -53,6 +54,7 @@ HEADERS += \
     itemview7vlcplayer.h \
     itemview8.h \
     itemview9.h \
+    itemview9cs16.h \
     itemview9tcp.h \
     mainwindow.h \
 #    qftp.h \
@@ -161,6 +163,8 @@ win32:CONFIG(release, debug|release) {
     LIBS += -ladvapi32
     LIBS += -lGdi32
 
+    # D3D用到
+    LIBS += -ldwmapi
 
 
     greaterThan(QT_MAJOR_VERSION, 4) {

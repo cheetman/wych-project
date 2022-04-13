@@ -21,6 +21,7 @@
 #include "window.h"
 #include "winapi.h"
 
+#define CS16_MAX 32
 
 class ItemView9CS16 : public QWidget {
     Q_OBJECT
@@ -29,10 +30,6 @@ public:
 
     explicit ItemView9CS16(QWidget *parent = nullptr);
     ~ItemView9CS16();
-
-    bool start(int         port,
-               const char *host = "0.0.0.0");
-    void stop();
 
     HWND newHwnd, gameHwnd;
     HANDLE gameProcessHwnd;
@@ -44,7 +41,28 @@ public:
     bool isStart = false;
     struct WychUtils_WinAPI::module_information amxmodx_mm_module, cstrike_module;
 
-    //    static ItemView9CS16 *instance;
+
+    struct PlayerInfo
+    {
+        bool  isExist = false;       // 是否存在
+        float coor[3] = { 0, 0, 0 }; // 坐标
+        float blood = 0;             // blood
+        float armor = 0;             // armor
+        int   money = 0;             // 钱
+        int   team = 0;              // 阵营
+
+        // 绘制相关
+        bool  isShow = false;        // 是否绘制
+        float to_target = 0;         // 朝向
+        int   to_width = 0;          // 朝向
+        int   to_height_h = 0;       // 朝向
+        int   to_height_w = 0;       // 朝向
+    };
+    PlayerInfo playerInfos[CS16_MAX];
+
+    float selfCoor[3] = { 0, 0, 0 };
+    float selfMatrix[4][4] = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
+    float selfAngle[2] = { 0, 0 };
 
 protected:
 
@@ -66,8 +84,6 @@ protected:
 
 private:
 
-    QLineEdit *edtHost;
-    QLineEdit *edtPort;
     QPushButton *btnStartStop;
     QPushButton *btnClients;
     QPushButton *btnConsoleClear;
@@ -80,11 +96,32 @@ private:
     QStandardItemModel *infoGridModel;
     QTableView *infoTableView;
 
+
+    QCheckBox *ckShowEnemy;
+
+    QLabel *lbPlayerCoor = new QLabel("[]");
+    QLabel *lbPlayerAngle = new QLabel("[]");
+    QLabel *lbPlayerRect00 = new QLabel;
+    QLabel *lbPlayerRect01 = new QLabel;
+    QLabel *lbPlayerRect02 = new QLabel;
+    QLabel *lbPlayerRect03 = new QLabel;
+    QLabel *lbPlayerRect10 = new QLabel;
+    QLabel *lbPlayerRect11 = new QLabel;
+    QLabel *lbPlayerRect12 = new QLabel;
+    QLabel *lbPlayerRect13 = new QLabel;
+    QLabel *lbPlayerRect20 = new QLabel;
+    QLabel *lbPlayerRect21 = new QLabel;
+    QLabel *lbPlayerRect22 = new QLabel;
+    QLabel *lbPlayerRect23 = new QLabel;
+    QLabel *lbPlayerRect30 = new QLabel;
+    QLabel *lbPlayerRect31 = new QLabel;
+    QLabel *lbPlayerRect32 = new QLabel;
+    QLabel *lbPlayerRect33 = new QLabel;
+
+    void refreshForm();
+
 signals:
 };
-
-
-// #define g_cs16 ItemView9CS16::instance()
 
 
 #endif // ITEMVIEW9CS16_H

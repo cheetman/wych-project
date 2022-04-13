@@ -106,6 +106,9 @@ win32:CONFIG(release, debug|release) {
     LIBS += -ladvapi32
     LIBS += -lGdi32
 
+    # D3D用到
+    LIBS += -ldwmapi
+
 
 
     greaterThan(QT_MAJOR_VERSION, 4) {
@@ -119,6 +122,12 @@ win32:CONFIG(release, debug|release) {
         VLCPATH=C:/WorkEnv/vlc-3.0.0-win64
         INCLUDEPATH += $$VLCPATH/sdk/include
         LIBS += -L$$VLCPATH/sdk/lib -llibvlc -llibvlccore
+        # d3d9
+        D3DPATH="C:/WorkEnv/Microsoft DirectX SDK (June 2010)"
+        msvc:PRE_TARGETDEPS += $$D3DPATH/Lib/x64/d3d9.lib
+        msvc:PRE_TARGETDEPS += $$D3DPATH/Lib/x64/d3dx9.lib
+        INCLUDEPATH += $$D3DPATH/Include
+        LIBS +=  -L$$D3DPATH/Lib/x64/ -ld3d9 -ld3dx9
     } else {
         message("32-bit")
         VLCPATH=C:/WorkEnv/vlc-3.0.0

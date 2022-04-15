@@ -81,7 +81,11 @@ void ItemView9CS16::initUI()
     sbRefresh->setValue(5);
 
     ckVersion = new QComboBox();
-    ckVersion->addItem("ck2.1(3266)");
+
+    GameInfo ck21(L"cstrike.exe", L"Valve001", L"Compete King");
+    ckVersion->addItem("ck2.1(3266)",        QVariant::fromValue(ck21));
+    GameInfo ck21classic(L"cstrike.exe", L"Valve001", L"CK2.1 Classic v1.3");
+    ckVersion->addItem("ck2.1 classic v1.3", QVariant::fromValue(ck21classic));
     ckVersion->addItem("okgogogo(3266)");
     ckVersion->addItem("Esai(3248)");
     ckAim = new QCheckBox("启动自瞄");
@@ -222,7 +226,7 @@ static void Refresh(void *param)
             int self_matrix_address = obj->cstrike_module.module_address + 0x1820100;
             WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_matrix_address, &obj->selfMatrix, sizeof(float[4][4]));
 
-            int self_angle_address = obj->cstrike_module.module_address + 0x1B59CAC;
+            int self_angle_address = obj->cstrike_module.module_address + 0x19E10C4;
             WychUtils_WinAPI::read_memory(obj->gameProcessHwnd,  self_angle_address, &obj->selfAngle,  sizeof(float[2]));
 
 
@@ -345,19 +349,21 @@ static void Refresh(void *param)
                         }
                     }
                 }
-
-                if (obj->ckShowFriend->isChecked() || obj->ckShowEnemy->isChecked()) {
-                    // 处理窗口消息
-                    MSG Message;
-                    ZeroMemory(&Message, sizeof(Message));
-
-                    if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))
-                    {
-                        DispatchMessage(&Message);
-                        TranslateMessage(&Message);
-                    }
-                }
             }
+
+
+            //            if (obj->ckShowFriend->isChecked() || obj->ckShowEnemy->isChecked()) {
+            // 处理窗口消息
+            MSG Message;
+            ZeroMemory(&Message, sizeof(Message));
+
+            if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))
+            {
+                DispatchMessage(&Message);
+                TranslateMessage(&Message);
+            }
+
+            //            }
 
             // 2.启动自瞄
             if (obj->ckAim->isChecked()) {
@@ -366,31 +372,37 @@ static void Refresh(void *param)
                     if (obj->selfTeam != playerInfos[i].team) {
                         // 偏航角
                         // 这里用的是我们减去敌人
-                        float x =  playerInfos[0].coor[0] - playerInfos[i].coor[0];
-                        float y =  playerInfos[0].coor[1] -  playerInfos[i].coor[1];
-                        float z =  playerInfos[0].coor[2] -  playerInfos[i].coor[2];
-                        float angle = atan(y / x);                                                                 // 弧度
+                        //                        float x =  playerInfos[0].coor[0] - playerInfos[i].coor[0];
+                        //                        float y =  playerInfos[0].coor[1] -  playerInfos[i].coor[1];
+                        //                        float z =  playerInfos[0].coor[2] -  playerInfos[i].coor[2];
+                        float x = playerInfos[i].coor[0] - playerInfos[0].coor[0];
+                        float y =   playerInfos[i].coor[1]  - playerInfos[0].coor[1];
+                        float z =    playerInfos[i].coor[2] - playerInfos[0].coor[2];
+                        float angle = atan(y / x);                                                        // 弧度
 
-                        if ((x >= 0.0f) && (y >= 0.0f)) playerInfos[i].angle[1] = angle / M_PI * 180.0f - 180.0f;  // 不同游戏根据视角不同这里也得变，有的可能是-180~180 有的是0~360
-                        else if ((x < 0.0f) && (y >= 0.0f)) playerInfos[i].angle[1] = angle / M_PI * 180.0f;
-                        else if ((x < 0.0f) && (y < 0.0f)) playerInfos[i].angle[1] = angle / M_PI * 180.0f;
-                        else if ((x >= 0.0f) && (y < 0.0f)) playerInfos[i].angle[1] = angle / M_PI * 180.f + 180.0f;
+                        if ((x >= 0.0f) && (y >= 0.0f)) playerInfos[i].angle[1] = angle / M_PI * 180.0f;  // 不同游戏根据视角不同这里也得变，有的可能是-180~180 有的是0~360
+                        else if ((x < 0.0f) && (y >= 0.0f)) playerInfos[i].angle[1] = angle / M_PI * 180.0f + 180.0f;
+                        else if ((x < 0.0f) && (y < 0.0f)) playerInfos[i].angle[1] = angle / M_PI * 180.0f + 180.0f;
+                        else if ((x >= 0.0f) && (y < 0.0f)) playerInfos[i].angle[1] = angle / M_PI * 180.f + 360.0f;
 
                         // 俯仰角
-                        playerInfos[i].angle[0] = atan(z / sqrt(x * x + y * y)) / M_PI * 180.f;
+                        playerInfos[i].angle[0] = atan(z / sqrt(x * x + y * y)) / M_PI * 180.f * -1;
                     }
                 }
 
                 if (aim_index > 0) {
-                    if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) {
+                    if (GetAsyncKeyState(VK_MENU) & 0x8000) {
+                        //                        qDebug() << "ceshi";
+
                         // 移动视角
-                        playerInfos[aim_index].angle[1];
+                        //                        playerInfos[aim_index].angle[1];
+                        WychUtils_WinAPI::write_memory(obj->gameProcessHwnd, self_angle_address, &playerInfos[aim_index].angle, sizeof(float[2]));
                     }
                 }
             }
         }
 
-        Sleep(obj->sbRefresh->value() * 10);
+        Sleep(obj->sbRefresh->value());
     }
 }
 
@@ -398,11 +410,12 @@ unsigned __stdcall ItemView9CS16::Start(void *param) {
     auto thisObj = (ItemView9CS16 *)param;
 
     // 1.获取进程ID
-    auto process_name = L"cstrike.exe";
-    auto pid = WychUtils_WinAPI::get_process_id(process_name);
+    GameInfo gameInfo = thisObj->ckVersion->currentData().value<GameInfo>();
+
+    auto pid = WychUtils_WinAPI::get_process_id(gameInfo.process_name);
 
     if (!pid) {
-        thisObj->postMessage(tr("进程未找到![%1]").arg(process_name));
+        thisObj->postMessage(tr("进程未找到![%1]").arg(gameInfo.process_name));
         thisObj->isStart = false;
         return 1;
     }
@@ -411,7 +424,7 @@ unsigned __stdcall ItemView9CS16::Start(void *param) {
     thisObj->gameProcessHwnd = WychUtils_WinAPI::get_process_handle(pid);
 
     if (!thisObj->gameProcessHwnd) {
-        thisObj->postMessage(tr("进程句柄获取失败![%1]").arg(process_name));
+        thisObj->postMessage(tr("进程句柄获取失败![%1]").arg(gameInfo.process_name));
         thisObj->isStart = false;
         return 1;
     }
@@ -422,12 +435,10 @@ unsigned __stdcall ItemView9CS16::Start(void *param) {
     WychUtils_WinAPI::get_module_info(thisObj->gameProcessHwnd, pid, L"amxmodx_mm.dll", thisObj->amxmodx_mm_module);
 
 
-    //    thisObj->gameHwnd = FindWindow(L"Direct3DWindowClass", nullptr);
-    auto title = L"Compete King";
-    thisObj->gameHwnd = FindWindow(L"Valve001", title);
+    thisObj->gameHwnd = FindWindow(gameInfo.class_name, gameInfo.window_name);
 
     if (!thisObj->gameHwnd) {
-        thisObj->postMessage(tr("程序窗口获取失败![%1]").arg(title));
+        thisObj->postMessage(tr("程序窗口获取失败![%1]").arg(gameInfo.window_name));
         thisObj->isStart = false;
         return 1;
     }

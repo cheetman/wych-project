@@ -64,6 +64,24 @@ public:
     };
     PlayerInfo playerInfos[CS16_MAX];
 
+    struct GameInfo
+    {
+public:
+
+        GameInfo() {}
+
+        GameInfo(const wchar_t *process_name, const wchar_t *class_name, const wchar_t *window_name) {
+            this->process_name = process_name;
+            this->class_name = class_name;
+            this->window_name = window_name;
+        }
+
+        const wchar_t *process_name;
+        const wchar_t *class_name;
+        const wchar_t *window_name;
+    };
+
+
     float selfCoor[3] = { 0, 0, 0 };
     float selfMatrix[4][4] = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
     float selfAngle[2] = { 0, 0 };
@@ -132,5 +150,7 @@ private:
 signals:
 };
 
+
+Q_DECLARE_METATYPE(ItemView9CS16::GameInfo)
 
 #endif // ITEMVIEW9CS16_H

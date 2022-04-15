@@ -49,7 +49,7 @@ void OutputDebugString(
         static_cast<::LPCWSTR>(a_outputString));
 }
 
-void error(const char *text)
+void error(LPCTSTR text)
 {
     char buffer[4000];
 
@@ -65,7 +65,7 @@ void error(const char *text)
     exit(-1);
 }
 
-void warning(const char *text)
+void warning(LPCTSTR text)
 {
     char buffer[5000];
 
@@ -112,7 +112,7 @@ handle get_process_handle(dword process_id, dword access)
     handle process_handle = OpenProcess(access, FALSE, process_id);
 
     if (!process_handle) {
-        warning("打开进程句柄失败");
+        warning(L"打开进程句柄失败");
         return 0;
     }
 
@@ -130,7 +130,7 @@ dword get_process_id(LPCTSTR process_name)
     handle snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
     if (snap == INVALID_HANDLE_VALUE) {
-        error("CreateToolhelp32Snapshot失败");
+        error(L"CreateToolhelp32Snapshot失败");
     }
 
     PROCESSENTRY32 process_info;
@@ -161,7 +161,7 @@ dword get_process_id(LPCTSTR process_name)
     }
 
     CloseHandle(snap);
-    warning("进程查找失败!");
+    warning(L"进程查找失败!");
     return 0;
 }
 
@@ -171,7 +171,7 @@ void get_module_info(handle process_handle, dword process_id, LPCTSTR  module_na
     handle snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE32 | TH32CS_SNAPMODULE, process_id);
 
     if (snap == INVALID_HANDLE_VALUE) {
-        error("CreateToolhelp32Snapshot失败");
+        error(L"CreateToolhelp32Snapshot失败");
     }
     MODULEENTRY32 module_info;
     ZeroMemory(&module_info, sizeof(module_info));
@@ -197,7 +197,7 @@ void get_module_info(handle process_handle, dword process_id, LPCTSTR  module_na
             dword size = read_memory(process_handle, info.module_address, info.module_data, info.module_size);
 
             if (size == 0) {
-                error("读取内存错误");
+                error(L"读取内存错误");
             }
 
 #ifdef DEBUG_STRING
@@ -215,7 +215,7 @@ void get_module_info(handle process_handle, dword process_id, LPCTSTR  module_na
     }
 
     CloseHandle(snap);
-    warning("!!!查找不到指定模块!!!");
+    warning(L"!!!查找不到指定模块!!!");
 }
 
 int find_pattern(handle process, struct module_information& module, const char *pattern, int index                 = 0, int offset= 0)
@@ -237,7 +237,7 @@ int find_pattern(handle process, struct module_information& module, const char *
         }
     }
 
-    warning("!!!无法匹配到该内存特征!!!");
+    warning(L"!!!无法匹配到该内存特征!!!");
     return -1;
 }
 

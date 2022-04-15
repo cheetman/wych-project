@@ -201,6 +201,7 @@ ItemView9::ItemView9(QWidget *parent) : QWidget(parent)
 
     tab3MainLeftLayout->addWidget(tab3MainLeftGroup1);
     tab3MainLeftLayout->addWidget(tab3MainLeftGroup2);
+    tab3MainLeftGroup1Layout->addWidget(btn30);
     tab3MainLeftGroup1Layout->addWidget(btn31);
     tab3MainLeftGroup1Layout->addWidget(btn32);
     tab3MainLeftGroup1Layout->addWidget(btn33);

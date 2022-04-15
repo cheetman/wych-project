@@ -18,6 +18,7 @@
 #include <d3d9.h>
 #include <d3dx9.h>
 #include <dwmapi.h>
+#include <QSpinBox>
 #include "window.h"
 #include "winapi.h"
 
@@ -33,7 +34,7 @@ public:
 
     HWND newHwnd, gameHwnd;
     HANDLE gameProcessHwnd;
-    RECT gameRect;
+    RECT gameRect{ 0, 0, 0, 0 };
     POINT gamePoint{ 0, 0 };
     WychUtils::DX9 *dx;
     MARGINS Margin;
@@ -57,12 +58,22 @@ public:
         int   to_width = 0;          // 朝向
         int   to_height_h = 0;       // 朝向
         int   to_height_w = 0;       // 朝向
+
+
+        float angle[2] = { 0, 0 };   // 偏航角和俯仰角
     };
     PlayerInfo playerInfos[CS16_MAX];
 
     float selfCoor[3] = { 0, 0, 0 };
     float selfMatrix[4][4] = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
     float selfAngle[2] = { 0, 0 };
+    int selfTeam = 0;
+
+    QSpinBox *sbRefresh;
+    QCheckBox *ckAim;
+    QCheckBox *ckShowEnemy;
+    QCheckBox *ckShowFriend;
+    QComboBox *ckVersion;
 
 protected:
 
@@ -76,6 +87,7 @@ protected:
     virtual void              customEvent(QEvent *e);
 
     static unsigned __stdcall Start(void *param);
+    static unsigned __stdcall Resize(void *param);
 
     static LRESULT            WinProc(HWND   hWnd,
                                       UINT   Message,
@@ -91,13 +103,10 @@ private:
     QCheckBox *ckRefreshClients;
 
     QPlainTextEdit *edtMsg;
-    hv::TcpServer *server;
 
     QStandardItemModel *infoGridModel;
     QTableView *infoTableView;
 
-
-    QCheckBox *ckShowEnemy;
 
     QLabel *lbPlayerCoor = new QLabel("[]");
     QLabel *lbPlayerAngle = new QLabel("[]");

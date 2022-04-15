@@ -91,9 +91,9 @@ void OutputDebugString(
 void OutputDebugString(
     const wchar_t *a_outputString) noexcept;
 
-void error(const char *text = nullptr);
+void error(LPCTSTR text = nullptr);
 
-void warning(const char *text);
+void warning(LPCTSTR text);
 
 struct module_information
 {
@@ -108,7 +108,7 @@ struct module_information
         module_data = (char *)VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
         if (module_data == 0) {
-            error("申请内存失败");
+            error(L"申请内存失败");
         }
     }
 

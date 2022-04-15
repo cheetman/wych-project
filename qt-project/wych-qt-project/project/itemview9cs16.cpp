@@ -3,11 +3,13 @@
 #include "customevent.h"
 
 ItemView9CS16 *g_cs16;
+int fontSize = 1;
+int colorRed = D3DCOLOR_XRGB(255, 0, 0);   // D3DCOLOR_ARGB(255, 255, 0, 0)
+int colorGreen = D3DCOLOR_XRGB(0, 255, 0); // D3DCOLOR_ARGB(255, 255, 0, 0)
 
 ItemView9CS16::ItemView9CS16(QWidget *parent)
     : QWidget{parent}
 {
-    server = nullptr;
     initUI();
     initConnect();
     g_cs16 = this;
@@ -21,12 +23,12 @@ void ItemView9CS16::initUI()
     auto layout = new QHBoxLayout(this);
     auto leftQWidget = new QWidget(this);
     auto leftQWidgetLayout = new QVBoxLayout(leftQWidget);
-    auto leftQWidgetGroupBox1 = new QGroupBox("外挂设置", this);
+    auto leftQWidgetGroupBox1 = new QGroupBox("程序设置", this);
 
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox1);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout = new QGridLayout(leftQWidgetGroupBox1);
-    leftQWidgetGroupBox1->setFixedHeight(120);
+    leftQWidgetGroupBox1->setFixedHeight(200);
 
     //    leftQWidgetGroupBox1->setFixedWidth(400);
 
@@ -65,15 +67,28 @@ void ItemView9CS16::initUI()
 
 
     ckConsoleEnable = new QCheckBox("启动控制台");
+    ckConsoleEnable->setChecked(true);
     ckRefreshClients = new QCheckBox("刷新状态");
-    btnStartStop = new QPushButton("启动外挂");
+    btnStartStop = new QPushButton("启动辅助");
     btnConsoleClear = new QPushButton("清空控制台");
     btnClients = new QPushButton("刷新状态");
 
 
-    ckShowEnemy = new QCheckBox("显示敌人方框");
+    sbRefresh = new QSpinBox();
+    sbRefresh->setMinimum(1);
+    sbRefresh->setMaximum(1000);
+    sbRefresh->setSuffix(" x10 ms");
+    sbRefresh->setValue(5);
 
-    //    edtMsg = new QTextEdit();
+    ckVersion = new QComboBox();
+    ckVersion->addItem("ck2.1(3266)");
+    ckVersion->addItem("okgogogo(3266)");
+    ckVersion->addItem("Esai(3248)");
+    ckAim = new QCheckBox("启动自瞄");
+    ckShowEnemy = new QCheckBox("显示敌人方框");
+    ckShowEnemy->setChecked(true);
+    ckShowFriend = new QCheckBox("显示队友方框");
+
     edtMsg = new QPlainTextEdit();
 
     edtMsg->setReadOnly(true);
@@ -83,25 +98,26 @@ void ItemView9CS16::initUI()
     infoGridModel = new QStandardItemModel();
 
     /* 设置表格标题行(输入数据为QStringList类型) */
-    infoGridModel->setHorizontalHeaderLabels({  "类型", "血量", "坐标", "护甲", "金钱" });
+    infoGridModel->setHorizontalHeaderLabels({  "类型", "血量",  "偏航角|俯仰角", "坐标", "护甲", "金钱" });
     infoTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     infoTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     infoTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
     infoTableView->setModel(infoGridModel);
 
 
-    leftQWidgetGroup1Layout->addWidget(ckShowEnemy,  1, 0);
-    leftQWidgetGroup1Layout->addWidget(btnStartStop, 2, 0);
+    leftQWidgetGroup1Layout->addWidget(ckVersion,    1, 0);
+    leftQWidgetGroup1Layout->addWidget(sbRefresh,    2, 0);
+    leftQWidgetGroup1Layout->addWidget(ckShowFriend, 3, 0);
+    leftQWidgetGroup1Layout->addWidget(ckShowEnemy,  4, 0);
+    leftQWidgetGroup1Layout->addWidget(ckAim,        5, 0);
+    leftQWidgetGroup1Layout->addWidget(btnStartStop, 6, 0);
 
     centerQWidgetLayout->addWidget(edtMsg);
     centerQWidgetGroupBox1Layout->addWidget(ckConsoleEnable);
     centerQWidgetGroupBox1Layout->addWidget(btnConsoleClear);
 
-
     centerQWidgetGroupBox3Layout->addWidget(lbPlayerAngle,  1,     1, 1, 4);
-
     centerQWidgetGroupBox3Layout->addWidget(lbPlayerCoor,   3,     1, 1, 4);
-
     centerQWidgetGroupBox3Layout->addWidget(lbPlayerRect00, 5 + 0, 2 + 0);
     centerQWidgetGroupBox3Layout->addWidget(lbPlayerRect01, 5 + 0, 2 + 1);
     centerQWidgetGroupBox3Layout->addWidget(lbPlayerRect02, 5 + 0, 2 + 2);
@@ -124,14 +140,10 @@ void ItemView9CS16::initUI()
     rightQWidgetGroupBox1Layout->addWidget(btnClients);
     rightQWidgetLayout->addWidget(infoTableView);
 
-
     layout->addWidget(leftQWidget);
     layout->addWidget(centerQWidget);
     layout->addWidget(rightQWidget);
 }
-
-int fontSize = 1;
-int colorRed = D3DCOLOR_XRGB(255, 0, 0); // D3DCOLOR_ARGB(255, 255, 0, 0)
 
 LRESULT ItemView9CS16::WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
@@ -151,7 +163,11 @@ LRESULT ItemView9CS16::WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lP
                     int y =   playerInfos[i].to_height_h;
                     int x =   playerInfos[i].to_width - width / 2;
 
-                    g_cs16->dx->drawRect(x, y, width, height, fontSize, colorRed);
+                    if (g_cs16->selfTeam == playerInfos[i].team) {
+                        g_cs16->dx->drawRect(x, y, width, height, fontSize, colorGreen);
+                    } else {
+                        g_cs16->dx->drawRect(x, y, width, height, fontSize, colorRed);
+                    }
                 }
             }
 
@@ -189,155 +205,192 @@ static void Refresh(void *param)
     auto playerInfos = obj->playerInfos;
     auto selfMatrix = obj->selfMatrix;
 
+
     while (true)
     {
-        if (obj->isStart) {
-            // 使辅助窗口一直盖在游戏窗口上
-            if (obj->gameHwnd)
-            {
-                GetClientRect(obj->gameHwnd, &obj->gameRect);
-                obj->gamePoint.x = 0;
-                obj->gamePoint.y = 0;
-                ClientToScreen(obj->gameHwnd, &obj->gamePoint);
-                MoveWindow(obj->newHwnd, obj->gamePoint.x, obj->gamePoint.y, obj->gameRect.right, obj->gameRect.bottom, true);
+        if (!obj->isStart) {
+            break;
+        }
+
+        // 使辅助窗口一直盖在游戏窗口上
+        if (obj->gameHwnd)
+        {
+            float aimCoor[3]{ 0, 0, 0 };
+            int   aim_min = INT_MAX;
+            int   aim_index = 0;
+
+            int self_matrix_address = obj->cstrike_module.module_address + 0x1820100;
+            WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_matrix_address, &obj->selfMatrix, sizeof(float[4][4]));
+
+            int self_angle_address = obj->cstrike_module.module_address + 0x1B59CAC;
+            WychUtils_WinAPI::read_memory(obj->gameProcessHwnd,  self_angle_address, &obj->selfAngle,  sizeof(float[2]));
 
 
-                int self_matrix_address = obj->cstrike_module.module_address + 0x1820100;
-                WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_matrix_address, &obj->selfMatrix, sizeof(float[4][4]));
+            int self_address = obj->cstrike_module.module_address + 0x11069BC;
+            int self_address_server = obj->amxmodx_mm_module.module_address + 0x97030;
 
-                int self_angle_address = obj->cstrike_module.module_address + 0x1B59CAC;
-                WychUtils_WinAPI::read_memory(obj->gameProcessHwnd,  self_angle_address, &obj->selfAngle,  sizeof(float[2]));
+            for (int i = 0; i < CS16_MAX; i++) {
+                playerInfos[i].isExist = false;
+                int location_base_address;
+                WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_address_server, &location_base_address, sizeof(int));
 
-
-                int self_address = obj->cstrike_module.module_address + 0x11069BC;
-                int self_address_server = obj->amxmodx_mm_module.module_address + 0x97030;
-
-                for (int i = 0; i < CS16_MAX; i++) {
-                    playerInfos[i].isExist = false;
-                    int location_base_address;
-                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_address_server, &location_base_address, sizeof(int));
+                if (location_base_address) {
+                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  0x7c, &location_base_address, sizeof(int));
 
                     if (location_base_address) {
-                        WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  0x7c, &location_base_address, sizeof(int));
+                        WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  0x1CC, &playerInfos[i].money,  sizeof(int));
+                        WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  0x1C8, &playerInfos[i].team,   sizeof(int));
+
+                        WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  0x4,   &location_base_address, sizeof(int));
 
                         if (location_base_address) {
-                            WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  0x1CC, &playerInfos[i].money,  sizeof(int));
-                            WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  0x1C8, &playerInfos[i].team,   sizeof(int));
+                            WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  0x160, &playerInfos[i].blood, sizeof(float));
+                            WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  0x1BC, &playerInfos[i].armor, sizeof(float));
+                            WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  0x8,   &playerInfos[i].coor,  sizeof(float[3]));
 
-                            WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  0x4,   &location_base_address, sizeof(int));
 
-                            if (location_base_address) {
-                                WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  0x160, &playerInfos[i].blood, sizeof(float));
-                                WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  0x1BC, &playerInfos[i].armor, sizeof(float));
-                                WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  0x8,   &playerInfos[i].coor,  sizeof(float[3]));
-
-                                // qDebug() << " 敌人地址" << i << "：" << hex << location_base_address << "血量" << blood;
-                                playerInfos[i].isExist = true;
-                            }
+                            playerInfos[i].isExist = true;
                         }
                     }
-                    self_address_server +=  0x230;
                 }
+                self_address_server +=  0x230;
+            }
 
+            obj->selfTeam = playerInfos[0].team;
 
+            // 1.启动绘制敌我信息
+            if (obj->ckShowFriend->isChecked() || obj->ckShowEnemy->isChecked() || obj->ckAim->isChecked()) {
                 // 计算绘制信息
-
                 int height = obj->gameRect.bottom / 2;
                 int width = obj->gameRect.right / 2;
 
-                int team = playerInfos[0].team;
-
                 for (int i = 1; i < CS16_MAX; i++) {
-                    if (playerInfos[i].isExist) {
-                        // 是否死亡
-                        if (playerInfos[i].blood <= 1) {
+                    // 是否存在
+                    if (!playerInfos[i].isExist) {
+                        playerInfos[i].isShow = false;
+                        continue;
+                    }
+
+                    // 阵营
+                    if (obj->selfTeam == playerInfos[i].team) {
+                        if (!obj->ckShowFriend->isChecked()) {
                             playerInfos[i].isShow = false;
                             continue;
                         }
-
-                        // 转向
-                        //                        float to_target = selfMatrix[2][0] * playerInfos[i].coor[0]
-                        //                                          + selfMatrix[2][1] * playerInfos[i].coor[1]
-                        //                                          + selfMatrix[2][2] * playerInfos[i].coor[2]
-                        //                                          + selfMatrix[2][3];
-
-                        float to_target = selfMatrix[0][2] * playerInfos[i].coor[0]
-                                          + selfMatrix[1][2] * playerInfos[i].coor[1]
-                                          + selfMatrix[2][2] * playerInfos[i].coor[2]
-                                          + selfMatrix[3][2];
-
-                        // 后面的人物不做处理
-                        if (to_target < 0.01f) {
+                    } else {
+                        if (!obj->ckShowEnemy->isChecked()) {
                             playerInfos[i].isShow = false;
                             continue;
                         }
+                    }
 
-                        // 比例
-                        to_target = 1.0f / to_target;
+                    // 是否死亡
+                    if (playerInfos[i].blood <= 1) {
+                        playerInfos[i].isShow = false;
+                        continue;
+                    }
 
-                        // 这是竖矩阵了。关键看第4个值应该要能代表坐标的大数
-                        //                        int to_width = width + (selfMatrix[0][0] * playerInfos[i].coor[0]
-                        //                                                + selfMatrix[0][1] * playerInfos[i].coor[1]
-                        //                                                + selfMatrix[0][2] * playerInfos[i].coor[2]
-                        //                                                + selfMatrix[0][3]) * to_target * width;
+                    // 转向
+                    float to_target = selfMatrix[0][2] * playerInfos[i].coor[0]
+                                      + selfMatrix[1][2] * playerInfos[i].coor[1]
+                                      + selfMatrix[2][2] * playerInfos[i].coor[2]
+                                      + selfMatrix[3][2];
 
-                        //                        int to_height_h = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
-                        //                                                    + selfMatrix[1][1] * playerInfos[i].coor[1]
-                        //                                                    + selfMatrix[1][2] * (playerInfos[i].coor[2] + 75.0f)
-                        //                                                    + selfMatrix[1][3]) * to_target * height;
-
-                        //                        int to_height_w = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
-                        //                                                    + selfMatrix[1][1] * playerInfos[i].coor[1]
-                        //                                                    + selfMatrix[1][2] * (playerInfos[i].coor[2] - 5.0f)
-                        //                                                    + selfMatrix[1][3]) * to_target * height;
-
-
-                        int to_width = width + (selfMatrix[0][0] * playerInfos[i].coor[0]
-                                                + selfMatrix[1][0] * playerInfos[i].coor[1]
-                                                + selfMatrix[2][0] * playerInfos[i].coor[2]
-                                                + selfMatrix[3][0]) * to_target * width;
-
-                        int to_height_h = height - (selfMatrix[0][1] * playerInfos[i].coor[0]
-                                                    + selfMatrix[1][1] * playerInfos[i].coor[1]
-                                                    + selfMatrix[2][1] * (playerInfos[i].coor[2] + 30.0f)
-                                                    + selfMatrix[3][1]) * to_target * height;
-
-                        int to_height_w = height - (selfMatrix[0][1] * playerInfos[i].coor[0]
-                                                    + selfMatrix[1][1] * playerInfos[i].coor[1]
-                                                    + selfMatrix[2][1] * (playerInfos[i].coor[2] - 34.0f)
-                                                    + selfMatrix[3][1]) * to_target * height;
+                    // 后面的人物不做处理
+                    if (to_target < 0.01f) {
+                        playerInfos[i].isShow = false;
+                        continue;
+                    }
 
 
-                        //                        // 阵营
-                        //                        if (team == playerInfos[i].team) {
-                        //                            playerInfos[i].isShow = false;
-                        //                            continue;
-                        //                        }
+                    // 比例
+                    to_target = 1.0f / to_target;
 
-                        playerInfos[i].to_width = to_width;
-                        playerInfos[i].to_height_h = to_height_h;
-                        playerInfos[i].to_height_w = to_height_w;
+                    int to_width = width + (selfMatrix[0][0] * playerInfos[i].coor[0]
+                                            + selfMatrix[1][0] * playerInfos[i].coor[1]
+                                            + selfMatrix[2][0] * playerInfos[i].coor[2]
+                                            + selfMatrix[3][0]) * to_target * width;
 
-                        playerInfos[i].isShow = true;
+                    int to_height_h = height - (selfMatrix[0][1] * playerInfos[i].coor[0]
+                                                + selfMatrix[1][1] * playerInfos[i].coor[1]
+                                                + selfMatrix[2][1] * (playerInfos[i].coor[2] + 30.0f)
+                                                + selfMatrix[3][1]) * to_target * height;
+
+                    int to_height_w = height - (selfMatrix[0][1] * playerInfos[i].coor[0]
+                                                + selfMatrix[1][1] * playerInfos[i].coor[1]
+                                                + selfMatrix[2][1] * (playerInfos[i].coor[2] - 34.0f)
+                                                + selfMatrix[3][1]) * to_target * height;
+
+
+                    playerInfos[i].to_width = to_width;
+                    playerInfos[i].to_height_h = to_height_h;
+                    playerInfos[i].to_height_w = to_height_w;
+                    playerInfos[i].isShow = true;
+
+
+                    if (obj->ckAim->isChecked()) {
+                        if (obj->selfTeam != playerInfos[i].team) {
+                            // 计算准星距离
+                            int value = abs(width - to_width) + abs(height - to_height_h);
+
+                            if (value < aim_min)
+                            {
+                                aim_min = value;
+                                aim_index = i;
+
+                                //                                aimCoor[0] = playerInfos[i].coor[0];
+                                //                                aimCoor[1] = playerInfos[i].coor[1];
+                                //                                aimCoor[2] = playerInfos[i].coor[2];
+                            }
+                        }
                     }
                 }
 
+                if (obj->ckShowFriend->isChecked() || obj->ckShowEnemy->isChecked()) {
+                    // 处理窗口消息
+                    MSG Message;
+                    ZeroMemory(&Message, sizeof(Message));
 
-                // 处理窗口消息
-                MSG Message;
-                ZeroMemory(&Message, sizeof(Message));
-
-                if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))
-                {
-                    DispatchMessage(&Message);
-                    TranslateMessage(&Message);
+                    if (PeekMessage(&Message, 0, 0, 0, PM_REMOVE))
+                    {
+                        DispatchMessage(&Message);
+                        TranslateMessage(&Message);
+                    }
                 }
             }
 
-            Sleep(500);
-        } else {
-            break;
+            // 2.启动自瞄
+            if (obj->ckAim->isChecked()) {
+                // 先计算偏航角
+                for (int i = 1; i < CS16_MAX; i++) {
+                    if (obj->selfTeam != playerInfos[i].team) {
+                        // 偏航角
+                        // 这里用的是我们减去敌人
+                        float x =  playerInfos[0].coor[0] - playerInfos[i].coor[0];
+                        float y =  playerInfos[0].coor[1] -  playerInfos[i].coor[1];
+                        float z =  playerInfos[0].coor[2] -  playerInfos[i].coor[2];
+                        float angle = atan(y / x);                                                                 // 弧度
+
+                        if ((x >= 0.0f) && (y >= 0.0f)) playerInfos[i].angle[1] = angle / M_PI * 180.0f - 180.0f;  // 不同游戏根据视角不同这里也得变，有的可能是-180~180 有的是0~360
+                        else if ((x < 0.0f) && (y >= 0.0f)) playerInfos[i].angle[1] = angle / M_PI * 180.0f;
+                        else if ((x < 0.0f) && (y < 0.0f)) playerInfos[i].angle[1] = angle / M_PI * 180.0f;
+                        else if ((x >= 0.0f) && (y < 0.0f)) playerInfos[i].angle[1] = angle / M_PI * 180.f + 180.0f;
+
+                        // 俯仰角
+                        playerInfos[i].angle[0] = atan(z / sqrt(x * x + y * y)) / M_PI * 180.f;
+                    }
+                }
+
+                if (aim_index > 0) {
+                    if (GetAsyncKeyState(VK_RBUTTON) & 0x8000) {
+                        // 移动视角
+                        playerInfos[aim_index].angle[1];
+                    }
+                }
+            }
         }
+
+        Sleep(obj->sbRefresh->value() * 10);
     }
 }
 
@@ -345,17 +398,22 @@ unsigned __stdcall ItemView9CS16::Start(void *param) {
     auto thisObj = (ItemView9CS16 *)param;
 
     // 1.获取进程ID
-    auto pid = WychUtils_WinAPI::get_process_id(L"cstrike.exe");
+    auto process_name = L"cstrike.exe";
+    auto pid = WychUtils_WinAPI::get_process_id(process_name);
 
     if (!pid) {
-        exit(-1);
+        thisObj->postMessage(tr("进程未找到![%1]").arg(process_name));
+        thisObj->isStart = false;
+        return 1;
     }
 
     // 2.获取进程句柄
     thisObj->gameProcessHwnd = WychUtils_WinAPI::get_process_handle(pid);
 
     if (!thisObj->gameProcessHwnd) {
-        exit(-1);
+        thisObj->postMessage(tr("进程句柄获取失败![%1]").arg(process_name));
+        thisObj->isStart = false;
+        return 1;
     }
 
 
@@ -365,7 +423,14 @@ unsigned __stdcall ItemView9CS16::Start(void *param) {
 
 
     //    thisObj->gameHwnd = FindWindow(L"Direct3DWindowClass", nullptr);
-    thisObj->gameHwnd = FindWindow(L"Valve001", L"Compete King");
+    auto title = L"Compete King";
+    thisObj->gameHwnd = FindWindow(L"Valve001", title);
+
+    if (!thisObj->gameHwnd) {
+        thisObj->postMessage(tr("程序窗口获取失败![%1]").arg(title));
+        thisObj->isStart = false;
+        return 1;
+    }
 
     // 创建透明窗口(游戏窗口, 绘制);
     thisObj->newHwnd = WychUtils::CreateTopWindow(thisObj->gameHwnd, ItemView9CS16::WinProc);
@@ -384,6 +449,29 @@ unsigned __stdcall ItemView9CS16::Start(void *param) {
     return 1;
 }
 
+unsigned __stdcall ItemView9CS16::Resize(void *param) {
+    auto obj = (ItemView9CS16 *)param;
+
+    while (true)
+    {
+        if (!obj->isStart) {
+            break;
+        }
+
+        // 使辅助窗口一直盖在游戏窗口上
+        if (obj->gameHwnd)
+        {
+            GetClientRect(obj->gameHwnd, &obj->gameRect);
+            obj->gamePoint.x = 0;
+            obj->gamePoint.y = 0;
+            ClientToScreen(obj->gameHwnd, &obj->gamePoint);
+            MoveWindow(obj->newHwnd, obj->gamePoint.x, obj->gamePoint.y, obj->gameRect.right, obj->gameRect.bottom, true);
+        }
+        Sleep(2000);
+    }
+    return 1;
+}
+
 void ItemView9CS16::initConnect()
 {
     connect(btnConsoleClear, &QPushButton::clicked, [this]() {
@@ -394,13 +482,15 @@ void ItemView9CS16::initConnect()
         if (!isStart) {
             isStart = true;
             unsigned threadid;
-            HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &ItemView9CS16::Start, this, NULL, &threadid);
-            btnStartStop->setText(tr("关闭外挂"));
-
+            HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &ItemView9CS16::Resize, this, NULL, &threadid);
             CloseHandle(hThread);
+            HANDLE hThread2 = (HANDLE)_beginthreadex(NULL, 0, &ItemView9CS16::Start, this, NULL, &threadid);
+            CloseHandle(hThread2);
+
+            btnStartStop->setText(tr("关闭辅助"));
         } else {
             isStart = false;
-            btnStartStop->setText(tr("启动外挂"));
+            btnStartStop->setText(tr("启动辅助"));
         }
     });
 
@@ -415,7 +505,7 @@ void ItemView9CS16::initConnect()
         }
         refreshForm();
     });
-    clientTimer->start(1000);
+    clientTimer->start(100);
 }
 
 void ItemView9CS16::refreshForm() {
@@ -462,13 +552,23 @@ void ItemView9CS16::refreshForm() {
         }
 
         this->infoGridModel->setItem(i, 1, new QStandardItem(QString::number(playerInfos[i].blood)));
-        this->infoGridModel->setItem(i, 2,
+
+        if (playerInfos[i].team == playerInfos[0].team) {
+            this->infoGridModel->setItem(i, 2, new QStandardItem(tr("")));
+        } else {
+            this->infoGridModel->setItem(i, 2, new QStandardItem(tr("%1 | %2")
+                                                                 .arg(playerInfos[i].angle[1], 0, 'f', 1, QLatin1Char(' '))
+                                                                 .arg(playerInfos[i].angle[0], 0, 'f', 1, QLatin1Char(' '))));
+        }
+
+
+        this->infoGridModel->setItem(i, 3,
                                      new QStandardItem(tr("[%1,%2,%3]")
                                                        .arg(playerInfos[i].coor[0], 0, 'f', 1, QLatin1Char(' '))
                                                        .arg(playerInfos[i].coor[1], 0, 'f', 1, QLatin1Char(' '))
                                                        .arg(playerInfos[i].coor[2], 0, 'f', 1, QLatin1Char(' '))));
-        this->infoGridModel->setItem(i, 3, new QStandardItem(QString::number(playerInfos[i].armor)));
-        this->infoGridModel->setItem(i, 4, new QStandardItem(QString::number(playerInfos[i].money)));
+        this->infoGridModel->setItem(i, 4, new QStandardItem(QString::number(playerInfos[i].armor)));
+        this->infoGridModel->setItem(i, 5, new QStandardItem(QString::number(playerInfos[i].money)));
     }
 
     auto removeCount = infoGridModel->rowCount() - i;

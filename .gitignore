@@ -60,3 +60,7 @@ qt-project/wych-qt-project/project/debug/
 qt-project/wych-qt-project/qwebdavlib/debug/
 
 qt-project/wych-qt-project/build-libhv-Desktop_Qt_5_15_2_MSVC2019_64bit-Debug/
+
+qt-project/build-wych-qt-project-Desktop_Qt_5_15_2_MSVC2019_64bit-Profile/
+
+qt-project/release/

@@ -36,6 +36,8 @@ SOURCES += \
     itemview8.cpp \
     itemview9.cpp \
     itemview9cs16.cpp \
+    itemview9csgo.cpp \
+    itemview9css.cpp \
     itemview9tcp.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -55,6 +57,8 @@ HEADERS += \
     itemview8.h \
     itemview9.h \
     itemview9cs16.h \
+    itemview9csgo.h \
+    itemview9css.h \
     itemview9tcp.h \
     mainwindow.h \
 #    qftp.h \
@@ -66,7 +70,8 @@ HEADERS += \
     vlclib.h \
     customevent.h \
     winapi.h \
-    window.h
+    window.h \
+    configs/csgo.hpp
 
 FORMS +=
 

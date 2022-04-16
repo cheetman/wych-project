@@ -83,12 +83,25 @@ void warning(LPCTSTR text)
 dword read_memory(handle process, int address, void *recv, int size)
 {
     SIZE_T read_size;
+    ReadProcessMemory(process, (LPCVOID)address, recv, size, &read_size);
+    return read_size;
+}
 
+dword read_memory(handle process, unsigned int address, void *recv, int size)
+{
+    SIZE_T read_size;
     ReadProcessMemory(process, (LPCVOID)address, recv, size, &read_size);
     return read_size;
 }
 
 dword write_memory(handle process, int address, void *data, int size)
+{
+    SIZE_T write_size;
+
+    WriteProcessMemory(process, (LPVOID)address, data, size, &write_size);
+    return write_size;
+}
+dword write_memory(handle process, unsigned int address, void *data, int size)
 {
     SIZE_T write_size;
 

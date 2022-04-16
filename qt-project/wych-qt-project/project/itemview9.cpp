@@ -3,6 +3,8 @@
 #include "utils.h"
 #include "itemview9tcp.h"
 #include "itemview9cs16.h"
+#include "itemview9css.h"
+#include "itemview9csgo.h"
 
 #include <Windows.h>
 
@@ -154,7 +156,8 @@ ItemView9::ItemView9(QWidget *parent) : QWidget(parent)
     auto tab2Layout = new QHBoxLayout(tab2);
     tab2Layout->addWidget(tab2TabWidget);
     tab2TabWidget->addTab(new ItemView9CS16(this), tr("CS1.6"));
-
+    tab2TabWidget->addTab(new ItemView9CSS(this),  tr("CSS"));
+    tab2TabWidget->addTab(new ItemView9CSGO(this),  tr("CSGO"));
 
     // 3.测试
     // https://github.com/frk1 cs基址

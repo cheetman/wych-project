@@ -1,25 +1,21 @@
-#include "itemview9cs16.h"
+#include "itemview9css.h"
 #include "mainwindow.h"
 #include "customevent.h"
 
-ItemView9CS16 *g_cs16;
-int fontSize = 1;
-int colorRed = D3DCOLOR_XRGB(255, 0, 0);   // D3DCOLOR_ARGB(255, 255, 0, 0)
-int colorGreen = D3DCOLOR_XRGB(0, 255, 0); // D3DCOLOR_ARGB(255, 255, 0, 0)
+ItemView9CSS *g_css;
 
-
-ItemView9CS16::ItemView9CS16(QWidget *parent)
+ItemView9CSS::ItemView9CSS(QWidget *parent)
     : QWidget{parent}
 {
     initUI();
     initConnect();
-    g_cs16 = this;
+    g_css = this;
 }
 
-ItemView9CS16::~ItemView9CS16()
+ItemView9CSS::~ItemView9CSS()
 {}
 
-void ItemView9CS16::initUI()
+void ItemView9CSS::initUI()
 {
     auto layout = new QHBoxLayout(this);
     auto leftQWidget = new QWidget(this);
@@ -83,12 +79,8 @@ void ItemView9CS16::initUI()
 
     ckVersion = new QComboBox();
 
-    GameInfo ck21(L"cstrike.exe", L"Valve001", L"Compete King");
-    ckVersion->addItem("ck2.1(3266)",        QVariant::fromValue(ck21));
-    GameInfo ck21classic(L"cstrike.exe", L"Valve001", L"CK2.1 Classic v1.3");
-    ckVersion->addItem("ck2.1 classic v1.3", QVariant::fromValue(ck21classic));
-    ckVersion->addItem("okgogogo(3266)");
-    ckVersion->addItem("Esai(3248)");
+    GameInfo css(L"hl2.exe", L"Valve001", L"Counter-Strike Source");
+    ckVersion->addItem("v6630498(20211230)", QVariant::fromValue(css));
     ckAim = new QCheckBox("启动自瞄");
     ckShowEnemy = new QCheckBox("显示敌人方框");
     ckShowEnemy->setChecked(true);
@@ -150,48 +142,48 @@ void ItemView9CS16::initUI()
     layout->addWidget(rightQWidget);
 }
 
-LRESULT ItemView9CS16::WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
+LRESULT ItemView9CSS::WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
 {
     switch (Message)
     {
     case WM_PAINT:
 
-        if (g_cs16->dx->g_pd3dDevice != NULL) {
-            g_cs16->dx->drawStart();
+        if (g_css->dx->g_pd3dDevice != NULL) {
+            g_css->dx->drawStart();
 
-            auto playerInfos = g_cs16->playerInfos;
+            auto playerInfos = g_css->playerInfos;
 
-            for (int i = 1; i < CS16_MAX; i++) {
+            for (int i = 1; i < CSS_MAX; i++) {
                 if (playerInfos[i].isShow) {
                     int height = playerInfos[i].to_height_w - playerInfos[i].to_height_h;
-                    int width =  height / 2;
+                    int width =  height / CSS_rect_height_width_radio;
                     int y =   playerInfos[i].to_height_h;
-                    int x =   playerInfos[i].to_width - width / CS16_rect_height_width_radio;
+                    int x =   playerInfos[i].to_width - width / 2;
 
-                    if (g_cs16->selfTeam == playerInfos[i].team) {
-                        g_cs16->dx->drawRect(x, y, width, height, fontSize, colorGreen);
+                    if (g_css->selfTeam == playerInfos[i].team) {
+                        g_css->dx->drawRect(x, y, width, height, g_css->fontSize, g_css->colorGreen);
                     } else {
-                        g_cs16->dx->drawRect(x, y, width, height, fontSize, colorRed);
+                        g_css->dx->drawRect(x, y, width, height, g_css->fontSize, g_css->colorRed);
                     }
                 }
             }
 
-            //            g_cs16->dx->drawLine(D3DCOLOR_ARGB(255, 0, 0, 255), 20, 20, 66, 66, 线粗);
-            //            g_cs16->dx->drawRect(100, 100, 100, 100, 线粗, D3DCOLOR_ARGB(255, 255, 255, 0));
-            //            g_cs16->dx->drawText(200, 200, "555", D3DCOLOR_ARGB(255, 255, 0, 255));
+            //            g_css->dx->drawLine(D3DCOLOR_ARGB(255, 0, 0, 255), 20, 20, 66, 66, 线粗);
+            //            g_css->dx->drawRect(100, 100, 100, 100, 线粗, D3DCOLOR_ARGB(255, 255, 255, 0));
+            //            g_css->dx->drawText(200, 200, "555", D3DCOLOR_ARGB(255, 255, 0, 255));
 
-            g_cs16->dx->drawEnd();
+            g_css->dx->drawEnd();
         }
 
         break;
 
     case WM_CREATE:
-        DwmExtendFrameIntoClientArea(hWnd, &g_cs16->Margin);
+        DwmExtendFrameIntoClientArea(hWnd, &g_css->Margin);
         break;
 
     case WM_DESTROY:
     {
-        //        g_cs16->dx->release();
+        //        g_css->dx->release();
         //        exit(1);
         return 0;
     }
@@ -206,7 +198,7 @@ LRESULT ItemView9CS16::WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lP
 
 static void Refresh(void *param)
 {
-    auto obj = (ItemView9CS16 *)param;
+    auto obj = (ItemView9CSS *)param;
     auto playerInfos = obj->playerInfos;
     auto selfMatrix = obj->selfMatrix;
 
@@ -224,47 +216,31 @@ static void Refresh(void *param)
             int   aim_min = INT_MAX;
             int   aim_index = 0;
 
-            int self_matrix_address = obj->cstrike_module.module_address + CS16_self_matrix_offset;
+            int self_matrix_address = obj->engine_module.module_address + CSS_self_matrix_offset;
             WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_matrix_address, &obj->selfMatrix, sizeof(float[4][4]));
 
-            int self_angle_address = obj->cstrike_module.module_address + CS16_self_angle_offset;
+            int self_angle_address = obj->engine_module.module_address + CSS_self_angle_offset;
             WychUtils_WinAPI::read_memory(obj->gameProcessHwnd,  self_angle_address, &obj->selfAngle,  sizeof(float[2]));
 
 
             //            int self_address = obj->cstrike_module.module_address + 0x11069BC;
-            int self_address_server = obj->amxmodx_mm_module.module_address + CS16_player_list_offset;
+            int self_address_server = obj->server_module.module_address + CSS_player_list_offset;
 
-            for (int i = 0; i < CS16_MAX; i++) {
+            for (int i = 0; i < CSS_MAX; i++) {
                 playerInfos[i].isExist = false;
                 int location_base_address;
                 WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_address_server, &location_base_address, sizeof(int));
 
                 if (location_base_address) {
-                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  CS16_player_1_offset, &location_base_address, sizeof(int));
+                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  CSS_player_blood_offset, &playerInfos[i].blood, sizeof(int));
+                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  CSS_player_armor_offset, &playerInfos[i].armor, sizeof(int));
+                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  CSS_player_pos_offset,   &playerInfos[i].coor,
+                                                  sizeof(float[3]));
+                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  CSS_player_team_offset,  &playerInfos[i].team,  sizeof(int));
 
-                    if (location_base_address) {
-                        WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  CS16_player_1_money_offset, &playerInfos[i].money,
-                                                      sizeof(int));
-                        WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  CS16_player_1_team_offset,  &playerInfos[i].team,
-                                                      sizeof(int));
-
-                        WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  CS16_player_2_offset,       &location_base_address,
-                                                      sizeof(int));
-
-                        if (location_base_address) {
-                            WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  CS16_player_2_blood_offset, &playerInfos[i].blood,
-                                                          sizeof(float));
-                            WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  CS16_player_2_armor_offset, &playerInfos[i].armor,
-                                                          sizeof(float));
-                            WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  CS16_player_2_pos_offset,   &playerInfos[i].coor,
-                                                          sizeof(float[3]));
-
-
-                            playerInfos[i].isExist = true;
-                        }
-                    }
+                    playerInfos[i].isExist = true;
                 }
-                self_address_server +=  CS16_player_next_offset;
+                self_address_server +=  CSS_player_next_offset;
             }
 
             obj->selfTeam = playerInfos[0].team;
@@ -275,7 +251,7 @@ static void Refresh(void *param)
                 int height = obj->gameRect.bottom / 2;
                 int width = obj->gameRect.right / 2;
 
-                for (int i = 1; i < CS16_MAX; i++) {
+                for (int i = 1; i < CSS_MAX; i++) {
                     // 是否存在
                     if (!playerInfos[i].isExist) {
                         playerInfos[i].isShow = false;
@@ -301,11 +277,11 @@ static void Refresh(void *param)
                         continue;
                     }
 
-                    // 转向
-                    float to_target = selfMatrix[0][2] * playerInfos[i].coor[0]
-                                      + selfMatrix[1][2] * playerInfos[i].coor[1]
+                    // 转向 (竖矩阵)
+                    float to_target = selfMatrix[2][0] * playerInfos[i].coor[0]
+                                      + selfMatrix[2][1] * playerInfos[i].coor[1]
                                       + selfMatrix[2][2] * playerInfos[i].coor[2]
-                                      + selfMatrix[3][2];
+                                      + selfMatrix[2][3];
 
                     // 后面的人物不做处理
                     if (to_target < 0.01f) {
@@ -317,20 +293,21 @@ static void Refresh(void *param)
                     // 比例
                     to_target = 1.0f / to_target;
 
+                    // (竖矩阵)
                     int to_width = width + (selfMatrix[0][0] * playerInfos[i].coor[0]
-                                            + selfMatrix[1][0] * playerInfos[i].coor[1]
-                                            + selfMatrix[2][0] * playerInfos[i].coor[2]
-                                            + selfMatrix[3][0]) * to_target * width;
+                                            + selfMatrix[0][1] * playerInfos[i].coor[1]
+                                            + selfMatrix[0][2] * playerInfos[i].coor[2]
+                                            + selfMatrix[0][3]) * to_target * width;
 
-                    int to_height_h = height - (selfMatrix[0][1] * playerInfos[i].coor[0]
+                    int to_height_h = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
                                                 + selfMatrix[1][1] * playerInfos[i].coor[1]
-                                                + selfMatrix[2][1] * (playerInfos[i].coor[2] CS16_rect_height_top)
-                                                + selfMatrix[3][1]) * to_target * height;
+                                                + selfMatrix[1][2] * (playerInfos[i].coor[2] CSS_rect_height_top)
+                                                + selfMatrix[1][3]) * to_target * height;
 
-                    int to_height_w = height - (selfMatrix[0][1] * playerInfos[i].coor[0]
+                    int to_height_w = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
                                                 + selfMatrix[1][1] * playerInfos[i].coor[1]
-                                                + selfMatrix[2][1] * (playerInfos[i].coor[2] CS16_rect_height_bottom)
-                                                + selfMatrix[3][1]) * to_target * height;
+                                                + selfMatrix[1][2] * (playerInfos[i].coor[2] CSS_rect_height_bottom)
+                                                + selfMatrix[1][3]) * to_target * height;
 
 
                     playerInfos[i].to_width = to_width;
@@ -348,10 +325,6 @@ static void Refresh(void *param)
                             {
                                 aim_min = value;
                                 aim_index = i;
-
-                                //                                aimCoor[0] = playerInfos[i].coor[0];
-                                //                                aimCoor[1] = playerInfos[i].coor[1];
-                                //                                aimCoor[2] = playerInfos[i].coor[2];
                             }
                         }
                     }
@@ -375,13 +348,10 @@ static void Refresh(void *param)
             // 2.启动自瞄
             if (obj->ckAim->isChecked()) {
                 // 先计算偏航角
-                for (int i = 1; i < CS16_MAX; i++) {
+                for (int i = 1; i < CSS_MAX; i++) {
                     if (obj->selfTeam != playerInfos[i].team) {
-                        // 偏航角
+                        // 偏航角 (同时支持-180~180)
                         // 这里用的是我们减去敌人
-                        //                        float x =  playerInfos[0].coor[0] - playerInfos[i].coor[0];
-                        //                        float y =  playerInfos[0].coor[1] -  playerInfos[i].coor[1];
-                        //                        float z =  playerInfos[0].coor[2] -  playerInfos[i].coor[2];
                         float x = playerInfos[i].coor[0] - playerInfos[0].coor[0];
                         float y =   playerInfos[i].coor[1]  - playerInfos[0].coor[1];
                         float z =    playerInfos[i].coor[2] - playerInfos[0].coor[2];
@@ -399,10 +369,6 @@ static void Refresh(void *param)
 
                 if (aim_index > 0) {
                     if (GetAsyncKeyState(VK_MENU) & 0x8000) {
-                        //                        qDebug() << "ceshi";
-
-                        // 移动视角
-                        //                        playerInfos[aim_index].angle[1];
                         WychUtils_WinAPI::write_memory(obj->gameProcessHwnd, self_angle_address, &playerInfos[aim_index].angle, sizeof(float[2]));
                     }
                 }
@@ -413,8 +379,8 @@ static void Refresh(void *param)
     }
 }
 
-unsigned __stdcall ItemView9CS16::Start(void *param) {
-    auto thisObj = (ItemView9CS16 *)param;
+unsigned __stdcall ItemView9CSS::Start(void *param) {
+    auto thisObj = (ItemView9CSS *)param;
 
     // 1.获取进程ID
     GameInfo gameInfo = thisObj->ckVersion->currentData().value<GameInfo>();
@@ -438,8 +404,8 @@ unsigned __stdcall ItemView9CS16::Start(void *param) {
 
 
     // 3.获取进程中的dll
-    WychUtils_WinAPI::get_module_info(thisObj->gameProcessHwnd, pid,    L"cstrike.exe", thisObj->cstrike_module);
-    WychUtils_WinAPI::get_module_info(thisObj->gameProcessHwnd, pid, L"amxmodx_mm.dll", thisObj->amxmodx_mm_module);
+    WychUtils_WinAPI::get_module_info(thisObj->gameProcessHwnd, pid, L"engine.dll", thisObj->engine_module);
+    WychUtils_WinAPI::get_module_info(thisObj->gameProcessHwnd, pid, L"server.dll", thisObj->server_module);
 
 
     thisObj->gameHwnd = FindWindow(gameInfo.class_name, gameInfo.window_name);
@@ -451,7 +417,7 @@ unsigned __stdcall ItemView9CS16::Start(void *param) {
     }
 
     // 创建透明窗口(游戏窗口, 绘制);
-    thisObj->newHwnd = WychUtils::CreateTopWindow(thisObj->gameHwnd, ItemView9CS16::WinProc);
+    thisObj->newHwnd = WychUtils::CreateTopWindow(thisObj->gameHwnd, ItemView9CSS::WinProc);
 
     thisObj->dx = new WychUtils::DX9();
 
@@ -467,8 +433,8 @@ unsigned __stdcall ItemView9CS16::Start(void *param) {
     return 1;
 }
 
-unsigned __stdcall ItemView9CS16::Resize(void *param) {
-    auto obj = (ItemView9CS16 *)param;
+unsigned __stdcall ItemView9CSS::Resize(void *param) {
+    auto obj = (ItemView9CSS *)param;
 
     while (true)
     {
@@ -490,7 +456,7 @@ unsigned __stdcall ItemView9CS16::Resize(void *param) {
     return 1;
 }
 
-void ItemView9CS16::initConnect()
+void ItemView9CSS::initConnect()
 {
     connect(btnConsoleClear, &QPushButton::clicked, [this]() {
         clearMessage();
@@ -500,9 +466,9 @@ void ItemView9CS16::initConnect()
         if (!isStart) {
             isStart = true;
             unsigned threadid;
-            HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &ItemView9CS16::Resize, this, NULL, &threadid);
+            HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &ItemView9CSS::Resize, this, NULL, &threadid);
             CloseHandle(hThread);
-            HANDLE hThread2 = (HANDLE)_beginthreadex(NULL, 0, &ItemView9CS16::Start, this, NULL, &threadid);
+            HANDLE hThread2 = (HANDLE)_beginthreadex(NULL, 0, &ItemView9CSS::Start, this, NULL, &threadid);
             CloseHandle(hThread2);
 
             btnStartStop->setText(tr("关闭辅助"));
@@ -526,7 +492,7 @@ void ItemView9CS16::initConnect()
     clientTimer->start(100);
 }
 
-void ItemView9CS16::refreshForm() {
+void ItemView9CSS::refreshForm() {
     lbPlayerRect00->setText(QString::number(selfMatrix[0][0], 'f', 2));
     lbPlayerRect01->setText(QString::number(selfMatrix[0][1], 'f', 2));
     lbPlayerRect02->setText(QString::number(selfMatrix[0][2], 'f', 2));
@@ -546,7 +512,7 @@ void ItemView9CS16::refreshForm() {
 
     int i = 0;
 
-    for (i = 0; i < CS16_MAX; i++) {
+    for (i = 0; i < CSS_MAX; i++) {
         if (!playerInfos[i].isExist) {
             break;
         }
@@ -596,19 +562,19 @@ void ItemView9CS16::refreshForm() {
     }
 }
 
-void ItemView9CS16::clearMessage()
+void ItemView9CSS::clearMessage()
 {
     edtMsg->clear();
 }
 
-void ItemView9CS16::postMessage(const QString& msg)
+void ItemView9CSS::postMessage(const QString& msg)
 {
     QStringEvent *event = new QStringEvent(msg);
 
     QApplication::postEvent(this, event);
 }
 
-void ItemView9CS16::appendMessage(const QString& msg)
+void ItemView9CSS::appendMessage(const QString& msg)
 {
     QString text = edtMsg->toPlainText();
 
@@ -624,7 +590,7 @@ void ItemView9CS16::appendMessage(const QString& msg)
     showMessage(text);
 }
 
-void ItemView9CS16::showMessage(const QString& msg)
+void ItemView9CSS::showMessage(const QString& msg)
 {
     edtMsg->setPlainText(msg);
     QTextCursor cursor = edtMsg->textCursor();
@@ -633,7 +599,7 @@ void ItemView9CS16::showMessage(const QString& msg)
     edtMsg->repaint();
 }
 
-void ItemView9CS16::customEvent(QEvent *e)
+void ItemView9CSS::customEvent(QEvent *e)
 {
     switch (e->type())
     {

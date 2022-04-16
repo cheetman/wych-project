@@ -56,6 +56,9 @@ dword read_memory(handle process,
                   void  *recv,
                   int    size);
 
+dword read_memory(handle process, unsigned int address, void *recv, int size);
+dword write_memory(handle process, unsigned int address, void *data, int size);
+
 /// <summary>
 /// 写入内存数据
 /// </summary>

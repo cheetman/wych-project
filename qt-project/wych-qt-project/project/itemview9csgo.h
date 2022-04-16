@@ -1,5 +1,5 @@
-#ifndef ITEMVIEW9CS16_H
-#define ITEMVIEW9CS16_H
+#ifndef ITEMVIEW9CSGO_H
+#define ITEMVIEW9CSGO_H
 
 #include <QWidget>
 #include <QLabel>
@@ -21,31 +21,30 @@
 #include <QSpinBox>
 #include "window.h"
 #include "winapi.h"
+#include "configs/csgo.hpp"
 
-#define CS16_MAX 32
-#define CS16_self_matrix_offset 0x1820100 // 矩阵
-#define CS16_self_angle_offset 0x19E10C4  // 视角
-#define CS16_player_list_offset 0x97030   // 玩家列表
-#define CS16_player_next_offset 0x230     // 玩家next偏移
-#define CS16_player_1_offset 0x7c         // 玩家列表 - 1级偏移
-#define CS16_player_1_money_offset 0x1CC  // 玩家列表 - 1级偏移
-#define CS16_player_1_team_offset 0x1C8   // 玩家列表 - 1级偏移
-#define CS16_player_2_offset 0x4          // 玩家列表 - 2级偏移
-#define CS16_player_2_blood_offset 0x160  // 玩家列表 - 2级偏移
-#define CS16_player_2_armor_offset 0x1BC  // 玩家列表 - 2级偏移
-#define CS16_player_2_pos_offset 0x8      // 玩家列表 - 2级偏移
+#define CSGO_MAX 32
+#define CSGO_self_matrix_offset hazedumper::signatures::dwViewMatrix // 矩阵
+#define CSGO_self_client_offset hazedumper::signatures::dwClientState  // 视角
+#define CSGO_self_client_angle_offset hazedumper::signatures::dwClientState_ViewAngles  // 视角
+#define CSGO_player_list_offset hazedumper::signatures::dwEntityList // 玩家列表
+#define CSGO_player_next_offset 0x10     // 玩家next偏移
+#define CSGO_player_team_offset hazedumper::netvars::m_iTeamNum    // 玩家列表
+#define CSGO_player_blood_offset hazedumper::netvars::m_iHealth    // 玩家列表  - 血量
+#define CSGO_player_armor_offset hazedumper::netvars::m_ArmorValue   // 玩家列表
+#define CSGO_player_pos_offset hazedumper::netvars::m_vecOrigin     // 玩家列表
 
-#define CS16_rect_height_top  + 30.0f       // 矩形上边框
-#define CS16_rect_height_bottom - 34.0f     // 矩形下边框
-#define CS16_rect_height_width_radio 2.5  // 矩形宽高比
+#define CSGO_rect_height_top +75.0f      // 矩形上边框
+#define CSGO_rect_height_bottom -5.0f    // 矩形下边框
+#define CSGO_rect_height_width_radio 2.5 // 矩形宽高比
 
-class ItemView9CS16 : public QWidget {
+class ItemView9CSGO : public QWidget {
     Q_OBJECT
 
 public:
 
-    explicit ItemView9CS16(QWidget *parent = nullptr);
-    ~ItemView9CS16();
+    explicit ItemView9CSGO(QWidget *parent = nullptr);
+    ~ItemView9CSGO();
 
     HWND newHwnd, gameHwnd;
     HANDLE gameProcessHwnd;
@@ -55,15 +54,15 @@ public:
     MARGINS Margin;
 
     bool isStart = false;
-    struct WychUtils_WinAPI::module_information amxmodx_mm_module, cstrike_module;
+    struct WychUtils_WinAPI::module_information client_module, engine_module;
 
 
     struct PlayerInfo
     {
         bool  isExist = false;       // 是否存在
         float coor[3] = { 0, 0, 0 }; // 坐标
-        float blood = 0;             // blood
-        float armor = 0;             // armor
+        int   blood = 0;             // blood
+        int   armor = 0;             // armor
         int   money = 0;             // 钱
         int   team = 0;              // 阵营
 
@@ -77,7 +76,7 @@ public:
 
         float angle[2] = { 0, 0 };   // 偏航角和俯仰角
     };
-    PlayerInfo playerInfos[CS16_MAX];
+    PlayerInfo playerInfos[CSGO_MAX];
 
     struct GameInfo
     {
@@ -127,6 +126,10 @@ protected:
                                       WPARAM wParam,
                                       LPARAM lParam);
 
+    int fontSize = 1;
+    int colorRed = D3DCOLOR_XRGB(255, 0, 0);   // D3DCOLOR_ARGB(255, 255, 0, 0)
+    int colorGreen = D3DCOLOR_XRGB(0, 255, 0); // D3DCOLOR_ARGB(255, 255, 0, 0)
+
 private:
 
     QPushButton *btnStartStop;
@@ -166,6 +169,6 @@ signals:
 };
 
 
-Q_DECLARE_METATYPE(ItemView9CS16::GameInfo)
+Q_DECLARE_METATYPE(ItemView9CSGO::GameInfo)
 
-#endif // ITEMVIEW9CS16_H
+#endif // ITEMVIEW9CSGO_H

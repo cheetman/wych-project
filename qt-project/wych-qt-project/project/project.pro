@@ -24,6 +24,8 @@ DEFINES += _WIN32_WINNT=0x0600
 DEFINES += NDEBUG
 
 
+MAKE_LFLAGS += "/STACK:65536,4096"
+
 # You can also make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
@@ -38,6 +40,7 @@ SOURCES += \
     itemview9cs16.cpp \
     itemview9csgo.cpp \
     itemview9css.cpp \
+    itemview9l4d2.cpp \
     itemview9tcp.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -59,6 +62,7 @@ HEADERS += \
     itemview9cs16.h \
     itemview9csgo.h \
     itemview9css.h \
+    itemview9l4d2.h \
     itemview9tcp.h \
     mainwindow.h \
 #    qftp.h \

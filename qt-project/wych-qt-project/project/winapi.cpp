@@ -162,9 +162,9 @@ dword get_process_id(LPCTSTR process_name)
         if (wcsncmp(_wcsupr(process_info.szExeFile), target, wcslen(target)) == 0)
         {
 #ifdef DEBUG_STRING
-            printf("进程名称 : %s \n", process_info.szExeFile);
-            printf("进程ID : %d \n", process_info.th32ProcessID);
-            printf("\n");
+            _tprintf(_T("进程名称 : %s \n"), process_info.szExeFile);
+            _tprintf(_T("进程ID : %d \n"), process_info.th32ProcessID);
+            _tprintf(_T("\n"));
 #endif // DEBUG_STRING
 
             CloseHandle(snap);
@@ -214,11 +214,11 @@ void get_module_info(handle process_handle, dword process_id, LPCTSTR  module_na
             }
 
 #ifdef DEBUG_STRING
-            printf("模块名称 : %s \n",      module_info.szModule);
-            printf("模块基址 : %8x \n",               (unsigned int)module_info.modBaseAddr);
-            printf("模块大小 : %d Byte \n", module_info.modBaseSize);
-            printf("实际读取 : %d Byte \n",        size);
-            printf("\n");
+            _tprintf(_T("模块名称 : %s \n"),      module_info.szModule);
+            _tprintf(_T("模块基址 : %8x \n"),    (unsigned int)module_info.modBaseAddr);
+            _tprintf(_T("模块大小 : %d Byte \n"), module_info.modBaseSize);
+            _tprintf(_T("实际读取 : %d Byte \n"),        size);
+            _tprintf(_T("\n"));
 #endif // ifdef DEBUG_STRING
 
             CloseHandle(snap);
@@ -231,7 +231,7 @@ void get_module_info(handle process_handle, dword process_id, LPCTSTR  module_na
     warning(L"!!!查找不到指定模块!!!");
 }
 
-int find_pattern(handle process, struct module_information& module, const char *pattern, int index                 = 0, int offset= 0)
+int find_pattern(handle process, struct module_information& module, const char *pattern, int index               , int offset)
 {
     const char *start = module.module_data + offset;
     const int   length = strlen(pattern);
@@ -254,7 +254,7 @@ int find_pattern(handle process, struct module_information& module, const char *
     return -1;
 }
 
-void show_all_pattern(handle process, struct module_information& module, const char *pattern, int offset = 0)
+void show_all_pattern(handle process, struct module_information& module, const char *pattern, int offset)
 {
     const char *start = module.module_data + offset;
     const int   length = strlen(pattern);
@@ -269,7 +269,10 @@ void show_all_pattern(handle process, struct module_information& module, const c
 
             for (; j < length; j++) if ((start[i + j] != pattern[j]) && (pattern[j] != '?')) break;
 
-            if (j == length) printf("address : %8x \n", module.module_address + i + offset);
+            if (j == length)
+            {
+                printf("address : %8x \n", module.module_address + i + offset);
+            }
         }
     }
 }

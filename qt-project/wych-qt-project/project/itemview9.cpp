@@ -5,6 +5,7 @@
 #include "itemview9cs16.h"
 #include "itemview9css.h"
 #include "itemview9csgo.h"
+#include "itemview9l4d2.h"
 
 #include <Windows.h>
 
@@ -158,6 +159,7 @@ ItemView9::ItemView9(QWidget *parent) : QWidget(parent)
     tab2TabWidget->addTab(new ItemView9CS16(this), tr("CS1.6"));
     tab2TabWidget->addTab(new ItemView9CSS(this),  tr("CSS"));
     tab2TabWidget->addTab(new ItemView9CSGO(this),  tr("CSGO"));
+    tab2TabWidget->addTab(new ItemView9L4D2(this),  tr("L4D2"));
 
     // 3.测试
     // https://github.com/frk1 cs基址

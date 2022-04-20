@@ -5,6 +5,7 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 #include <cstdint>
+#include <tchar.h>
 
 
 using handle = HANDLE;
@@ -121,6 +122,9 @@ struct module_information
         module_data = nullptr;
     }
 };
+
+int find_pattern(handle process, struct module_information& module, const char *pattern, int index      = 0, int offset= 0);
+void show_all_pattern(handle process, struct module_information& module, const char *pattern, int offset = 0);
 }
 
 #endif // WINAPI_H

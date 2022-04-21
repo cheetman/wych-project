@@ -118,7 +118,56 @@ win32:CONFIG(release, debug|release) {
     # D3D用到
     LIBS += -ldwmapi
 
-
+    # OpenCV
+    INCLUDEPATH += C:/WorkMe/opencv/build/include/
+    INCLUDEPATH += C:/WorkMe/opencv/build/include/opencv/
+    INCLUDEPATH += C:/WorkMe/opencv/build/include/opencv2/
+    # OpenCV(VS2019)
+    LIBS += -LC:/WorkMe/opencv_build/lib/Release \
+    -lopencv_aruco342 \
+    -lopencv_bgsegm342 \
+    -lopencv_bioinspired342 \
+    -lopencv_calib3d342 \
+    -lopencv_ccalib342 \
+    -lopencv_core342 \
+    -lopencv_datasets342 \
+    -lopencv_dnn342 \
+    -lopencv_dnn_objdetect342 \
+    -lopencv_dpm342 \
+    -lopencv_face342 \
+    -lopencv_features2d342 \
+    -lopencv_flann342 \
+    -lopencv_fuzzy342 \
+    -lopencv_hfs342 \
+    -lopencv_highgui342 \
+    -lopencv_imgcodecs342 \
+    -lopencv_imgproc342 \
+    -lopencv_img_hash342 \
+    -lopencv_line_descriptor342 \
+    -lopencv_ml342 \
+    -lopencv_objdetect342 \
+    -lopencv_optflow342 \
+    -lopencv_phase_unwrapping342 \
+    -lopencv_photo342 \
+    -lopencv_plot342 \
+    -lopencv_reg342 \
+    -lopencv_rgbd342 \
+    -lopencv_saliency342 \
+    -lopencv_shape342 \
+    -lopencv_stereo342 \
+    -lopencv_stitching342 \
+    -lopencv_structured_light342 \
+    -lopencv_superres342 \
+    -lopencv_surface_matching342 \
+    -lopencv_text342 \
+    -lopencv_tracking342 \
+    -lopencv_video342 \
+    -lopencv_videoio342 \
+    -lopencv_videostab342 \
+    -lopencv_xfeatures2d342 \
+    -lopencv_ximgproc342 \
+    -lopencv_xobjdetect342 \
+    -lopencv_xphoto342
 
     greaterThan(QT_MAJOR_VERSION, 4) {
         TARGET_ARCH=$${QT_ARCH}
@@ -165,8 +214,6 @@ win32:CONFIG(release, debug|release) {
     LIBS += -L$$OUT_PWD/../libhv/debug/ -llibhv
 
 
-
-
     #Winsock
     LIBS += -lws2_32
     LIBS += -lkernel32
@@ -183,6 +230,57 @@ win32:CONFIG(release, debug|release) {
 
     # D3D用到
     LIBS += -ldwmapi
+
+    # OpenCV
+    INCLUDEPATH += C:/WorkMe/opencv/build/include/
+    INCLUDEPATH += C:/WorkMe/opencv/build/include/opencv/
+    INCLUDEPATH += C:/WorkMe/opencv/build/include/opencv2/
+    # OpenCV(VS2019)
+    LIBS += -LC:/WorkMe/opencv_build/lib/Debug \
+    -lopencv_aruco342d \
+    -lopencv_bgsegm342d \
+    -lopencv_bioinspired342d \
+    -lopencv_calib3d342d \
+    -lopencv_ccalib342d \
+    -lopencv_core342d \
+    -lopencv_datasets342d \
+    -lopencv_dnn342d \
+    -lopencv_dnn_objdetect342d \
+    -lopencv_dpm342d \
+    -lopencv_face342d \
+    -lopencv_features2d342d \
+    -lopencv_flann342d \
+    -lopencv_fuzzy342d \
+    -lopencv_hfs342d \
+    -lopencv_highgui342d \
+    -lopencv_imgcodecs342d \
+    -lopencv_imgproc342d \
+    -lopencv_img_hash342d \
+    -lopencv_line_descriptor342d \
+    -lopencv_ml342d \
+    -lopencv_objdetect342d \
+    -lopencv_optflow342d \
+    -lopencv_phase_unwrapping342d \
+    -lopencv_photo342d \
+    -lopencv_plot342d \
+    -lopencv_reg342d \
+    -lopencv_rgbd342d \
+    -lopencv_saliency342d \
+    -lopencv_shape342d \
+    -lopencv_stereo342d \
+    -lopencv_stitching342d \
+    -lopencv_structured_light342d \
+    -lopencv_superres342d \
+    -lopencv_surface_matching342d \
+    -lopencv_text342d \
+    -lopencv_tracking342d \
+    -lopencv_video342d \
+    -lopencv_videoio342d \
+    -lopencv_videostab342d \
+    -lopencv_xfeatures2d342d \
+    -lopencv_ximgproc342d \
+    -lopencv_xobjdetect342d \
+    -lopencv_xphoto342d
 
 
     greaterThan(QT_MAJOR_VERSION, 4) {

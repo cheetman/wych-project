@@ -80,7 +80,8 @@ void ItemView9L4D2::initUI()
     ckVersion = new QComboBox();
 
     GameInfo css(L"left4dead2.exe", L"Valve001", L"Left 4 Dead 2 - Direct3D 9");
-    ckVersion->addItem("v2.2.2.5(8490)", QVariant::fromValue(css));
+    ckVersion->addItem("v2.2.2.5(8490)",        QVariant::fromValue(css));
+    ckVersion->addItem("v2.2.2.5(8490) client", QVariant::fromValue(css));
     ckAim = new QCheckBox("启动自瞄");
     ckShowEnemy = new QCheckBox("显示敌人方框");
     ckShowEnemy->setChecked(true);
@@ -153,17 +154,35 @@ LRESULT ItemView9L4D2::WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lP
 
             auto playerInfos = g_l4d2->playerInfos;
 
-            for (int i = 1; i < L4D2_MAX; i++) {
-                if (playerInfos[i].isShow) {
-                    int height = playerInfos[i].to_height_w - playerInfos[i].to_height_h;
-                    int width =  height / L4D2_rect_height_width_radio;
-                    int y =   playerInfos[i].to_height_h;
-                    int x =   playerInfos[i].to_width - width / 2;
 
-                    if (playerInfos[i].team > 2) {
-                        g_l4d2->dx->drawRect(x, y, width, height, g_l4d2->fontSize, g_l4d2->colorGreen);
-                    } else {
-                        g_l4d2->dx->drawRect(x, y, width, height, g_l4d2->fontSize, g_l4d2->colorRed);
+            if (g_l4d2->ckVersion->currentText() == "v2.2.2.5(8490)") {
+                for (int i = 1; i < L4D2_MAX; i++) {
+                    if (playerInfos[i].isShow) {
+                        int height = playerInfos[i].to_height_w - playerInfos[i].to_height_h;
+                        int width =  height / L4D2_rect_height_width_radio;
+                        int y =   playerInfos[i].to_height_h;
+                        int x =   playerInfos[i].to_width - width / 2;
+
+                        if ((playerInfos[i].team > 2) && (playerInfos[i].team < 11)) {
+                            g_l4d2->dx->drawRect(x, y, width, height, g_l4d2->fontSize, g_l4d2->colorGreen);
+                        } else {
+                            g_l4d2->dx->drawRect(x, y, width, height, g_l4d2->fontSize, g_l4d2->colorRed);
+                        }
+                    }
+                }
+            } else {
+                for (int i = 1; i < L4D2_MAX_CLIENT; i++) {
+                    if (playerInfos[i].isShow) {
+                        int height = playerInfos[i].to_height_w - playerInfos[i].to_height_h;
+                        int width =  height / L4D2_rect_height_width_radio;
+                        int y =   playerInfos[i].to_height_h;
+                        int x =   playerInfos[i].to_width - width / 2;
+
+                        if (playerInfos[i].team == 2) {
+                            g_l4d2->dx->drawRect(x, y, width, height, g_l4d2->fontSize, g_l4d2->colorGreen);
+                        } else {
+                            g_l4d2->dx->drawRect(x, y, width, height, g_l4d2->fontSize, g_l4d2->colorRed);
+                        }
                     }
                 }
             }
@@ -202,6 +221,27 @@ static void Refresh(void *param)
     auto playerInfos = obj->playerInfos;
     auto selfMatrix = obj->selfMatrix;
 
+    int self_matrix_address = obj->engine_module.module_address + L4D2_self_matrix_offset;
+
+    //    int self_matrix_address = obj->client_module.module_address + L4D2_self_matrix_offset_client;
+
+    //    if (obj->ckVersion->currentText() == "v2.2.2.5(8490)") {
+    //        self_matrix_address = obj->engine_module.module_address + L4D2_self_matrix_offset;
+    //    }
+
+    int pos_offset = L4D2_player_pos_offset_client;
+
+    if (obj->ckVersion->currentText() == "v2.2.2.5(8490)") {
+        pos_offset = L4D2_player_pos_offset;
+    }
+
+
+    int self_angle_address = obj->engine_module.module_address + L4D2_self_angle_offset;
+
+    if (obj->ckVersion->currentText() == "v2.2.2.5(8490)") {
+        int self_angle_address = obj->engine_module.module_address + L4D2_self_angle_offset;
+    }
+
 
     while (true)
     {
@@ -228,15 +268,26 @@ static void Refresh(void *param)
 
             //            int self_matrix_address = WychUtils_WinAPI::find_pattern(obj->gameProcessHwnd,  obj->engine_module,
             // "\x17\x73\x80\xBF\x69\xC9\xE0\xC0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\xBF\x00\x00\x00\x00", 0) + 0x18;
-            int self_matrix_address =   0x0781BAE4;
-            WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_matrix_address, &obj->selfMatrix, sizeof(float[4][4]));
 
-            int self_angle_address = obj->engine_module.module_address + L4D2_self_angle_offset;
+            // 搜索 17 73 80 BF 69 C9 E0 C0 00 00 00 00 00 00 00 00 00 00 80 BF 00 00 00 00
+            //            int self_matrix_address =   0x0781BAE4;
+            //            self_matrix_address = obj->engine_module.module_address + L4D2_self_matrix_offset;
+            int self_matrix;
+            WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_matrix_address, &self_matrix, sizeof(int));
+
+            if (self_matrix) {
+                WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_matrix + L4D2_self_matrix_offset_1, &obj->selfMatrix, sizeof(float[4][4]));
+            }
+
             int self_angle;
             WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_angle_address, &self_angle, sizeof(int));
 
             if (self_angle) {
-                WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_angle + 0x4, &self_angle, sizeof(int));
+                if (obj->ckVersion->currentText() == "v2.2.2.5(8490)") {
+                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_angle + 0x4, &self_angle, sizeof(int));
+                } else {
+                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_angle + 0x0, &self_angle, sizeof(int));
+                }
 
                 if (self_angle) {
                     WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_angle + 0x420C, &self_angle, sizeof(int));
@@ -248,127 +299,290 @@ static void Refresh(void *param)
             }
 
             // int self_address = obj->cstrike_module.module_address + 0x11069BC;
-            int self_address_server = obj->server_module.module_address + L4D2_player_list_offset;
+            int self_address_server = obj->client_module.module_address + L4D2_player_list_offset_client;
+
+            if (obj->ckVersion->currentText() == "v2.2.2.5(8490)") {
+                self_address_server = obj->server_module.module_address + L4D2_player_list_offset;
+            }
 
             // 0xE0 好像是类型
             // 0xE4 一直是0
             // 0xE8 好像是最大生命
 
-            for (int i = 0; i < L4D2_MAX; i++) {
-                playerInfos[i].isExist = false;
-                int location_base_address;
-                WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_address_server, &location_base_address, sizeof(int));
-                self_address_server +=  L4D2_player_next_offset;
-                playerInfos[i].address = location_base_address;
+            if (obj->ckVersion->currentText() == "v2.2.2.5(8490)") {
+                for (int i = 0; i < L4D2_MAX; i++) {
+                    playerInfos[i].isExist = false;
+                    int location_base_address;
+                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_address_server, &location_base_address, sizeof(int));
+                    self_address_server +=  L4D2_player_next_offset;
+                    playerInfos[i].address = location_base_address;
 
-                //                playerInfos[i].blood = 0;
-                //                playerInfos[i].isExist = true;
+                    //                playerInfos[i].blood = 0;
+                    //                playerInfos[i].isExist = true;
 
-                if (location_base_address) {
-                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  L4D2_player_team_offset, &playerInfos[i].team, sizeof(int));
+                    if (location_base_address) {
+                        WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  L4D2_player_team_offset, &playerInfos[i].team, sizeof(int));
 
-                    if (playerInfos[i].team == 0) {
-                        continue;
+                        if (playerInfos[i].team == 0) {
+                            continue;
+                        }
+                        WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address + L4D2_player_maxblood_offset, &playerInfos[i].maxblood, sizeof(int));
+                        WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  L4D2_player_blood_offset,   &playerInfos[i].blood,    sizeof(int));
+
+
+                        //                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  L4D2_player_armor_offset,
+                        // &playerInfos[i].armor, sizeof(int));
+                        WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  pos_offset, &playerInfos[i].coor, sizeof(float[3]));
+
+                        playerInfos[i].isExist = true;
                     }
-                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address + L4D2_player_maxblood_offset, &playerInfos[i].maxblood, sizeof(int));
-                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  L4D2_player_blood_offset,   &playerInfos[i].blood,    sizeof(int));
-
-                    //                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  L4D2_player_armor_offset,
-                    // &playerInfos[i].armor, sizeof(int));
-                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  L4D2_player_pos_offset, &playerInfos[i].coor, sizeof(float[3]));
-
-                    playerInfos[i].isExist = true;
                 }
-            }
 
-            obj->selfTeam = playerInfos[0].team;
 
-            // 1.启动绘制敌我信息
-            if (obj->ckShowFriend->isChecked() || obj->ckShowEnemy->isChecked() || obj->ckAim->isChecked()) {
-                // 计算绘制信息
-                int height = obj->gameRect.bottom / 2;
-                int width = obj->gameRect.right / 2;
+                obj->selfTeam = playerInfos[0].team;
 
-                for (int i = 1; i < L4D2_MAX; i++) {
-                    // 是否存在
-                    if (!playerInfos[i].isExist) {
-                        playerInfos[i].isShow = false;
-                        continue;
-                    }
+                // 1.启动绘制敌我信息
+                if (obj->ckShowFriend->isChecked() || obj->ckShowEnemy->isChecked() || obj->ckAim->isChecked()) {
+                    // 计算绘制信息
+                    int height = obj->gameRect.bottom / 2;
+                    int width = obj->gameRect.right / 2;
 
-                    // 阵营
-                    if (playerInfos[i].team > 2) {
-                        if (!obj->ckShowFriend->isChecked()) {
+                    for (int i = 1; i < L4D2_MAX; i++) {
+                        // 是否存在
+                        if (!playerInfos[i].isExist) {
                             playerInfos[i].isShow = false;
                             continue;
                         }
-                    } else {
-                        if (!obj->ckShowEnemy->isChecked()) {
+
+                        // 阵营
+                        if ((playerInfos[i].team > 2) && (playerInfos[i].team < 11)) {
+                            if (!obj->ckShowFriend->isChecked()) {
+                                playerInfos[i].isShow = false;
+                                continue;
+                            }
+                        } else {
+                            if (!obj->ckShowEnemy->isChecked()) {
+                                playerInfos[i].isShow = false;
+                                continue;
+                            }
+                        }
+
+                        // 是否死亡
+                        if (playerInfos[i].blood <= 1) {
                             playerInfos[i].isShow = false;
                             continue;
                         }
+
+                        // 转向 (竖矩阵)
+                        float to_target = selfMatrix[2][0] * playerInfos[i].coor[0]
+                                          + selfMatrix[2][1] * playerInfos[i].coor[1]
+                                          + selfMatrix[2][2] * playerInfos[i].coor[2]
+                                          + selfMatrix[2][3];
+
+                        // 转向 (横矩阵)
+                        //                    float to_target = selfMatrix[0][2] * playerInfos[i].coor[0]
+                        //                                      + selfMatrix[1][2] * playerInfos[i].coor[1]
+                        //                                      + selfMatrix[2][2] * playerInfos[i].coor[2]
+                        //                                      + selfMatrix[3][2];
+
+                        // 后面的人物不做处理
+                        if (to_target < 0.01f) {
+                            playerInfos[i].isShow = false;
+                            continue;
+                        }
+
+
+                        // 比例
+                        to_target = 1.0f / to_target;
+
+                        // (竖矩阵)
+                        int to_width = width + (selfMatrix[0][0] * playerInfos[i].coor[0]
+                                                + selfMatrix[0][1] * playerInfos[i].coor[1]
+                                                + selfMatrix[0][2] * playerInfos[i].coor[2]
+                                                + selfMatrix[0][3]) * to_target * width;
+
+                        int to_height_h = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
+                                                    + selfMatrix[1][1] * playerInfos[i].coor[1]
+                                                    + selfMatrix[1][2] * (playerInfos[i].coor[2] L4D2_rect_height_top)
+                                                    + selfMatrix[1][3]) * to_target * height;
+
+                        int to_height_w = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
+                                                    + selfMatrix[1][1] * playerInfos[i].coor[1]
+                                                    + selfMatrix[1][2] * (playerInfos[i].coor[2] L4D2_rect_height_bottom)
+                                                    + selfMatrix[1][3]) * to_target * height;
+
+                        // (横矩阵)
+                        //                    int to_width = width + (selfMatrix[0][0] * playerInfos[i].coor[0]
+                        //                                            + selfMatrix[1][0] * playerInfos[i].coor[1]
+                        //                                            + selfMatrix[2][0] * playerInfos[i].coor[2]
+                        //                                            + selfMatrix[3][0]) * to_target * width;
+
+                        //                    int to_height_h = height - (selfMatrix[0][1] * playerInfos[i].coor[0]
+                        //                                                + selfMatrix[1][1] * playerInfos[i].coor[1]
+                        //                                                + selfMatrix[2][1] * (playerInfos[i].coor[2] L4D2_rect_height_top)
+                        //                                                + selfMatrix[3][1]) * to_target * height;
+
+                        //                    int to_height_w = height - (selfMatrix[0][1] * playerInfos[i].coor[0]
+                        //                                                + selfMatrix[1][1] * playerInfos[i].coor[1]
+                        //                                                + selfMatrix[2][1] * (playerInfos[i].coor[2] L4D2_rect_height_bottom)
+                        //                                                + selfMatrix[3][1]) * to_target * height;
+
+                        playerInfos[i].to_width = to_width;
+                        playerInfos[i].to_height_h = to_height_h;
+                        playerInfos[i].to_height_w = to_height_w;
+                        playerInfos[i].isShow = true;
+
+
+                        if (obj->ckAim->isChecked()) {
+                            if ((playerInfos[i].team < 3) || (playerInfos[i].team > 10)) {
+                                // 计算准星距离
+                                int value = abs(width - to_width) + abs(height - to_height_h);
+
+                                if (value < aim_min)
+                                {
+                                    aim_min = value;
+                                    aim_index = i;
+                                }
+                            }
+                        }
                     }
+                }
+            } else {
+                for (int i = 0; i < L4D2_MAX_CLIENT; i++) {
+                    playerInfos[i].isExist = false;
+                    int location_base_address;
+                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_address_server, &location_base_address, sizeof(int));
+                    self_address_server +=  L4D2_player_next_offset_client;
+                    playerInfos[i].address = location_base_address;
 
-                    // 是否死亡
-                    if (playerInfos[i].blood <= 1) {
-                        playerInfos[i].isShow = false;
-                        continue;
+
+                    if (location_base_address) {
+                        WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  L4D2_player_team_offset_client, &playerInfos[i].team, sizeof(int));
+
+                        //                        WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address + L4D2_player_maxblood_offset,
+                        //     &playerInfos[i].maxblood, sizeof(int));
+                        WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  L4D2_player_blood_offset_client, &playerInfos[i].blood, sizeof(int));
+
+                        if (playerInfos[i].blood <= 0) {
+                            continue;
+                        }
+
+                        WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  pos_offset, &playerInfos[i].coor, sizeof(float[3]));
+
+                        playerInfos[i].isExist = true;
                     }
-
-                    // 转向 (竖矩阵)
-                    float to_target = selfMatrix[2][0] * playerInfos[i].coor[0]
-                                      + selfMatrix[2][1] * playerInfos[i].coor[1]
-                                      + selfMatrix[2][2] * playerInfos[i].coor[2]
-                                      + selfMatrix[2][3];
-
-                    // 后面的人物不做处理
-                    if (to_target < 0.01f) {
-                        playerInfos[i].isShow = false;
-                        continue;
-                    }
+                }
 
 
-                    // 比例
-                    to_target = 1.0f / to_target;
+                obj->selfTeam = playerInfos[0].team;
 
-                    // (竖矩阵)
-                    int to_width = width + (selfMatrix[0][0] * playerInfos[i].coor[0]
-                                            + selfMatrix[0][1] * playerInfos[i].coor[1]
-                                            + selfMatrix[0][2] * playerInfos[i].coor[2]
-                                            + selfMatrix[0][3]) * to_target * width;
+                // 1.启动绘制敌我信息
+                if (obj->ckShowFriend->isChecked() || obj->ckShowEnemy->isChecked() || obj->ckAim->isChecked()) {
+                    // 计算绘制信息
+                    int height = obj->gameRect.bottom / 2;
+                    int width = obj->gameRect.right / 2;
 
-                    int to_height_h = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
-                                                + selfMatrix[1][1] * playerInfos[i].coor[1]
-                                                + selfMatrix[1][2] * (playerInfos[i].coor[2] L4D2_rect_height_top)
-                                                + selfMatrix[1][3]) * to_target * height;
+                    for (int i = 1; i < L4D2_MAX_CLIENT; i++) {
+                        // 是否存在
+                        if (!playerInfos[i].isExist) {
+                            playerInfos[i].isShow = false;
+                            continue;
+                        }
 
-                    int to_height_w = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
-                                                + selfMatrix[1][1] * playerInfos[i].coor[1]
-                                                + selfMatrix[1][2] * (playerInfos[i].coor[2] L4D2_rect_height_bottom)
-                                                + selfMatrix[1][3]) * to_target * height;
+                        // 阵营
+                        if (playerInfos[i].team == 2) {
+                            if (!obj->ckShowFriend->isChecked()) {
+                                playerInfos[i].isShow = false;
+                                continue;
+                            }
+                        } else {
+                            if (!obj->ckShowEnemy->isChecked()) {
+                                playerInfos[i].isShow = false;
+                                continue;
+                            }
+                        }
+
+                        // 是否死亡
+                        if (playerInfos[i].blood <= 1) {
+                            playerInfos[i].isShow = false;
+                            continue;
+                        }
+
+                        // 转向 (竖矩阵)
+                        float to_target = selfMatrix[2][0] * playerInfos[i].coor[0]
+                                          + selfMatrix[2][1] * playerInfos[i].coor[1]
+                                          + selfMatrix[2][2] * playerInfos[i].coor[2]
+                                          + selfMatrix[2][3];
+
+                        // 转向 (横矩阵)
+                        //                    float to_target = selfMatrix[0][2] * playerInfos[i].coor[0]
+                        //                                      + selfMatrix[1][2] * playerInfos[i].coor[1]
+                        //                                      + selfMatrix[2][2] * playerInfos[i].coor[2]
+                        //                                      + selfMatrix[3][2];
+
+                        // 后面的人物不做处理
+                        if (to_target < 0.01f) {
+                            playerInfos[i].isShow = false;
+                            continue;
+                        }
 
 
-                    playerInfos[i].to_width = to_width;
-                    playerInfos[i].to_height_h = to_height_h;
-                    playerInfos[i].to_height_w = to_height_w;
-                    playerInfos[i].isShow = true;
+                        // 比例
+                        to_target = 1.0f / to_target;
+
+                        // (竖矩阵)
+                        int to_width = width + (selfMatrix[0][0] * playerInfos[i].coor[0]
+                                                + selfMatrix[0][1] * playerInfos[i].coor[1]
+                                                + selfMatrix[0][2] * playerInfos[i].coor[2]
+                                                + selfMatrix[0][3]) * to_target * width;
+
+                        int to_height_h = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
+                                                    + selfMatrix[1][1] * playerInfos[i].coor[1]
+                                                    + selfMatrix[1][2] * (playerInfos[i].coor[2] L4D2_rect_height_top)
+                                                    + selfMatrix[1][3]) * to_target * height;
+
+                        int to_height_w = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
+                                                    + selfMatrix[1][1] * playerInfos[i].coor[1]
+                                                    + selfMatrix[1][2] * (playerInfos[i].coor[2] L4D2_rect_height_bottom)
+                                                    + selfMatrix[1][3]) * to_target * height;
+
+                        // (横矩阵)
+                        //                    int to_width = width + (selfMatrix[0][0] * playerInfos[i].coor[0]
+                        //                                            + selfMatrix[1][0] * playerInfos[i].coor[1]
+                        //                                            + selfMatrix[2][0] * playerInfos[i].coor[2]
+                        //                                            + selfMatrix[3][0]) * to_target * width;
+
+                        //                    int to_height_h = height - (selfMatrix[0][1] * playerInfos[i].coor[0]
+                        //                                                + selfMatrix[1][1] * playerInfos[i].coor[1]
+                        //                                                + selfMatrix[2][1] * (playerInfos[i].coor[2] L4D2_rect_height_top)
+                        //                                                + selfMatrix[3][1]) * to_target * height;
+
+                        //                    int to_height_w = height - (selfMatrix[0][1] * playerInfos[i].coor[0]
+                        //                                                + selfMatrix[1][1] * playerInfos[i].coor[1]
+                        //                                                + selfMatrix[2][1] * (playerInfos[i].coor[2] L4D2_rect_height_bottom)
+                        //                                                + selfMatrix[3][1]) * to_target * height;
+
+                        playerInfos[i].to_width = to_width;
+                        playerInfos[i].to_height_h = to_height_h;
+                        playerInfos[i].to_height_w = to_height_w;
+                        playerInfos[i].isShow = true;
 
 
-                    if (obj->ckAim->isChecked()) {
-                        if (playerInfos[i].team < 3) {
-                            // 计算准星距离
-                            int value = abs(width - to_width) + abs(height - to_height_h);
+                        if (obj->ckAim->isChecked()) {
+                            if (playerInfos[i].team == 3) {
+                                // 计算准星距离
+                                int value = abs(width - to_width) + abs(height - to_height_h);
 
-                            if (value < aim_min)
-                            {
-                                aim_min = value;
-                                aim_index = i;
+                                if (value < aim_min)
+                                {
+                                    aim_min = value;
+                                    aim_index = i;
+                                }
                             }
                         }
                     }
                 }
             }
-
 
             //            if (obj->ckShowFriend->isChecked() || obj->ckShowEnemy->isChecked()) {
             // 处理窗口消息
@@ -443,6 +657,7 @@ unsigned __stdcall ItemView9L4D2::Start(void *param) {
 
     // 3.获取进程中的dll
     WychUtils_WinAPI::get_module_info(thisObj->gameProcessHwnd, pid,     L"left4dead2.exe", thisObj->main_module);
+    WychUtils_WinAPI::get_module_info(thisObj->gameProcessHwnd, pid,         L"client.dll", thisObj->client_module);
     WychUtils_WinAPI::get_module_info(thisObj->gameProcessHwnd, pid,         L"engine.dll", thisObj->engine_module);
     WychUtils_WinAPI::get_module_info(thisObj->gameProcessHwnd, pid,         L"server.dll", thisObj->server_module);
     WychUtils_WinAPI::get_module_info(thisObj->gameProcessHwnd, pid, L"materialsystem.dll", thisObj->materialsystem_module);

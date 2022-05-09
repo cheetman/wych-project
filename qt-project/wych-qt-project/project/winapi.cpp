@@ -83,6 +83,7 @@ void warning(LPCTSTR text)
 dword read_memory(handle process, int address, void *recv, int size)
 {
     SIZE_T read_size;
+
     ReadProcessMemory(process, (LPCVOID)address, recv, size, &read_size);
     return read_size;
 }
@@ -90,6 +91,7 @@ dword read_memory(handle process, int address, void *recv, int size)
 dword read_memory(handle process, unsigned int address, void *recv, int size)
 {
     SIZE_T read_size;
+
     ReadProcessMemory(process, (LPCVOID)address, recv, size, &read_size);
     return read_size;
 }
@@ -101,6 +103,7 @@ dword write_memory(handle process, int address, void *data, int size)
     WriteProcessMemory(process, (LPVOID)address, data, size, &write_size);
     return write_size;
 }
+
 dword write_memory(handle process, unsigned int address, void *data, int size)
 {
     SIZE_T write_size;
@@ -161,14 +164,16 @@ dword get_process_id(LPCTSTR process_name)
     {
         if (wcsncmp(_wcsupr(process_info.szExeFile), target, wcslen(target)) == 0)
         {
+            if (process_info.cntThreads > 0) {
 #ifdef DEBUG_STRING
-            _tprintf(_T("进程名称 : %s \n"), process_info.szExeFile);
-            _tprintf(_T("进程ID : %d \n"), process_info.th32ProcessID);
-            _tprintf(_T("\n"));
+                _tprintf(_T("进程名称 : %s \n"), process_info.szExeFile);
+                _tprintf(_T("进程ID : %d \n"), process_info.th32ProcessID);
+                _tprintf(_T("\n"));
 #endif // DEBUG_STRING
 
-            CloseHandle(snap);
-            return process_info.th32ProcessID;
+                CloseHandle(snap);
+                return process_info.th32ProcessID;
+            }
         }
         state = Process32Next(snap, &process_info);
     }
@@ -215,7 +220,7 @@ void get_module_info(handle process_handle, dword process_id, LPCTSTR  module_na
 
 #ifdef DEBUG_STRING
             _tprintf(_T("模块名称 : %s \n"),      module_info.szModule);
-            _tprintf(_T("模块基址 : %8x \n"),    (unsigned int)module_info.modBaseAddr);
+            _tprintf(_T("模块基址 : %8x \n"),               (unsigned int)module_info.modBaseAddr);
             _tprintf(_T("模块大小 : %d Byte \n"), module_info.modBaseSize);
             _tprintf(_T("实际读取 : %d Byte \n"),        size);
             _tprintf(_T("\n"));
@@ -231,7 +236,7 @@ void get_module_info(handle process_handle, dword process_id, LPCTSTR  module_na
     warning(L"!!!查找不到指定模块!!!");
 }
 
-int find_pattern(handle process, struct module_information& module, const char *pattern, int index               , int offset)
+int find_pattern(handle process, struct module_information& module, const char *pattern, int index, int offset)
 {
     const char *start = module.module_data + offset;
     const int   length = strlen(pattern);

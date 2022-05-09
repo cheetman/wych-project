@@ -158,8 +158,8 @@ ItemView9::ItemView9(QWidget *parent) : QWidget(parent)
     tab2Layout->addWidget(tab2TabWidget);
     tab2TabWidget->addTab(new ItemView9CS16(this), tr("CS1.6"));
     tab2TabWidget->addTab(new ItemView9CSS(this),  tr("CSS"));
-    tab2TabWidget->addTab(new ItemView9CSGO(this),  tr("CSGO"));
-    tab2TabWidget->addTab(new ItemView9L4D2(this),  tr("L4D2"));
+    tab2TabWidget->addTab(new ItemView9CSGO(this), tr("CSGO"));
+    tab2TabWidget->addTab(new ItemView9L4D2(this), tr("L4D2"));
 
     // 3.测试
     // https://github.com/frk1 cs基址
@@ -215,6 +215,7 @@ ItemView9::ItemView9(QWidget *parent) : QWidget(parent)
 
 
     auto tab4 = new QWidget(this);
+
     auto qHBoxLayout4 = new QHBoxLayout(tab4);
 
     tabWidget->addTab(tab4, tr("Socket测试"));
@@ -583,4 +584,7 @@ ItemView9::ItemView9(QWidget *parent) : QWidget(parent)
             label13->setText(QString("修改成功！"));
         }
     });
+
+    tabWidget->removeTab(3);
+    tabWidget->removeTab(2);
 }

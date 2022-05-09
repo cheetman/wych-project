@@ -23,20 +23,28 @@
 #include "winapi.h"
 
 #define L4D2_MAX 1000
-#define L4D2_self_matrix_offset 0x600F9C // 矩阵
-#define L4D2_self_angle_offset 0x6B2080  // 视角
+#define L4D2_MAX_CLIENT 30
+#define L4D2_self_matrix_offset 0x600FDC        // 矩阵
+#define L4D2_self_matrix_offset_1 0x2E4         // 矩阵一级偏移
+// #define L4D2_self_matrix_offset_client 0x7A3EA0 // 矩阵
+#define L4D2_self_angle_offset 0x6B2080         // 视角
 
-#define L4D2_player_list_offset 0x7DC774 // 玩家列表 2B03C774 2B03DF64  server.dll+7DE0C4(2B03E0C4)
-#define L4D2_player_next_offset 0x10     // 玩家next偏移
-#define L4D2_player_team_offset 0xE0     // 玩家列表
-#define L4D2_player_blood_offset 0xEC    // 玩家列表  - 血量
-#define L4D2_player_maxblood_offset 0xE8 // 玩家列表  - 血量
-#define L4D2_player_armor_offset 0xD08   // 玩家列表
-#define L4D2_player_pos_offset 0x2CC     // 玩家列表
+#define L4D2_player_list_offset 0x7DC774        // 玩家列表 2B03C774 2B03DF64  server.dll+7DE0C4(2B03E0C4)
+#define L4D2_player_list_offset_client 0x748524 // 玩家列表 2B03C774 2B03DF64  client.dll+7384F4(2B03E0C4)
+#define L4D2_player_next_offset 0x10            // 玩家next偏移
+#define L4D2_player_next_offset_client 0x08     // 玩家next偏移
+#define L4D2_player_team_offset 0xE0            // 阵营
+#define L4D2_player_team_offset_client 0xDC     // 阵营
+#define L4D2_player_blood_offset 0xEC           // 玩家列表  - 血量
+#define L4D2_player_blood_offset_client 0xE4    // 玩家列表  - 血量
+#define L4D2_player_maxblood_offset 0xE8        // 玩家列表  - 血量
+#define L4D2_player_armor_offset 0xD08          // 玩家列表
+#define L4D2_player_pos_offset 0x2CC            // 玩家坐标
+#define L4D2_player_pos_offset_client 0x11C     // 玩家坐标
 
-#define L4D2_rect_height_top +75.0f      // 矩形上边框
-#define L4D2_rect_height_bottom -5.0f    // 矩形下边框
-#define L4D2_rect_height_width_radio 2.5 // 矩形宽高比
+#define L4D2_rect_height_top +75.0f             // 矩形上边框
+#define L4D2_rect_height_bottom -5.0f           // 矩形下边框
+#define L4D2_rect_height_width_radio 2.5        // 矩形宽高比
 
 class ItemView9L4D2 : public QWidget {
     Q_OBJECT
@@ -54,7 +62,7 @@ public:
     MARGINS Margin;
 
     bool isStart = false;
-    struct WychUtils_WinAPI::module_information main_module, server_module, engine_module, materialsystem_module;
+    struct WychUtils_WinAPI::module_information main_module, server_module, engine_module, materialsystem_module, client_module;
 
 
     struct PlayerInfo

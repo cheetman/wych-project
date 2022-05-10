@@ -2,6 +2,7 @@
 #include "mainwindow.h"
 #include "customevent.h"
 
+
 ItemView9L4D2 *g_l4d2;
 
 ItemView9L4D2::ItemView9L4D2(QWidget *parent)
@@ -20,12 +21,25 @@ void ItemView9L4D2::initUI()
     auto layout = new QHBoxLayout(this);
     auto leftQWidget = new QWidget(this);
     auto leftQWidgetLayout = new QVBoxLayout(leftQWidget);
+
     auto leftQWidgetGroupBox1 = new QGroupBox("程序设置", this);
 
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox1);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout = new QGridLayout(leftQWidgetGroupBox1);
     leftQWidgetGroupBox1->setFixedHeight(200);
+
+    auto leftQWidgetGroupBox2 = new QGroupBox("自瞄设置", this);
+    leftQWidgetLayout->addWidget(leftQWidgetGroupBox2);
+    leftQWidgetLayout->setAlignment(Qt::AlignTop);
+    auto leftQWidgetGroup1Layout2 = new QGridLayout(leftQWidgetGroupBox2);
+    leftQWidgetGroupBox2->setFixedHeight(130);
+
+    auto leftQWidgetGroupBox3 = new QGroupBox("显示设置", this);
+    leftQWidgetLayout->addWidget(leftQWidgetGroupBox3);
+    leftQWidgetLayout->setAlignment(Qt::AlignTop);
+    auto leftQWidgetGroup1Layout3 = new QGridLayout(leftQWidgetGroupBox3);
+    leftQWidgetGroupBox3->setFixedHeight(90);
 
     //    leftQWidgetGroupBox1->setFixedWidth(400);
 
@@ -74,7 +88,7 @@ void ItemView9L4D2::initUI()
     sbRefresh = new QSpinBox();
     sbRefresh->setMinimum(1);
     sbRefresh->setMaximum(1000);
-    sbRefresh->setSuffix(" x10 ms");
+    sbRefresh->setSuffix(" ms");
     sbRefresh->setValue(5);
 
     ckVersion = new QComboBox();
@@ -83,9 +97,36 @@ void ItemView9L4D2::initUI()
     ckVersion->addItem("v2.2.2.5(8490)",        QVariant::fromValue(css));
     ckVersion->addItem("v2.2.2.5(8490) client", QVariant::fromValue(css));
     ckAim = new QCheckBox("启动自瞄");
-    ckShowEnemy = new QCheckBox("显示敌人方框");
+    ckShowEnemy = new QCheckBox("显示敌人");
     ckShowEnemy->setChecked(true);
-    ckShowFriend = new QCheckBox("显示队友方框");
+    ckShowFriend = new QCheckBox("显示队友");
+
+    //    ckAimByDistance = new QCheckBox("按距离");
+    //    ckAimByCross = new QCheckBox("按准星距离");
+
+    rbAimByDistance = new QRadioButton("按距离");
+    rbAimByCross = new QRadioButton("按准星距离");
+    rbAimByDistance2 = new QRadioButton("距离优先");
+    rbAimByCross->setChecked(true);
+    sbMaxDistance = new QSpinBox();
+    sbMaxDistance->setMinimum(1);
+    sbMaxDistance->setMaximum(10);
+    sbMaxDistance->setSuffix("米内");
+    sbMaxDistance->setValue(2);
+
+    bgAim = new QButtonGroup(this);
+    bgAim->addButton(rbAimByDistance,  0);
+    bgAim->addButton(rbAimByCross,     1);
+    bgAim->addButton(rbAimByDistance2, 2);
+
+
+    rbDrawRect = new QRadioButton("显示方框");
+    rbDrawRect->setChecked(true);
+    rbDrawText = new QRadioButton("显示文字");
+    bgDraw = new QButtonGroup(this);
+    bgDraw->addButton(rbDrawRect, 0);
+    bgDraw->addButton(rbDrawText, 1);
+
 
     edtMsg = new QPlainTextEdit();
 
@@ -96,19 +137,28 @@ void ItemView9L4D2::initUI()
     infoGridModel = new QStandardItemModel();
 
     /* 设置表格标题行(输入数据为QStringList类型) */
-    infoGridModel->setHorizontalHeaderLabels({  "类型", "血量",  "偏航角|俯仰角", "坐标", "护甲", "金钱", "地址", "自定义" });
+    infoGridModel->setHorizontalHeaderLabels({  "类型", "血量",  "距离", "偏航角|俯仰角", "坐标", "护甲", "金钱", "地址", "自定义" });
     infoTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     infoTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     infoTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
     infoTableView->setModel(infoGridModel);
 
 
-    leftQWidgetGroup1Layout->addWidget(ckVersion,    1, 0);
-    leftQWidgetGroup1Layout->addWidget(sbRefresh,    2, 0);
-    leftQWidgetGroup1Layout->addWidget(ckShowFriend, 3, 0);
-    leftQWidgetGroup1Layout->addWidget(ckShowEnemy,  4, 0);
-    leftQWidgetGroup1Layout->addWidget(ckAim,        5, 0);
-    leftQWidgetGroup1Layout->addWidget(btnStartStop, 6, 0);
+    leftQWidgetGroup1Layout->addWidget(ckVersion,     1, 0);
+    leftQWidgetGroup1Layout->addWidget(sbRefresh,     2, 0);
+    leftQWidgetGroup1Layout->addWidget(ckShowFriend,  3, 0);
+    leftQWidgetGroup1Layout->addWidget(ckShowEnemy,   4, 0);
+    leftQWidgetGroup1Layout->addWidget(ckAim,         5, 0);
+    leftQWidgetGroup1Layout->addWidget(btnStartStop, 11, 0);
+
+
+    leftQWidgetGroup1Layout2->addWidget(rbAimByDistance,   8, 0);
+    leftQWidgetGroup1Layout2->addWidget(rbAimByCross,      9, 0);
+    leftQWidgetGroup1Layout2->addWidget(rbAimByDistance2, 10, 0);
+    leftQWidgetGroup1Layout2->addWidget(sbMaxDistance,    10, 1);
+
+    leftQWidgetGroup1Layout3->addWidget(rbDrawRect, 8, 0);
+    leftQWidgetGroup1Layout3->addWidget(rbDrawText, 9, 0);
 
     centerQWidgetLayout->addWidget(edtMsg);
     centerQWidgetGroupBox1Layout->addWidget(ckConsoleEnable);
@@ -153,39 +203,63 @@ LRESULT ItemView9L4D2::WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lP
             g_l4d2->dx->drawStart();
 
             auto playerInfos = g_l4d2->playerInfos;
+            auto count = L4D2_MAX_CLIENT;
 
+            if (g_l4d2->ckVersion->currentIndex() == 0) {
+                count = L4D2_MAX;
+            }
 
-            if (g_l4d2->ckVersion->currentText() == "v2.2.2.5(8490)") {
-                for (int i = 1; i < L4D2_MAX; i++) {
+            if (g_l4d2->rbDrawRect->isChecked()) {
+                for (int i = 1; i < count; i++) {
                     if (playerInfos[i].isShow) {
                         int height = playerInfos[i].to_height_w - playerInfos[i].to_height_h;
                         int width =  height / L4D2_rect_height_width_radio;
                         int y =   playerInfos[i].to_height_h;
                         int x =   playerInfos[i].to_width - width / 2;
 
-                        if ((playerInfos[i].team > 2) && (playerInfos[i].team < 11)) {
-                            g_l4d2->dx->drawRect(x, y, width, height, g_l4d2->fontSize, g_l4d2->colorGreen);
+                        if (g_l4d2->ckVersion->currentIndex() == 0) {
+                            if ((playerInfos[i].team > 2) && (playerInfos[i].team < 11)) {
+                                g_l4d2->dx->drawRect(x, y, width, height, g_l4d2->fontSize, g_l4d2->colorGreen);
+                            } else {
+                                g_l4d2->dx->drawRect(x, y, width, height, g_l4d2->fontSize, g_l4d2->colorRed);
+                            }
                         } else {
-                            g_l4d2->dx->drawRect(x, y, width, height, g_l4d2->fontSize, g_l4d2->colorRed);
+                            if (playerInfos[i].team == 2)  {
+                                g_l4d2->dx->drawRect(x, y, width, height, g_l4d2->fontSize, g_l4d2->colorGreen);
+                            } else {
+                                g_l4d2->dx->drawRect(x, y, width, height, g_l4d2->fontSize, g_l4d2->colorRed);
+                            }
                         }
                     }
                 }
             } else {
-                for (int i = 1; i < L4D2_MAX_CLIENT; i++) {
+                for (int i = 1; i < count; i++) {
                     if (playerInfos[i].isShow) {
                         int height = playerInfos[i].to_height_w - playerInfos[i].to_height_h;
                         int width =  height / L4D2_rect_height_width_radio;
                         int y =   playerInfos[i].to_height_h;
-                        int x =   playerInfos[i].to_width - width / 2;
+                        int x =   playerInfos[i].to_width - width / 8;
 
-                        if (playerInfos[i].team == 2) {
-                            g_l4d2->dx->drawRect(x, y, width, height, g_l4d2->fontSize, g_l4d2->colorGreen);
+                        char text[20];
+                        sprintf(text, "%d:%d", i, playerInfos[i].distance);
+
+                        if (g_l4d2->ckVersion->currentIndex() == 0) {
+                            if ((playerInfos[i].team > 2) && (playerInfos[i].team < 11)) {
+                                g_l4d2->dx->drawText(x, y, text, g_l4d2->colorGreen);
+                            } else {
+                                g_l4d2->dx->drawText(x, y, text, g_l4d2->colorRed);
+                            }
                         } else {
-                            g_l4d2->dx->drawRect(x, y, width, height, g_l4d2->fontSize, g_l4d2->colorRed);
+                            if (playerInfos[i].team == 2) {
+                                g_l4d2->dx->drawText(x, y, text, g_l4d2->colorGreen);
+                            } else {
+                                g_l4d2->dx->drawText(x, y, text, g_l4d2->colorRed);
+                            }
                         }
                     }
                 }
             }
+
 
             //            g_l4d2->dx->drawLine(D3DCOLOR_ARGB(255, 0, 0, 255), 20, 20, 66, 66, 线粗);
             //            g_l4d2->dx->drawRect(100, 100, 100, 100, 线粗, D3DCOLOR_ARGB(255, 255, 255, 0));
@@ -255,6 +329,8 @@ static void Refresh(void *param)
             float aimCoor[3]{ 0, 0, 0 };
             int   aim_min = INT_MAX;
             int   aim_index = 0;
+            int   aim_distance = INT_MAX;
+            int   aim_distance_index = 0;
 
             //            int self_matrix_address  = 0x07FA73E4;
             //            int self_matrix_address  = obj->engine_module.module_address + L4D2_self_matrix_offset;
@@ -385,63 +461,64 @@ static void Refresh(void *param)
                         //                                      + selfMatrix[2][2] * playerInfos[i].coor[2]
                         //                                      + selfMatrix[3][2];
 
+
+                        // 人物距离计算
+                        int value = sqrt((playerInfos[0].coor[0] - playerInfos[i].coor[0]) * (playerInfos[0].coor[0] - playerInfos[i].coor[0])
+                                         + (playerInfos[0].coor[1] - playerInfos[i].coor[1]) * (playerInfos[0].coor[1] - playerInfos[i].coor[1])
+                                         + (playerInfos[0].coor[2] - playerInfos[i].coor[2]) * (playerInfos[0].coor[2] - playerInfos[i].coor[2]));
+                        playerInfos[i].distance = value;
+
+
+                        if ((playerInfos[i].team < 3) || (playerInfos[i].team > 10)) {
+                            if (value < aim_distance)
+                            {
+                                aim_distance = value;
+                                aim_distance_index = i;
+                            }
+                        }
+
                         // 后面的人物不做处理
                         if (to_target < 0.01f) {
                             playerInfos[i].isShow = false;
                             continue;
-                        }
+                        } else {
+                            // 比例
+                            to_target = 1.0f / to_target;
+
+                            // (竖矩阵)
+                            int to_width = width + (selfMatrix[0][0] * playerInfos[i].coor[0]
+                                                    + selfMatrix[0][1] * playerInfos[i].coor[1]
+                                                    + selfMatrix[0][2] * playerInfos[i].coor[2]
+                                                    + selfMatrix[0][3]) * to_target * width;
+
+                            int to_height_h = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
+                                                        + selfMatrix[1][1] * playerInfos[i].coor[1]
+                                                        + selfMatrix[1][2] * (playerInfos[i].coor[2] L4D2_rect_height_top)
+                                                        + selfMatrix[1][3]) * to_target * height;
+
+                            int to_height_w = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
+                                                        + selfMatrix[1][1] * playerInfos[i].coor[1]
+                                                        + selfMatrix[1][2] * (playerInfos[i].coor[2] L4D2_rect_height_bottom)
+                                                        + selfMatrix[1][3]) * to_target * height;
+
+                            playerInfos[i].to_width = to_width;
+                            playerInfos[i].to_height_h = to_height_h;
+                            playerInfos[i].to_height_w = to_height_w;
+                            playerInfos[i].isShow = true;
 
 
-                        // 比例
-                        to_target = 1.0f / to_target;
+                            if (obj->ckAim->isChecked()) {
+                                if ((playerInfos[i].team < 3) || (playerInfos[i].team > 10)) {
+                                    if (!obj->rbAimByDistance->isChecked()) {
+                                        // 计算准星距离
+                                        int value = abs(width - to_width) + abs(height - to_height_h);
 
-                        // (竖矩阵)
-                        int to_width = width + (selfMatrix[0][0] * playerInfos[i].coor[0]
-                                                + selfMatrix[0][1] * playerInfos[i].coor[1]
-                                                + selfMatrix[0][2] * playerInfos[i].coor[2]
-                                                + selfMatrix[0][3]) * to_target * width;
-
-                        int to_height_h = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
-                                                    + selfMatrix[1][1] * playerInfos[i].coor[1]
-                                                    + selfMatrix[1][2] * (playerInfos[i].coor[2] L4D2_rect_height_top)
-                                                    + selfMatrix[1][3]) * to_target * height;
-
-                        int to_height_w = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
-                                                    + selfMatrix[1][1] * playerInfos[i].coor[1]
-                                                    + selfMatrix[1][2] * (playerInfos[i].coor[2] L4D2_rect_height_bottom)
-                                                    + selfMatrix[1][3]) * to_target * height;
-
-                        // (横矩阵)
-                        //                    int to_width = width + (selfMatrix[0][0] * playerInfos[i].coor[0]
-                        //                                            + selfMatrix[1][0] * playerInfos[i].coor[1]
-                        //                                            + selfMatrix[2][0] * playerInfos[i].coor[2]
-                        //                                            + selfMatrix[3][0]) * to_target * width;
-
-                        //                    int to_height_h = height - (selfMatrix[0][1] * playerInfos[i].coor[0]
-                        //                                                + selfMatrix[1][1] * playerInfos[i].coor[1]
-                        //                                                + selfMatrix[2][1] * (playerInfos[i].coor[2] L4D2_rect_height_top)
-                        //                                                + selfMatrix[3][1]) * to_target * height;
-
-                        //                    int to_height_w = height - (selfMatrix[0][1] * playerInfos[i].coor[0]
-                        //                                                + selfMatrix[1][1] * playerInfos[i].coor[1]
-                        //                                                + selfMatrix[2][1] * (playerInfos[i].coor[2] L4D2_rect_height_bottom)
-                        //                                                + selfMatrix[3][1]) * to_target * height;
-
-                        playerInfos[i].to_width = to_width;
-                        playerInfos[i].to_height_h = to_height_h;
-                        playerInfos[i].to_height_w = to_height_w;
-                        playerInfos[i].isShow = true;
-
-
-                        if (obj->ckAim->isChecked()) {
-                            if ((playerInfos[i].team < 3) || (playerInfos[i].team > 10)) {
-                                // 计算准星距离
-                                int value = abs(width - to_width) + abs(height - to_height_h);
-
-                                if (value < aim_min)
-                                {
-                                    aim_min = value;
-                                    aim_index = i;
+                                        if (value < aim_min)
+                                        {
+                                            aim_min = value;
+                                            aim_index = i;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -514,69 +591,64 @@ static void Refresh(void *param)
                                           + selfMatrix[2][2] * playerInfos[i].coor[2]
                                           + selfMatrix[2][3];
 
-                        // 转向 (横矩阵)
-                        //                    float to_target = selfMatrix[0][2] * playerInfos[i].coor[0]
-                        //                                      + selfMatrix[1][2] * playerInfos[i].coor[1]
-                        //                                      + selfMatrix[2][2] * playerInfos[i].coor[2]
-                        //                                      + selfMatrix[3][2];
+
+                        // 人物距离计算
+                        int value = sqrt((playerInfos[0].coor[0] - playerInfos[i].coor[0]) * (playerInfos[0].coor[0] - playerInfos[i].coor[0])
+                                         + (playerInfos[0].coor[1] - playerInfos[i].coor[1]) * (playerInfos[0].coor[1] - playerInfos[i].coor[1])
+                                         + (playerInfos[0].coor[2] - playerInfos[i].coor[2]) * (playerInfos[0].coor[2] - playerInfos[i].coor[2]));
+                        playerInfos[i].distance = value;
+
+
+                        if ((playerInfos[i].team != 2)) {
+                            if (value < aim_distance)
+                            {
+                                aim_distance = value;
+                                aim_distance_index = i;
+                            }
+                        }
 
                         // 后面的人物不做处理
                         if (to_target < 0.01f) {
                             playerInfos[i].isShow = false;
                             continue;
-                        }
+                        } else {
+                            // 比例
+                            to_target = 1.0f / to_target;
+
+                            // (竖矩阵)
+                            int to_width = width + (selfMatrix[0][0] * playerInfos[i].coor[0]
+                                                    + selfMatrix[0][1] * playerInfos[i].coor[1]
+                                                    + selfMatrix[0][2] * playerInfos[i].coor[2]
+                                                    + selfMatrix[0][3]) * to_target * width;
+
+                            int to_height_h = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
+                                                        + selfMatrix[1][1] * playerInfos[i].coor[1]
+                                                        + selfMatrix[1][2] * (playerInfos[i].coor[2] L4D2_rect_height_top)
+                                                        + selfMatrix[1][3]) * to_target * height;
+
+                            int to_height_w = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
+                                                        + selfMatrix[1][1] * playerInfos[i].coor[1]
+                                                        + selfMatrix[1][2] * (playerInfos[i].coor[2] L4D2_rect_height_bottom)
+                                                        + selfMatrix[1][3]) * to_target * height;
+
+                            playerInfos[i].to_width = to_width;
+                            playerInfos[i].to_height_h = to_height_h;
+                            playerInfos[i].to_height_w = to_height_w;
+                            playerInfos[i].isShow = true;
 
 
-                        // 比例
-                        to_target = 1.0f / to_target;
+                            if (obj->ckAim->isChecked()) {
+                                if ((playerInfos[i].team != 2)) {
+                                    if (!obj->rbAimByDistance->isChecked()) {
+                                        // 计算准星距离
+                                        int value = abs(width - to_width) + abs(height - to_height_h);
 
-                        // (竖矩阵)
-                        int to_width = width + (selfMatrix[0][0] * playerInfos[i].coor[0]
-                                                + selfMatrix[0][1] * playerInfos[i].coor[1]
-                                                + selfMatrix[0][2] * playerInfos[i].coor[2]
-                                                + selfMatrix[0][3]) * to_target * width;
-
-                        int to_height_h = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
-                                                    + selfMatrix[1][1] * playerInfos[i].coor[1]
-                                                    + selfMatrix[1][2] * (playerInfos[i].coor[2] L4D2_rect_height_top)
-                                                    + selfMatrix[1][3]) * to_target * height;
-
-                        int to_height_w = height - (selfMatrix[1][0] * playerInfos[i].coor[0]
-                                                    + selfMatrix[1][1] * playerInfos[i].coor[1]
-                                                    + selfMatrix[1][2] * (playerInfos[i].coor[2] L4D2_rect_height_bottom)
-                                                    + selfMatrix[1][3]) * to_target * height;
-
-                        // (横矩阵)
-                        //                    int to_width = width + (selfMatrix[0][0] * playerInfos[i].coor[0]
-                        //                                            + selfMatrix[1][0] * playerInfos[i].coor[1]
-                        //                                            + selfMatrix[2][0] * playerInfos[i].coor[2]
-                        //                                            + selfMatrix[3][0]) * to_target * width;
-
-                        //                    int to_height_h = height - (selfMatrix[0][1] * playerInfos[i].coor[0]
-                        //                                                + selfMatrix[1][1] * playerInfos[i].coor[1]
-                        //                                                + selfMatrix[2][1] * (playerInfos[i].coor[2] L4D2_rect_height_top)
-                        //                                                + selfMatrix[3][1]) * to_target * height;
-
-                        //                    int to_height_w = height - (selfMatrix[0][1] * playerInfos[i].coor[0]
-                        //                                                + selfMatrix[1][1] * playerInfos[i].coor[1]
-                        //                                                + selfMatrix[2][1] * (playerInfos[i].coor[2] L4D2_rect_height_bottom)
-                        //                                                + selfMatrix[3][1]) * to_target * height;
-
-                        playerInfos[i].to_width = to_width;
-                        playerInfos[i].to_height_h = to_height_h;
-                        playerInfos[i].to_height_w = to_height_w;
-                        playerInfos[i].isShow = true;
-
-
-                        if (obj->ckAim->isChecked()) {
-                            if (playerInfos[i].team == 3) {
-                                // 计算准星距离
-                                int value = abs(width - to_width) + abs(height - to_height_h);
-
-                                if (value < aim_min)
-                                {
-                                    aim_min = value;
-                                    aim_index = i;
+                                        if (value < aim_min)
+                                        {
+                                            aim_min = value;
+                                            aim_index = i;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -584,7 +656,6 @@ static void Refresh(void *param)
                 }
             }
 
-            //            if (obj->ckShowFriend->isChecked() || obj->ckShowEnemy->isChecked()) {
             // 处理窗口消息
             MSG Message;
             ZeroMemory(&Message, sizeof(Message));
@@ -595,7 +666,6 @@ static void Refresh(void *param)
                 TranslateMessage(&Message);
             }
 
-            //            }
 
             // 2.启动自瞄
             if (obj->ckAim->isChecked()) {
@@ -619,9 +689,29 @@ static void Refresh(void *param)
                     }
                 }
 
-                if (aim_index > 0) {
-                    if (GetAsyncKeyState(VK_MENU) & 0x8000) {
-                        WychUtils_WinAPI::write_memory(obj->gameProcessHwnd, self_angle + 0x4AA4, &playerInfos[aim_index].angle, sizeof(float[2]));
+                if (obj->rbAimByCross->isChecked()) {
+                    if (aim_index > 0) {
+                        if (GetAsyncKeyState(VK_MENU) & 0x8000) {
+                            WychUtils_WinAPI::write_memory(obj->gameProcessHwnd, self_angle + 0x4AA4, &playerInfos[aim_index].angle, sizeof(float[2]));
+                        }
+                    }
+                } else if (obj->rbAimByDistance->isChecked()) {
+                    if (aim_distance_index > 0) {
+                        if (GetAsyncKeyState(VK_MENU) & 0x8000) {
+                            WychUtils_WinAPI::write_memory(obj->gameProcessHwnd, self_angle + 0x4AA4, &playerInfos[aim_distance_index].angle, sizeof(float[2]));
+                        }
+                    }
+                } else if (obj->rbAimByDistance2->isChecked()) {
+                    if ((aim_distance_index > 0) && (aim_distance < obj->sbMaxDistance->value() * 100)) {
+                        if (GetAsyncKeyState(VK_MENU) & 0x8000) {
+                            WychUtils_WinAPI::write_memory(obj->gameProcessHwnd, self_angle + 0x4AA4, &playerInfos[aim_distance_index].angle, sizeof(float[2]));
+                        }
+                    } else {
+                        if (aim_index > 0) {
+                            if (GetAsyncKeyState(VK_MENU) & 0x8000) {
+                                WychUtils_WinAPI::write_memory(obj->gameProcessHwnd, self_angle + 0x4AA4, &playerInfos[aim_index].angle, sizeof(float[2]));
+                            }
+                        }
                     }
                 }
             }
@@ -802,26 +892,27 @@ void ItemView9L4D2::refreshForm() {
 
 
         this->infoGridModel->setItem(itest, 1, new QStandardItem(tr("%1/%2").arg(playerInfos[i].blood).arg(playerInfos[i].maxblood)));
+        this->infoGridModel->setItem(itest, 2, new QStandardItem(tr("%1").arg(playerInfos[i].distance)));
 
         if (playerInfos[i].team == playerInfos[0].team) {
-            this->infoGridModel->setItem(itest, 2, new QStandardItem(tr("")));
+            this->infoGridModel->setItem(itest, 3, new QStandardItem(tr("")));
         } else {
-            this->infoGridModel->setItem(itest, 2, new QStandardItem(tr("%1 | %2")
+            this->infoGridModel->setItem(itest, 3, new QStandardItem(tr("%1 | %2")
                                                                      .arg(playerInfos[i].angle[1], 0, 'f', 1, QLatin1Char(' '))
                                                                      .arg(playerInfos[i].angle[0], 0, 'f', 1, QLatin1Char(' '))));
         }
 
 
-        this->infoGridModel->setItem(itest, 3,
+        this->infoGridModel->setItem(itest, 4,
                                      new QStandardItem(tr("[%1,%2,%3]")
                                                        .arg(playerInfos[i].coor[0], 0, 'f', 1, QLatin1Char(' '))
                                                        .arg(playerInfos[i].coor[1], 0, 'f', 1, QLatin1Char(' '))
                                                        .arg(playerInfos[i].coor[2], 0, 'f', 1, QLatin1Char(' '))));
-        this->infoGridModel->setItem(itest, 4, new QStandardItem(QString::number(playerInfos[i].armor)));
-        this->infoGridModel->setItem(itest, 5, new QStandardItem(QString::number(playerInfos[i].money)));
+        this->infoGridModel->setItem(itest, 5, new QStandardItem(QString::number(playerInfos[i].armor)));
+        this->infoGridModel->setItem(itest, 6, new QStandardItem(QString::number(playerInfos[i].money)));
 
         //        this->infoGridModel->setItem(i, 6, new QStandardItem(QString::number(playerInfos[i].address)));
-        this->infoGridModel->setItem(itest, 6, new QStandardItem(QString("%1").arg(playerInfos[i].address, 4, 16, QLatin1Char('0'))));
+        this->infoGridModel->setItem(itest, 7, new QStandardItem(QString("%1").arg(playerInfos[i].address, 4, 16, QLatin1Char('0'))));
 
         //        this->infoGridModel->setItem(itest, 7, new QStandardItem(QString("%1|%2").arg(playerInfos[i].custom1).arg(playerInfos[i].custom2)));
 

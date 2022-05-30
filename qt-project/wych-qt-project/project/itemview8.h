@@ -30,33 +30,39 @@
 #include <QTextCodec>
 #include <QComboBox>
 #include <QSplitter>
+#include <QDesktopServices>
+#include <QMap>
 
 
-class ItemView8 : public QWidget
-{
+class ItemView8 : public QWidget {
     Q_OBJECT
+
 public:
+
     explicit ItemView8(QWidget *parent = nullptr);
 
 public slots:
+
     void openPlayer();
     void btnUpDir();
     void btnPlayer();
     void btnRename();
 
-    void fileTableRowClicked(const QModelIndex &);
-    void fileTableRowDoubleClicked(const QModelIndex &);
-    void leftTabFavorTableRowDoubleClicked(const QModelIndex &);
+    void fileTableRowClicked(const QModelIndex&);
+    void fileTableRowDoubleClicked(const QModelIndex&);
+    void leftTabFavorTableRowDoubleClicked(const QModelIndex&);
     void getFlagFromDialog();
 
     void printList();
     void printError(QString errorMsg);
     void replySkipRead();
-//    void addOperateButton(QTableWidget *table, int row);
-//    void slot_remove_row();
-//    void slot_edit_row();
+
+    //    void addOperateButton(QTableWidget *table, int row);
+    //    void slot_remove_row();
+    //    void slot_edit_row();
 
 private:
+
     QString host;
     int port;
     QString username;
@@ -73,16 +79,17 @@ private:
     QString strNowPath;
     int ftpStatus;
     bool existDialog = false;
-//    ItemView7VlcPlayer *playerDialog;
+
+    //    ItemView7VlcPlayer *playerDialog;
 
 
     QWebdav w;
     QWebdavDirParser p;
     QString m_path;
     QString pathParent;
-    QList<QNetworkReply *> m_replyList;
+    QList<QNetworkReply *>m_replyList;
 
-    QPixmap *pixmap ;
+    QPixmap *pixmap;
     QLabel *imgLabel;
     QLabel *imgLabel2;
     QScrollArea *scrollArea;
@@ -107,12 +114,16 @@ private:
     SelectDialog *selectDialog = NULL;
 
     bool openSelectFlag = false;
+
+    QMap<QString, int>CacheRowIndexs;
+
 protected:
+
     void resizeEvent(QResizeEvent *event);
 
 signals:
-    void sendVideoPlayer(QString url);
 
+    void sendVideoPlayer(QString url);
 };
 
 #endif // ITEMVIEW8_H

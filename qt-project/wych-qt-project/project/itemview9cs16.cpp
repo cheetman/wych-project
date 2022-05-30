@@ -4,8 +4,6 @@
 
 ItemView9CS16 *g_cs16;
 int fontSize = 1;
-int colorRed = D3DCOLOR_XRGB(255, 0, 0);   // D3DCOLOR_ARGB(255, 255, 0, 0)
-int colorGreen = D3DCOLOR_XRGB(0, 255, 0); // D3DCOLOR_ARGB(255, 255, 0, 0)
 
 
 ItemView9CS16::ItemView9CS16(QWidget *parent)
@@ -30,6 +28,24 @@ void ItemView9CS16::initUI()
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout = new QGridLayout(leftQWidgetGroupBox1);
     leftQWidgetGroupBox1->setFixedHeight(200);
+
+    auto leftQWidgetGroupBox2 = new QGroupBox("自瞄设置", this);
+    leftQWidgetLayout->addWidget(leftQWidgetGroupBox2);
+    leftQWidgetLayout->setAlignment(Qt::AlignTop);
+    auto leftQWidgetGroup1Layout2 = new QGridLayout(leftQWidgetGroupBox2);
+    leftQWidgetGroupBox2->setFixedHeight(130);
+
+    auto leftQWidgetGroupBox3 = new QGroupBox("显示设置", this);
+    leftQWidgetLayout->addWidget(leftQWidgetGroupBox3);
+    leftQWidgetLayout->setAlignment(Qt::AlignTop);
+    auto leftQWidgetGroup1Layout3 = new QGridLayout(leftQWidgetGroupBox3);
+    leftQWidgetGroupBox3->setFixedHeight(90);
+
+    auto leftQWidgetGroupBox4 = new QGroupBox("其他", this);
+    leftQWidgetLayout->addWidget(leftQWidgetGroupBox4);
+    leftQWidgetLayout->setAlignment(Qt::AlignTop);
+    auto leftQWidgetGroup1Layout4 = new QGridLayout(leftQWidgetGroupBox4);
+    leftQWidgetGroupBox4->setFixedHeight(130);
 
     //    leftQWidgetGroupBox1->setFixedWidth(400);
 
@@ -78,7 +94,7 @@ void ItemView9CS16::initUI()
     sbRefresh = new QSpinBox();
     sbRefresh->setMinimum(1);
     sbRefresh->setMaximum(1000);
-    sbRefresh->setSuffix(" x10 ms");
+    sbRefresh->setSuffix(" ms");
     sbRefresh->setValue(5);
 
     ckVersion = new QComboBox();
@@ -87,15 +103,62 @@ void ItemView9CS16::initUI()
     ckVersion->addItem("ck2.1(3266)",        QVariant::fromValue(ck21));
     GameInfo ck21classic(L"cstrike.exe", L"Valve001", L"CK2.1 Classic v1.3");
     ckVersion->addItem("ck2.1 classic v1.3", QVariant::fromValue(ck21classic));
+    GameInfo qun(L"cstrike.exe", L"Valve001", L"反恐精英");
+    ckVersion->addItem("群(3266)",            QVariant::fromValue(qun));
     ckVersion->addItem("okgogogo(3266)");
     ckVersion->addItem("Esai(3248)");
     ckAim = new QCheckBox("启动自瞄");
-    ckShowEnemy = new QCheckBox("显示敌人方框");
+    ckShowEnemy = new QCheckBox("显示敌人");
     ckShowEnemy->setChecked(true);
-    ckShowFriend = new QCheckBox("显示队友方框");
+    ckShowFriend = new QCheckBox("显示队友");
+
+
+    // 追加
+    rbAimByDistance = new QRadioButton("按距离");
+    rbAimByCross = new QRadioButton("按准星距离");
+    rbAimByDistance2 = new QRadioButton("距离优先");
+    rbAimByCross->setChecked(true);
+    sbMaxDistance = new QSpinBox();
+    sbMaxDistance->setMinimum(1);
+    sbMaxDistance->setMaximum(10);
+    sbMaxDistance->setSuffix("米内");
+    sbMaxDistance->setValue(2);
+
+
+    bgAim = new QButtonGroup(this);
+    bgAim->addButton(rbAimByDistance,  0);
+    bgAim->addButton(rbAimByCross,     1);
+    bgAim->addButton(rbAimByDistance2, 2);
+
+    rbDrawRect = new QRadioButton("显示方框");
+    rbDrawRect->setChecked(true);
+    rbDrawText = new QRadioButton("显示文字");
+    bgDraw = new QButtonGroup(this);
+    bgDraw->addButton(rbDrawRect, 0);
+    bgDraw->addButton(rbDrawText, 1);
+
+
+    ckSelfHp = new QCheckBox("玩家HP");
+    ckTeamHp = new QCheckBox("队友HP");
+    ckEnemyHp = new QCheckBox("敌人HP");
+    sbSelfHp = new QSpinBox();
+    sbSelfHp->setMinimum(1);
+    sbSelfHp->setMaximum(100);
+    sbSelfHp->setSuffix("x100");
+    sbSelfHp->setValue(1);
+    sbTeamHp = new QSpinBox();
+    sbTeamHp->setMinimum(1);
+    sbTeamHp->setMaximum(100);
+    sbTeamHp->setSuffix("x100");
+    sbTeamHp->setValue(1);
+    sbEnemyHp = new QSpinBox();
+    sbEnemyHp->setMinimum(1);
+    sbEnemyHp->setMaximum(100);
+    sbEnemyHp->setSuffix("x100");
+    sbEnemyHp->setValue(1);
+
 
     edtMsg = new QPlainTextEdit();
-
     edtMsg->setReadOnly(true);
 
 
@@ -116,6 +179,22 @@ void ItemView9CS16::initUI()
     leftQWidgetGroup1Layout->addWidget(ckShowEnemy,  4, 0);
     leftQWidgetGroup1Layout->addWidget(ckAim,        5, 0);
     leftQWidgetGroup1Layout->addWidget(btnStartStop, 6, 0);
+
+    leftQWidgetGroup1Layout2->addWidget(rbAimByDistance,   8, 0);
+    leftQWidgetGroup1Layout2->addWidget(rbAimByCross,      9, 0);
+    leftQWidgetGroup1Layout2->addWidget(rbAimByDistance2, 10, 0);
+    leftQWidgetGroup1Layout2->addWidget(sbMaxDistance,    10, 1);
+
+    leftQWidgetGroup1Layout3->addWidget(rbDrawRect, 8, 0);
+    leftQWidgetGroup1Layout3->addWidget(rbDrawText, 9, 0);
+
+
+    leftQWidgetGroup1Layout4->addWidget(ckSelfHp,  1, 0);
+    leftQWidgetGroup1Layout4->addWidget(ckTeamHp,  2, 0);
+    leftQWidgetGroup1Layout4->addWidget(ckEnemyHp, 3, 0);
+    leftQWidgetGroup1Layout4->addWidget(sbSelfHp,  1, 1);
+    leftQWidgetGroup1Layout4->addWidget(sbTeamHp,  2, 1);
+    leftQWidgetGroup1Layout4->addWidget(sbEnemyHp, 3, 1);
 
     centerQWidgetLayout->addWidget(edtMsg);
     centerQWidgetGroupBox1Layout->addWidget(ckConsoleEnable);
@@ -161,24 +240,41 @@ LRESULT ItemView9CS16::WinProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lP
 
             auto playerInfos = g_cs16->playerInfos;
 
-            for (int i = 1; i < CS16_MAX; i++) {
-                if (playerInfos[i].isShow) {
-                    int height = playerInfos[i].to_height_w - playerInfos[i].to_height_h;
-                    int width =  height / 2;
-                    int y =   playerInfos[i].to_height_h;
-                    int x =   playerInfos[i].to_width - width / CS16_rect_height_width_radio;
 
-                    if (g_cs16->selfTeam == playerInfos[i].team) {
-                        g_cs16->dx->drawRect(x, y, width, height, fontSize, colorGreen);
-                    } else {
-                        g_cs16->dx->drawRect(x, y, width, height, fontSize, colorRed);
+            if (g_cs16->rbDrawRect->isChecked()) {
+                for (int i = 1; i < CS16_MAX; i++) {
+                    if (playerInfos[i].isShow) {
+                        int height = playerInfos[i].to_height_w - playerInfos[i].to_height_h;
+                        int width =  height / 2;
+                        int y =   playerInfos[i].to_height_h;
+                        int x =   playerInfos[i].to_width - width / CS16_rect_height_width_radio;
+
+                        if (g_cs16->selfTeam == playerInfos[i].team) {
+                            g_cs16->dx->drawRect(x, y, width, height, fontSize, g_cs16->colorGreen);
+                        } else {
+                            g_cs16->dx->drawRect(x, y, width, height, fontSize, g_cs16->colorRed);
+                        }
+                    }
+                }
+            } else {
+                for (int i = 1; i < CS16_MAX; i++) {
+                    if (playerInfos[i].isShow) {
+                        int height = playerInfos[i].to_height_w - playerInfos[i].to_height_h;
+                        int width =  height / 2;
+                        int y =   playerInfos[i].to_height_h;
+                        int x =   playerInfos[i].to_width - width / CS16_rect_height_width_radio;
+
+                        char text[20];
+                        sprintf(text, "%d:%d", i, playerInfos[i].distance);
+
+                        if (g_cs16->selfTeam == playerInfos[i].team) {
+                            g_cs16->dx->drawText(x, y, text, g_cs16->colorGreen);
+                        } else {
+                            g_cs16->dx->drawText(x, y, text, g_cs16->colorRed);
+                        }
                     }
                 }
             }
-
-            //            g_cs16->dx->drawLine(D3DCOLOR_ARGB(255, 0, 0, 255), 20, 20, 66, 66, 线粗);
-            //            g_cs16->dx->drawRect(100, 100, 100, 100, 线粗, D3DCOLOR_ARGB(255, 255, 255, 0));
-            //            g_cs16->dx->drawText(200, 200, "555", D3DCOLOR_ARGB(255, 255, 0, 255));
 
             g_cs16->dx->drawEnd();
         }
@@ -223,6 +319,8 @@ static void Refresh(void *param)
             float aimCoor[3]{ 0, 0, 0 };
             int   aim_min = INT_MAX;
             int   aim_index = 0;
+            int   aim_distance = INT_MAX;
+            int   aim_distance_index = 0;
 
             int self_matrix_address = obj->cstrike_module.module_address + CS16_self_matrix_offset;
             WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_matrix_address, &obj->selfMatrix, sizeof(float[4][4]));
@@ -260,6 +358,27 @@ static void Refresh(void *param)
                                                           sizeof(float[3]));
 
 
+                            if (playerInfos[i].blood == 100) {
+                                if (i == 0) {
+                                    if (obj->ckSelfHp->isChecked()) {
+                                        float newHp = obj->sbSelfHp->value() * 100;
+                                        WychUtils_WinAPI::write_memory(obj->gameProcessHwnd, location_base_address +  CS16_player_2_blood_offset, &newHp, sizeof(float));
+                                    }
+                                } else {
+                                    if (playerInfos[i].team == playerInfos[0].team) {
+                                        if (obj->ckTeamHp->isChecked()) {
+                                            float newHp = obj->sbTeamHp->value() * 10;
+                                            WychUtils_WinAPI::write_memory(obj->gameProcessHwnd, location_base_address +  CS16_player_2_blood_offset, &newHp, sizeof(float));
+                                        }
+                                    } else {
+                                        if (obj->ckEnemyHp->isChecked()) {
+                                            float newHp = obj->sbEnemyHp->value() * 10;
+                                            WychUtils_WinAPI::write_memory(obj->gameProcessHwnd, location_base_address +  CS16_player_2_blood_offset, &newHp, sizeof(float));
+                                        }
+                                    }
+                                }
+                            }
+
                             playerInfos[i].isExist = true;
                         }
                     }
@@ -268,6 +387,7 @@ static void Refresh(void *param)
             }
 
             obj->selfTeam = playerInfos[0].team;
+
 
             // 1.启动绘制敌我信息
             if (obj->ckShowFriend->isChecked() || obj->ckShowEnemy->isChecked() || obj->ckAim->isChecked()) {
@@ -306,6 +426,22 @@ static void Refresh(void *param)
                                       + selfMatrix[1][2] * playerInfos[i].coor[1]
                                       + selfMatrix[2][2] * playerInfos[i].coor[2]
                                       + selfMatrix[3][2];
+
+
+                    // 人物距离计算
+                    int value = sqrt((playerInfos[0].coor[0] - playerInfos[i].coor[0]) * (playerInfos[0].coor[0] - playerInfos[i].coor[0])
+                                     + (playerInfos[0].coor[1] - playerInfos[i].coor[1]) * (playerInfos[0].coor[1] - playerInfos[i].coor[1])
+                                     + (playerInfos[0].coor[2] - playerInfos[i].coor[2]) * (playerInfos[0].coor[2] - playerInfos[i].coor[2]));
+                    playerInfos[i].distance = value;
+
+                    if (obj->selfTeam != playerInfos[i].team) {
+                        if (value < aim_distance)
+                        {
+                            aim_distance = value;
+                            aim_distance_index = i;
+                        }
+                    }
+
 
                     // 后面的人物不做处理
                     if (to_target < 0.01f) {
@@ -359,7 +495,6 @@ static void Refresh(void *param)
             }
 
 
-            //            if (obj->ckShowFriend->isChecked() || obj->ckShowEnemy->isChecked()) {
             // 处理窗口消息
             MSG Message;
             ZeroMemory(&Message, sizeof(Message));
@@ -397,13 +532,30 @@ static void Refresh(void *param)
                     }
                 }
 
-                if (aim_index > 0) {
-                    if (GetAsyncKeyState(VK_MENU) & 0x8000) {
-                        //                        qDebug() << "ceshi";
-
-                        // 移动视角
-                        //                        playerInfos[aim_index].angle[1];
-                        WychUtils_WinAPI::write_memory(obj->gameProcessHwnd, self_angle_address, &playerInfos[aim_index].angle, sizeof(float[2]));
+                if (obj->rbAimByCross->isChecked()) {
+                    if (aim_index > 0) {
+                        if (GetAsyncKeyState(VK_MENU) & 0x8000) {
+                            // 移动视角
+                            WychUtils_WinAPI::write_memory(obj->gameProcessHwnd, self_angle_address, &playerInfos[aim_index].angle, sizeof(float[2]));
+                        }
+                    }
+                } else if (obj->rbAimByDistance->isChecked()) {
+                    if (aim_distance_index > 0) {
+                        if (GetAsyncKeyState(VK_MENU) & 0x8000) {
+                            WychUtils_WinAPI::write_memory(obj->gameProcessHwnd, self_angle_address, &playerInfos[aim_distance_index].angle, sizeof(float[2]));
+                        }
+                    }
+                } else if (obj->rbAimByDistance2->isChecked()) {
+                    if ((aim_distance_index > 0) && (aim_distance < obj->sbMaxDistance->value() * 100)) {
+                        if (GetAsyncKeyState(VK_MENU) & 0x8000) {
+                            WychUtils_WinAPI::write_memory(obj->gameProcessHwnd, self_angle_address, &playerInfos[aim_distance_index].angle, sizeof(float[2]));
+                        }
+                    } else {
+                        if (aim_index > 0) {
+                            if (GetAsyncKeyState(VK_MENU) & 0x8000) {
+                                WychUtils_WinAPI::write_memory(obj->gameProcessHwnd, self_angle_address, &playerInfos[aim_index].angle, sizeof(float[2]));
+                            }
+                        }
                     }
                 }
             }

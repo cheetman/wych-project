@@ -128,8 +128,6 @@ public:
     QCheckBox *ckShowFriend;
     QComboBox *ckVersion;
 
-    //    QCheckBox *ckAimByDistance;
-    //    QCheckBox *ckAimByCross;
     QRadioButton *rbAimByDistance;
     QRadioButton *rbAimByDistance2;
     QSpinBox *sbMaxDistance;

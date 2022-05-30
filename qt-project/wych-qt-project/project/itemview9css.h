@@ -12,6 +12,8 @@
 #include <QTableView>
 #include <QPlainTextEdit>
 #include <QCheckBox>
+#include <QRadioButton>
+#include <QButtonGroup>
 #include "hv.h"
 #include "evpp/TcpServer.h"
 #include <d3d9types.h>
@@ -73,6 +75,7 @@ public:
 
 
         float angle[2] = { 0, 0 };   // 偏航角和俯仰角
+        int   distance = 0;
     };
     PlayerInfo playerInfos[CSS_MAX];
 
@@ -104,6 +107,16 @@ public:
     QCheckBox *ckShowEnemy;
     QCheckBox *ckShowFriend;
     QComboBox *ckVersion;
+
+    QRadioButton *rbAimByDistance;
+    QRadioButton *rbAimByDistance2;
+    QSpinBox *sbMaxDistance;
+    QRadioButton *rbAimByCross;
+    QButtonGroup *bgAim;
+
+    QRadioButton *rbDrawRect;
+    QRadioButton *rbDrawText;
+    QButtonGroup *bgDraw;
 
 protected:
 

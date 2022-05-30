@@ -101,8 +101,6 @@ void ItemView9L4D2::initUI()
     ckShowEnemy->setChecked(true);
     ckShowFriend = new QCheckBox("显示队友");
 
-    //    ckAimByDistance = new QCheckBox("按距离");
-    //    ckAimByCross = new QCheckBox("按准星距离");
 
     rbAimByDistance = new QRadioButton("按距离");
     rbAimByCross = new QRadioButton("按准星距离");
@@ -597,7 +595,6 @@ static void Refresh(void *param)
                                          + (playerInfos[0].coor[1] - playerInfos[i].coor[1]) * (playerInfos[0].coor[1] - playerInfos[i].coor[1])
                                          + (playerInfos[0].coor[2] - playerInfos[i].coor[2]) * (playerInfos[0].coor[2] - playerInfos[i].coor[2]));
                         playerInfos[i].distance = value;
-
 
                         if ((playerInfos[i].team != 2)) {
                             if (value < aim_distance)

@@ -27,7 +27,17 @@ void ItemView9CSGO::initUI()
     auto leftQWidgetGroup1Layout = new QGridLayout(leftQWidgetGroupBox1);
     leftQWidgetGroupBox1->setFixedHeight(200);
 
-    //    leftQWidgetGroupBox1->setFixedWidth(400);
+    auto leftQWidgetGroupBox2 = new QGroupBox("自瞄设置", this);
+    leftQWidgetLayout->addWidget(leftQWidgetGroupBox2);
+    leftQWidgetLayout->setAlignment(Qt::AlignTop);
+    auto leftQWidgetGroup1Layout2 = new QGridLayout(leftQWidgetGroupBox2);
+    leftQWidgetGroupBox2->setFixedHeight(130);
+
+    auto leftQWidgetGroupBox3 = new QGroupBox("显示设置", this);
+    leftQWidgetLayout->addWidget(leftQWidgetGroupBox3);
+    leftQWidgetLayout->setAlignment(Qt::AlignTop);
+    auto leftQWidgetGroup1Layout3 = new QGridLayout(leftQWidgetGroupBox3);
+    leftQWidgetGroupBox3->setFixedHeight(90);
 
 
     auto centerQWidget = new QWidget(this);
@@ -86,8 +96,30 @@ void ItemView9CSGO::initUI()
     ckShowEnemy->setChecked(true);
     ckShowFriend = new QCheckBox("显示队友方框");
 
-    edtMsg = new QPlainTextEdit();
+    // 追加
+    rbAimByDistance = new QRadioButton("按距离");
+    rbAimByCross = new QRadioButton("按准星距离");
+    rbAimByDistance2 = new QRadioButton("距离优先");
+    rbAimByCross->setChecked(true);
+    sbMaxDistance = new QSpinBox();
+    sbMaxDistance->setMinimum(1);
+    sbMaxDistance->setMaximum(10);
+    sbMaxDistance->setSuffix("米内");
+    sbMaxDistance->setValue(2);
 
+    bgAim = new QButtonGroup(this);
+    bgAim->addButton(rbAimByDistance,  0);
+    bgAim->addButton(rbAimByCross,     1);
+    bgAim->addButton(rbAimByDistance2, 2);
+
+    rbDrawRect = new QRadioButton("显示方框");
+    rbDrawRect->setChecked(true);
+    rbDrawText = new QRadioButton("显示文字");
+    bgDraw = new QButtonGroup(this);
+    bgDraw->addButton(rbDrawRect, 0);
+    bgDraw->addButton(rbDrawText, 1);
+
+    edtMsg = new QPlainTextEdit();
     edtMsg->setReadOnly(true);
 
 
@@ -108,6 +140,14 @@ void ItemView9CSGO::initUI()
     leftQWidgetGroup1Layout->addWidget(ckShowEnemy,  4, 0);
     leftQWidgetGroup1Layout->addWidget(ckAim,        5, 0);
     leftQWidgetGroup1Layout->addWidget(btnStartStop, 6, 0);
+
+    leftQWidgetGroup1Layout2->addWidget(rbAimByDistance,   8, 0);
+    leftQWidgetGroup1Layout2->addWidget(rbAimByCross,      9, 0);
+    leftQWidgetGroup1Layout2->addWidget(rbAimByDistance2, 10, 0);
+    leftQWidgetGroup1Layout2->addWidget(sbMaxDistance,    10, 1);
+
+    leftQWidgetGroup1Layout3->addWidget(rbDrawRect, 8, 0);
+    leftQWidgetGroup1Layout3->addWidget(rbDrawText, 9, 0);
 
     centerQWidgetLayout->addWidget(edtMsg);
     centerQWidgetGroupBox1Layout->addWidget(ckConsoleEnable);
@@ -215,28 +255,31 @@ static void Refresh(void *param)
             float aimCoor[3]{ 0, 0, 0 };
             int   aim_min = INT_MAX;
             int   aim_index = 0;
+            int   aim_distance = INT_MAX;
+            int   aim_distance_index = 0;
 
             unsigned int self_matrix_address = obj->client_module.module_address + CSGO_self_matrix_offset;
             WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_matrix_address, &obj->selfMatrix, sizeof(float[4][4]));
 
             unsigned int self_client_address_value;
             unsigned int self_client_address = obj->engine_module.module_address + 0x58CFC4;
-            WychUtils_WinAPI::read_memory(obj->gameProcessHwnd,  self_client_address, &self_client_address_value,  sizeof(unsigned int));
-            if(self_client_address_value){
+            WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_client_address, &self_client_address_value, sizeof(unsigned int));
+
+            if (self_client_address_value) {
                 unsigned int angle_address =  self_client_address_value + CSGO_self_client_angle_offset;
-                WychUtils_WinAPI::read_memory(obj->gameProcessHwnd,  angle_address , &obj->selfAngle,  sizeof(float[2]));
+                WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, angle_address, &obj->selfAngle, sizeof(float[2]));
             }
 
             //            int self_address = obj->cstrike_module.module_address + 0x11069BC;
-            unsigned int  self_address_server = obj->client_module.module_address + CSGO_player_list_offset;
+            unsigned int self_address_server = obj->client_module.module_address + CSGO_player_list_offset;
 
             for (int i = 0; i < CSGO_MAX; i++) {
                 playerInfos[i].isExist = false;
-                unsigned int  location_base_address;
+                unsigned int location_base_address;
                 WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, self_address_server, &location_base_address, sizeof(int));
 
                 if (location_base_address) {
-                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address + (unsigned int)CSGO_player_blood_offset, &playerInfos[i].blood, sizeof(int));
+                    WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address + (unsigned int)CSGO_player_blood_offset,  &playerInfos[i].blood, sizeof(int));
                     WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  (unsigned int)CSGO_player_armor_offset, &playerInfos[i].armor, sizeof(int));
                     WychUtils_WinAPI::read_memory(obj->gameProcessHwnd, location_base_address +  (unsigned int)CSGO_player_pos_offset,   &playerInfos[i].coor,
                                                   sizeof(float[3]));
@@ -286,6 +329,21 @@ static void Refresh(void *param)
                                       + selfMatrix[2][1] * playerInfos[i].coor[1]
                                       + selfMatrix[2][2] * playerInfos[i].coor[2]
                                       + selfMatrix[2][3];
+
+                    // 人物距离计算
+                    int value = sqrt((playerInfos[0].coor[0] - playerInfos[i].coor[0]) * (playerInfos[0].coor[0] - playerInfos[i].coor[0])
+                                     + (playerInfos[0].coor[1] - playerInfos[i].coor[1]) * (playerInfos[0].coor[1] - playerInfos[i].coor[1])
+                                     + (playerInfos[0].coor[2] - playerInfos[i].coor[2]) * (playerInfos[0].coor[2] - playerInfos[i].coor[2]));
+                    playerInfos[i].distance = value;
+
+                    if (obj->selfTeam != playerInfos[i].team) {
+                        if (value < aim_distance)
+                        {
+                            aim_distance = value;
+                            aim_distance_index = i;
+                        }
+                    }
+
 
                     // 后面的人物不做处理
                     if (to_target < 0.01f) {

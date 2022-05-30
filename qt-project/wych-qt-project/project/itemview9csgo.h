@@ -12,6 +12,8 @@
 #include <QTableView>
 #include <QPlainTextEdit>
 #include <QCheckBox>
+#include <QRadioButton>
+#include <QButtonGroup>
 #include "hv.h"
 #include "evpp/TcpServer.h"
 #include <d3d9types.h>
@@ -24,19 +26,19 @@
 #include "configs/csgo.hpp"
 
 #define CSGO_MAX 32
-#define CSGO_self_matrix_offset hazedumper::signatures::dwViewMatrix // 矩阵
-#define CSGO_self_client_offset hazedumper::signatures::dwClientState  // 视角
-#define CSGO_self_client_angle_offset hazedumper::signatures::dwClientState_ViewAngles  // 视角
-#define CSGO_player_list_offset hazedumper::signatures::dwEntityList // 玩家列表
-#define CSGO_player_next_offset 0x10     // 玩家next偏移
-#define CSGO_player_team_offset hazedumper::netvars::m_iTeamNum    // 玩家列表
-#define CSGO_player_blood_offset hazedumper::netvars::m_iHealth    // 玩家列表  - 血量
-#define CSGO_player_armor_offset hazedumper::netvars::m_ArmorValue   // 玩家列表
-#define CSGO_player_pos_offset hazedumper::netvars::m_vecOrigin     // 玩家列表
+#define CSGO_self_matrix_offset hazedumper::signatures::dwViewMatrix                   // 矩阵
+#define CSGO_self_client_offset hazedumper::signatures::dwClientState                  // 视角
+#define CSGO_self_client_angle_offset hazedumper::signatures::dwClientState_ViewAngles // 视角
+#define CSGO_player_list_offset hazedumper::signatures::dwEntityList                   // 玩家列表
+#define CSGO_player_next_offset 0x10                                                   // 玩家next偏移
+#define CSGO_player_team_offset hazedumper::netvars::m_iTeamNum                        // 玩家列表
+#define CSGO_player_blood_offset hazedumper::netvars::m_iHealth                        // 玩家列表  - 血量
+#define CSGO_player_armor_offset hazedumper::netvars::m_ArmorValue                     // 玩家列表
+#define CSGO_player_pos_offset hazedumper::netvars::m_vecOrigin                        // 玩家列表
 
-#define CSGO_rect_height_top +75.0f      // 矩形上边框
-#define CSGO_rect_height_bottom -5.0f    // 矩形下边框
-#define CSGO_rect_height_width_radio 2.5 // 矩形宽高比
+#define CSGO_rect_height_top +75.0f                                                    // 矩形上边框
+#define CSGO_rect_height_bottom -5.0f                                                  // 矩形下边框
+#define CSGO_rect_height_width_radio 2.5                                               // 矩形宽高比
 
 class ItemView9CSGO : public QWidget {
     Q_OBJECT
@@ -75,6 +77,7 @@ public:
 
 
         float angle[2] = { 0, 0 };   // 偏航角和俯仰角
+        int   distance = 0;
     };
     PlayerInfo playerInfos[CSGO_MAX];
 
@@ -106,6 +109,16 @@ public:
     QCheckBox *ckShowEnemy;
     QCheckBox *ckShowFriend;
     QComboBox *ckVersion;
+
+    QRadioButton *rbAimByDistance;
+    QRadioButton *rbAimByDistance2;
+    QSpinBox *sbMaxDistance;
+    QRadioButton *rbAimByCross;
+    QButtonGroup *bgAim;
+
+    QRadioButton *rbDrawRect;
+    QRadioButton *rbDrawText;
+    QButtonGroup *bgDraw;
 
 protected:
 

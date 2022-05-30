@@ -12,6 +12,8 @@
 #include <QTableView>
 #include <QPlainTextEdit>
 #include <QCheckBox>
+#include <QRadioButton>
+#include <QButtonGroup>
 #include "hv.h"
 #include "evpp/TcpServer.h"
 #include <d3d9types.h>
@@ -35,8 +37,8 @@
 #define CS16_player_2_armor_offset 0x1BC  // 玩家列表 - 2级偏移
 #define CS16_player_2_pos_offset 0x8      // 玩家列表 - 2级偏移
 
-#define CS16_rect_height_top  + 30.0f       // 矩形上边框
-#define CS16_rect_height_bottom - 34.0f     // 矩形下边框
+#define CS16_rect_height_top  +30.0f      // 矩形上边框
+#define CS16_rect_height_bottom -34.0f    // 矩形下边框
 #define CS16_rect_height_width_radio 2.5  // 矩形宽高比
 
 class ItemView9CS16 : public QWidget {
@@ -76,6 +78,8 @@ public:
 
 
         float angle[2] = { 0, 0 };   // 偏航角和俯仰角
+
+        int distance = 0;
     };
     PlayerInfo playerInfos[CS16_MAX];
 
@@ -108,6 +112,23 @@ public:
     QCheckBox *ckShowFriend;
     QComboBox *ckVersion;
 
+    QRadioButton *rbAimByDistance;
+    QRadioButton *rbAimByDistance2;
+    QSpinBox *sbMaxDistance;
+    QRadioButton *rbAimByCross;
+    QButtonGroup *bgAim;
+
+    QRadioButton *rbDrawRect;
+    QRadioButton *rbDrawText;
+    QButtonGroup *bgDraw;
+
+    QCheckBox *ckSelfHp;
+    QCheckBox *ckTeamHp;
+    QCheckBox *ckEnemyHp;
+    QSpinBox *sbSelfHp;
+    QSpinBox *sbTeamHp;
+    QSpinBox *sbEnemyHp;
+
 protected:
 
     void                      initUI();
@@ -126,6 +147,9 @@ protected:
                                       UINT   Message,
                                       WPARAM wParam,
                                       LPARAM lParam);
+
+    int colorRed = D3DCOLOR_XRGB(255, 0, 0);   // D3DCOLOR_ARGB(255, 255, 0, 0)
+    int colorGreen = D3DCOLOR_XRGB(0, 255, 0); // D3DCOLOR_ARGB(255, 255, 0, 0)
 
 private:
 

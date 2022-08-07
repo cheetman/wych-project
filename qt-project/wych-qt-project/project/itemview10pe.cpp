@@ -94,8 +94,11 @@ void ItemView10PE::initConnect()
 {
     connect(btnStart, &QPushButton::clicked, [this]() {
         QString fileName = QFileDialog::getOpenFileName(this, tr("文件对话框！"), "F:", tr("动态链接库(*dll *jpg);;" "执行文件(*exe)"));
-        auto str = fileName.toStdString();
-        auto path = str.c_str();
+        auto path = (wchar_t *)fileName.utf16();
+
+        // 转char*
+        //        auto str = fileName.toStdString();
+        //        auto path = str.c_str();
         LPVOID pFileBuffer = NULL;
 
         auto size = Utils::ReadFile(path, &pFileBuffer);

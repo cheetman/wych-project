@@ -2,6 +2,7 @@
 
 #include <QString>
 #include <Windows.h>
+#include <tchar.h>
 
 Utils::Utils()
 {}
@@ -64,10 +65,10 @@ QString Utils::ToSpecialEncoding(const QString& InputStr)
 #endif // ifdef Q_OS_WIN
 }
 
-size_t Utils::ReadFile(IN LPCSTR file_in, OUT LPVOID *pFileBuffer) {
+size_t Utils::ReadFile(IN LPTSTR file_in, OUT LPVOID *pFileBuffer) {
     FILE *fp;
 
-    fp = fopen(file_in, "rb");
+    fp = _tfopen(file_in, TEXT("rb"));
 
     if (fp == NULL) {
         MessageBox(NULL, TEXT("fp == null"), NULL, NULL);

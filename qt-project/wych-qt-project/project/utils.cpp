@@ -1,38 +1,39 @@
 #include "utils.h"
 
 #include <QString>
+#include <Windows.h>
 
 Utils::Utils()
-{
-
-}
+{}
 
 QString Utils::SizeToString(const quint64 val)
 {
-    if(val == NULL){
+    if (val == NULL) {
         return "";
     }
-    if(val > 1024 * 1024 * 1024){
-        return QString::number(val/(1024.0f * 1024.0f * 1024.0f),'f',1) + "GB";
+
+    if (val > 1024 * 1024 * 1024) {
+        return QString::number(val / (1024.0f * 1024.0f * 1024.0f), 'f', 1) + "GB";
     }
-    else if(val > 1024 * 1024){
-        return QString::number(val/(1024.0f * 1024.0f),'f',1) + "MB";
+    else if (val > 1024 * 1024) {
+        return QString::number(val / (1024.0f * 1024.0f), 'f', 1) + "MB";
     }
-    else if(val > 1024){
-        return QString::number(val/(1024.0f),'f',1) + "KB";
+    else if (val > 1024) {
+        return QString::number(val / (1024.0f), 'f', 1) + "KB";
     }
     else {
         return QString::number(val) + "B";
     }
-
 }
 
-QString Utils::FromSpecialEncoding(const QString &InputStr)
+QString Utils::FromSpecialEncoding(const QString& InputStr)
 {
 #ifdef Q_OS_WIN
-    return  QString::fromLocal8Bit(InputStr.toLatin1());
-#else
+    return QString::fromLocal8Bit(InputStr.toLatin1());
+
+#else // ifdef Q_OS_WIN
     QTextCodec *codec = QTextCodec::codecForName("gbk");
+
     if (codec)
     {
         return codec->toUnicode(InputStr.toLatin1());
@@ -41,15 +42,17 @@ QString Utils::FromSpecialEncoding(const QString &InputStr)
     {
         return QString("");
     }
-#endif
+#endif // ifdef Q_OS_WIN
 }
 
-QString Utils::ToSpecialEncoding(const QString &InputStr)
+QString Utils::ToSpecialEncoding(const QString& InputStr)
 {
 #ifdef Q_OS_WIN
     return QString::fromLatin1(InputStr.toLocal8Bit());
-#else
-    QTextCodec *codec= QTextCodec::codecForName("gbk");
+
+#else // ifdef Q_OS_WIN
+    QTextCodec *codec = QTextCodec::codecForName("gbk");
+
     if (codec)
     {
         return QString::fromLatin1(codec->fromUnicode(InputStr));
@@ -58,5 +61,30 @@ QString Utils::ToSpecialEncoding(const QString &InputStr)
     {
         return QString("");
     }
-#endif
+#endif // ifdef Q_OS_WIN
+}
+
+size_t Utils::ReadFile(IN LPCSTR file_in, OUT LPVOID *pFileBuffer) {
+    FILE *fp;
+
+    fp = fopen(file_in, "rb");
+
+    if (fp == NULL) {
+        MessageBox(NULL, TEXT("fp == null"), NULL, NULL);
+        return 0;
+    }
+    LPVOID ptempFileBuffer;
+    fseek(fp, 0, SEEK_END);
+    size_t file_size = ftell(fp);
+    ptempFileBuffer = malloc(file_size);
+    fseek(fp, 0, SEEK_SET); // 将指针指回文件头
+    fread(ptempFileBuffer, file_size, 1, fp);
+
+    if (ptempFileBuffer == NULL) {
+        MessageBox(NULL, TEXT("ptempfilebuffer == null"), NULL, NULL);
+        return 0;
+    }
+    *pFileBuffer = ptempFileBuffer; // 赋值，完成工作
+    fclose(fp);                     // 收尾
+    return file_size;
 }

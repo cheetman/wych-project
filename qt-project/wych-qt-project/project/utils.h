@@ -12,7 +12,7 @@ public:
     static QString FromSpecialEncoding(const QString& InputStr);
     static QString ToSpecialEncoding(const QString& InputStr);
     static QString SizeToString(const quint64 val);
-    static size_t  ReadFile(IN LPTSTR   file_in,
+    static size_t  ReadFile(IN LPCTSTR  file_in,
                             OUT LPVOID *pFileBuffer);
 };
 

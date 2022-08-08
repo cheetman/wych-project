@@ -22,6 +22,7 @@ void ItemView9CS16::initUI()
     auto layout = new QHBoxLayout(this);
     auto leftQWidget = new QWidget(this);
     auto leftQWidgetLayout = new QVBoxLayout(leftQWidget);
+
     auto leftQWidgetGroupBox1 = new QGroupBox("程序设置", this);
 
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox1);

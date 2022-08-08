@@ -55,10 +55,22 @@ void ItemView10PE::initUI()
 
     // 第二层
 
-    auto centerQWidgetGroupBox2 = new QGroupBox("节表", centerQWidget);
+    auto centerQWidgetGroupBox2 = new QGroupBox("数据目录表", centerQWidget);
     auto centerQWidgetGroupBox2Layout = new QGridLayout(centerQWidgetGroupBox2);
     centerQWidgetLayout->addWidget(centerQWidgetGroupBox2);
 
+    auto centerQWidgetGroupBox3 = new QGroupBox("节表", centerQWidget);
+    auto centerQWidgetGroupBox3Layout = new QVBoxLayout(centerQWidgetGroupBox3);
+    centerQWidgetLayout->addWidget(centerQWidgetGroupBox3);
+
+    tableTableView = new QTableView(this);
+    tableGridModel = new QStandardItemModel();
+    tableGridModel->setHorizontalHeaderLabels({  "Name", "VirtualSize",  "SizeOfRawData", "VirtualAddress", "PointerToRawData", "Characteristics" });
+    tableTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    tableTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    tableTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    tableTableView->setModel(tableGridModel);
+    centerQWidgetGroupBox3Layout->addWidget(tableTableView);
 
     auto centerQWidgetGroupBox1 = new QGroupBox("控制台设置", centerQWidget);
     auto centerQWidgetGroupBox1Layout = new QHBoxLayout(centerQWidgetGroupBox1);
@@ -69,19 +81,34 @@ void ItemView10PE::initUI()
     centerQWidgetLayout->addWidget(edtMsg);
 
 
+    // 第一层
     auto rightQWidget = new QWidget(this);
     auto rightQWidgetLayout = new QVBoxLayout(rightQWidget);
-    auto rightQWidgetGroupBox1 = new QGroupBox("客户端控制", rightQWidget);
+
+
+    // 第二层
+    auto rightQWidgetGroupBox1 = new QGroupBox("数据目录表明细", rightQWidget);
     auto rightQWidgetGroupBox1Layout = new QHBoxLayout(rightQWidgetGroupBox1);
+
+    // 第三层
+    auto tabTabWidget = new QTabWidget(rightQWidgetGroupBox1);
+    auto tab = new QWidget(tabTabWidget);
+    auto tab2 = new QWidget(tabTabWidget);
+    auto tab3 = new QWidget(tabTabWidget);
+    tabTabWidget->addTab( tab, tr("导出表"));
+    tabTabWidget->addTab(tab2, tr("导入表"));
+    tabTabWidget->addTab(tab3, tr("重定位表"));
+    rightQWidgetGroupBox1Layout->addWidget(tabTabWidget);
     rightQWidgetLayout->addWidget(rightQWidgetGroupBox1);
 
 
     // 控件
-    ckConsoleEnable = new QCheckBox("启动控制台");
-    ckRefreshClients = new QCheckBox("刷新客户端");
+    //    ckConsoleEnable = new QCheckBox("启动控制台");
+    //    ckRefreshClients = new QCheckBox("刷新客户端");
     btnStart = new QPushButton("选择文件");
-    btnConsoleClear = new QPushButton("清空控制台");
-    btnClients = new QPushButton("刷新客户端");
+
+    //    btnConsoleClear = new QPushButton("清空控制台");
+    //    btnClients = new QPushButton("刷新客户端");
 
 
     dos_e_magic = new QLineEdit("");
@@ -125,15 +152,15 @@ void ItemView10PE::initUI()
     tb_base_relocation_foa = new QLineEdit("");
 
 
-    infoTableView = new QTableView(this);
-    infoGridModel = new QStandardItemModel();
+    //    infoTableView = new QTableView(this);
+    //    infoGridModel = new QStandardItemModel();
 
-    /* 设置表格标题行(输入数据为QStringList类型) */
-    infoGridModel->setHorizontalHeaderLabels({  "类型", "ID", "地址", "状态" });
-    infoTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    infoTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    infoTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    infoTableView->setModel(infoGridModel);
+    //    /* 设置表格标题行(输入数据为QStringList类型) */
+    //    infoGridModel->setHorizontalHeaderLabels({  "类型", "ID", "地址", "状态" });
+    //    infoTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    //    infoTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    //    infoTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    //    infoTableView->setModel(infoGridModel);
 
 
     QPalette pe;
@@ -239,12 +266,11 @@ void ItemView10PE::initUI()
     centerQWidgetGroupBox2Layout->addWidget(        tb_resource_foa,                 3, 3);
     centerQWidgetGroupBox2Layout->addWidget( tb_base_relocation_foa,                 4, 3);
 
-    centerQWidgetGroupBox1Layout->addWidget(ckConsoleEnable);
-    centerQWidgetGroupBox1Layout->addWidget(btnConsoleClear);
-
-    rightQWidgetGroupBox1Layout->addWidget(ckRefreshClients);
-    rightQWidgetGroupBox1Layout->addWidget(      btnClients);
-    rightQWidgetLayout->addWidget(infoTableView);
+    //    centerQWidgetGroupBox1Layout->addWidget(ckConsoleEnable);
+    //    centerQWidgetGroupBox1Layout->addWidget(btnConsoleClear);
+    //    rightQWidgetGroupBox1Layout->addWidget(ckRefreshClients);
+    //    rightQWidgetGroupBox1Layout->addWidget(      btnClients);
+    //    rightQWidgetLayout->addWidget(infoTableView);
 
 
     layout->addWidget(  leftQWidget);
@@ -336,6 +362,48 @@ void ItemView10PE::initConnect()
             tb_import_rva->setText(QString::number(ImportTable->VirtualAddress, 16).toUpper());
             tb_resource_rva->setText(QString::number(ResourceTable->VirtualAddress, 16).toUpper());
             tb_base_relocation_rva->setText(QString::number(RelocationTable->VirtualAddress, 16).toUpper());
+
+            DWORD ExportTableFoa = 0;
+            DWORD ImportTableFoa = 0;
+            DWORD ResourceTableFoa = 0;
+            DWORD RelocationTableFoa = 0;
+
+            if (ExportTable->VirtualAddress) {
+                Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, ExportTable->VirtualAddress, &ExportTableFoa);
+            }
+
+            if (ImportTable->VirtualAddress) {
+                Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, ImportTable->VirtualAddress, &ImportTableFoa);
+            }
+
+            if (ResourceTable->VirtualAddress) {
+                Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, ResourceTable->VirtualAddress, &ResourceTableFoa);
+            }
+
+            if (RelocationTable->VirtualAddress) {
+                Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, RelocationTable->VirtualAddress, &RelocationTableFoa);
+            }
+            tb_export_foa->setText(QString::number(ExportTableFoa, 16).toUpper());
+            tb_import_foa->setText(QString::number(ImportTableFoa, 16).toUpper());
+            tb_resource_foa->setText(QString::number(ResourceTableFoa, 16).toUpper());
+            tb_base_relocation_foa->setText(QString::number(RelocationTableFoa, 16).toUpper());
+
+            // 节表
+            for (int i = 0; i < pNTHeader32->FileHeader.NumberOfSections; i++)
+            {
+                tableGridModel->setItem(i, 0, new QStandardItem(tr((char *)(pSectionHeader[i].Name))));
+                tableGridModel->setItem(i, 1, new QStandardItem(QString::number(pSectionHeader[i].Misc.VirtualSize, 16).toUpper()));
+                tableGridModel->setItem(i, 2, new QStandardItem(QString::number(pSectionHeader[i].SizeOfRawData, 16).toUpper()));
+                tableGridModel->setItem(i, 3, new QStandardItem(QString::number(pSectionHeader[i].VirtualAddress, 16).toUpper()));
+                tableGridModel->setItem(i, 4, new QStandardItem(QString::number(pSectionHeader[i].PointerToRawData, 16).toUpper()));
+                tableGridModel->setItem(i, 5, new QStandardItem(QString::number(pSectionHeader[i].Characteristics, 16).toUpper()));
+            }
+
+            auto removeCount = tableGridModel->rowCount() - pNTHeader32->FileHeader.NumberOfSections;
+
+            if (removeCount > 0) {
+                tableGridModel->removeRows(pNTHeader32->FileHeader.NumberOfSections, removeCount);
+            }
         } else {
             // 获取NTHeader
             PIMAGE_NT_HEADERS64 pNTHeader64 = (PIMAGE_NT_HEADERS64)((size_t)pFileBuffer + pDosHeader->e_lfanew);
@@ -390,6 +458,48 @@ void ItemView10PE::initConnect()
             tb_import_rva->setText(QString::number(ImportTable->VirtualAddress, 16).toUpper());
             tb_resource_rva->setText(QString::number(ResourceTable->VirtualAddress, 16).toUpper());
             tb_base_relocation_rva->setText(QString::number(RelocationTable->VirtualAddress, 16).toUpper());
+
+            DWORD ExportTableFoa = 0;
+            DWORD ImportTableFoa = 0;
+            DWORD ResourceTableFoa = 0;
+            DWORD RelocationTableFoa = 0;
+
+            if (ExportTable->VirtualAddress) {
+                Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, ExportTable->VirtualAddress, &ExportTableFoa);
+            }
+
+            if (ImportTable->VirtualAddress) {
+                Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, ImportTable->VirtualAddress, &ImportTableFoa);
+            }
+
+            if (ResourceTable->VirtualAddress) {
+                Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, ResourceTable->VirtualAddress, &ResourceTableFoa);
+            }
+
+            if (RelocationTable->VirtualAddress) {
+                Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, RelocationTable->VirtualAddress, &RelocationTableFoa);
+            }
+            tb_export_foa->setText(QString::number(ExportTableFoa, 16).toUpper());
+            tb_import_foa->setText(QString::number(ImportTableFoa, 16).toUpper());
+            tb_resource_foa->setText(QString::number(ResourceTableFoa, 16).toUpper());
+            tb_base_relocation_foa->setText(QString::number(RelocationTableFoa, 16).toUpper());
+
+            // 节表
+            for (int i = 0; i < pNTHeader64->FileHeader.NumberOfSections; i++)
+            {
+                tableGridModel->setItem(i, 0, new QStandardItem(tr((char *)(pSectionHeader[i].Name))));
+                tableGridModel->setItem(i, 1, new QStandardItem(QString::number(pSectionHeader[i].Misc.VirtualSize, 16).toUpper()));
+                tableGridModel->setItem(i, 2, new QStandardItem(QString::number(pSectionHeader[i].SizeOfRawData, 16).toUpper()));
+                tableGridModel->setItem(i, 3, new QStandardItem(QString::number(pSectionHeader[i].VirtualAddress, 16).toUpper()));
+                tableGridModel->setItem(i, 4, new QStandardItem(QString::number(pSectionHeader[i].PointerToRawData, 16).toUpper()));
+                tableGridModel->setItem(i, 5, new QStandardItem(QString::number(pSectionHeader[i].Characteristics, 16).toUpper()));
+            }
+
+            auto removeCount = tableGridModel->rowCount() - pNTHeader64->FileHeader.NumberOfSections;
+
+            if (removeCount > 0) {
+                tableGridModel->removeRows(pNTHeader64->FileHeader.NumberOfSections, removeCount);
+            }
         }
     });
 }

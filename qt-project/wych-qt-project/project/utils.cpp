@@ -89,3 +89,59 @@ size_t Utils::ReadFile(IN LPCTSTR file_in, OUT LPVOID *pFileBuffer) {
     fclose(fp);                     // 收尾
     return file_size;
 }
+
+bool Utils::RVA_TO_FOA(
+    PIMAGE_NT_HEADERS32 pNTHeader,
+    PIMAGE_SECTION_HEADER pSectionHeader, IN DWORD RVA,
+    OUT PDWORD FOA)
+{
+    if (RVA <
+        pNTHeader->OptionalHeader
+        .SizeOfHeaders) // 如果是在头部，在节之前，说明并不需要拉伸，RVA
+    // = FOA
+    {
+        *FOA = RVA;
+        return true;
+    }
+
+    for (int i = 0; i < pNTHeader->FileHeader.NumberOfSections;
+         i++) // 循环每一个节表
+        if ((RVA >= pSectionHeader[i].VirtualAddress) &&
+            (RVA < pSectionHeader[i].VirtualAddress +
+             pSectionHeader[i].Misc.VirtualSize))
+        {
+            *FOA = pSectionHeader[i].PointerToRawData + RVA -
+                   pSectionHeader[i].VirtualAddress;
+            return true;
+        }
+
+    return false; // 如果一直没有找到，返回false
+}
+
+bool Utils::RVA_TO_FOA_64(
+    PIMAGE_NT_HEADERS64 pNTHeader,
+    PIMAGE_SECTION_HEADER pSectionHeader, IN DWORD RVA,
+    OUT PDWORD FOA)
+{
+    if (RVA <
+        pNTHeader->OptionalHeader
+        .SizeOfHeaders) // 如果是在头部，在节之前，说明并不需要拉伸，RVA
+    // = FOA
+    {
+        *FOA = RVA;
+        return true;
+    }
+
+    for (int i = 0; i < pNTHeader->FileHeader.NumberOfSections;
+         i++) // 循环每一个节表
+        if ((RVA >= pSectionHeader[i].VirtualAddress) &&
+            (RVA < pSectionHeader[i].VirtualAddress +
+             pSectionHeader[i].Misc.VirtualSize))
+        {
+            *FOA = pSectionHeader[i].PointerToRawData + RVA -
+                   pSectionHeader[i].VirtualAddress;
+            return true;
+        }
+
+    return false; // 如果一直没有找到，返回false
+}

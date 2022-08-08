@@ -93,16 +93,19 @@ private:
     QLineEdit *tb_base_relocation_foa;
 
     QPushButton *btnStart;
-    QPushButton *btnClients;
-    QPushButton *btnConsoleClear;
-    QCheckBox *ckConsoleEnable;
-    QCheckBox *ckRefreshClients;
+
+    //    QPushButton *btnClients;
+    //    QPushButton *btnConsoleClear;
+    //    QCheckBox *ckConsoleEnable;
+    //    QCheckBox *ckRefreshClients;
 
 
     QPlainTextEdit *edtMsg;
 
-    QStandardItemModel *infoGridModel;
-    QTableView *infoTableView;
+    //    QStandardItemModel *infoGridModel;
+    //    QTableView *infoTableView;
+    QStandardItemModel *tableGridModel;
+    QTableView *tableTableView;
 
 signals:
 };

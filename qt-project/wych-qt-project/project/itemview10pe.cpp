@@ -169,7 +169,7 @@ void ItemView10PE::initUI()
     importTabTabWidgetGroupBox->setFixedHeight(250);
     importTableView = new QTableView(this);
     importGridModel = new QStandardItemModel();
-    importGridModel->setHorizontalHeaderLabels({  "DLL名称",  "OriginFirsthunk(指向INT)", "Firsthunk(指向IAT)" });
+    importGridModel->setHorizontalHeaderLabels({  "DLL名称",  "OriginFirsthunk[INT]", "FOA", "Firsthunk[IAT]", "FOA" });
     importTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     importTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     importTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -182,7 +182,7 @@ void ItemView10PE::initUI()
     auto importTabWidgetGroupBoxLayout2 = new QGridLayout(importTabWidgetGroupBox2);
     import2TableView = new QTableView(this);
     import2GridModel = new QStandardItemModel();
-    import2GridModel->setHorizontalHeaderLabels({  "RVA",  "FOA", "函数名称" });
+    import2GridModel->setHorizontalHeaderLabels({ "查找表FOA(+4/+8)",  "提示/名称表RVA",  "提示/名称表FOA", "函数名称", "HINT[导出表索引]" });
     import2TableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     import2TableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     import2TableView->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -439,6 +439,12 @@ void ItemView10PE::initConnect()
         pNTHeader32 = NULL;
         pNTHeader64 = NULL;
 
+        DWORD ExportTableFoa = 0;
+        DWORD ImportTableFoa = 0;
+        DWORD ResourceTableFoa = 0;
+        DWORD RelocationTableFoa = 0;
+
+
         // 判断32位
         if (*(PWORD)((size_t)pFileBuffer + pDosHeader->e_lfanew + 0x14) == 0x00E0) {
             // 获取NTHeader
@@ -493,10 +499,6 @@ void ItemView10PE::initConnect()
             tb_resource_rva->setText(QString::number(ResourceTable->VirtualAddress, 16).toUpper());
             tb_base_relocation_rva->setText(QString::number(RelocationTable->VirtualAddress, 16).toUpper());
 
-            DWORD ExportTableFoa = 0;
-            DWORD ImportTableFoa = 0;
-            DWORD ResourceTableFoa = 0;
-            DWORD RelocationTableFoa = 0;
 
             if (ExportTable->VirtualAddress) {
                 Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, ExportTable->VirtualAddress, &ExportTableFoa);
@@ -699,10 +701,6 @@ void ItemView10PE::initConnect()
             tb_resource_rva->setText(QString::number(ResourceTable->VirtualAddress, 16).toUpper());
             tb_base_relocation_rva->setText(QString::number(RelocationTable->VirtualAddress, 16).toUpper());
 
-            DWORD ExportTableFoa = 0;
-            DWORD ImportTableFoa = 0;
-            DWORD ResourceTableFoa = 0;
-            DWORD RelocationTableFoa = 0;
 
             if (ExportTable->VirtualAddress) {
                 Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, ExportTable->VirtualAddress, &ExportTableFoa);
@@ -831,24 +829,77 @@ void ItemView10PE::initConnect()
                     relocationGridModel->setItem(i, 2, new QStandardItem(QString::number(num_of_addr).toUpper()));
                     relocationGridModel->setItem(i, 3, new QStandardItem(QString::number(pRelocationTable->SizeOfBlock).toUpper()));
 
-// 明细
-//                    PDWORD t_pAddr = NULL;
-//                    t_pAddr = (PDWORD)((size_t)pRelocationTable + 8);
-
-//                    for (int i = 0; i < num_of_addr; i++)
-//                    {
-//                        if ((t_pAddr[i] & 0x3000) == 0x3000) // 判断高三位是否为0011
-//                        {
-//                            (t_pAddr[i] & 0xfff) + pRelocationTable->VirtualAddress;
-//                        } else {}
-
-//                        else cout << "the first 4 bits are not 0011!" << endl;
-//                    }
-
                     pRelocationTable = (PIMAGE_BASE_RELOCATION)((size_t)pRelocationTable + pRelocationTable->SizeOfBlock);
 
                     i++;
                 }
+            }
+        }
+
+
+        // 导入表
+        if (ImportTableFoa) {
+            pImportDescriptorBase =    (PIMAGE_IMPORT_DESCRIPTOR)((size_t)pFileBuffer + ImportTableFoa);
+            PIMAGE_IMPORT_DESCRIPTOR pImportDescriptor = pImportDescriptorBase;
+
+            int i = 0;
+
+            while (1)
+            {
+                if (!pImportDescriptor->TimeDateStamp && !pImportDescriptor->FirstThunk) break;
+                DWORD name_FOA = 0;
+                RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, pImportDescriptor->Name, &name_FOA);
+
+
+                importGridModel->setItem(i, 0, new QStandardItem(tr((PCHAR)(size_t)pFileBuffer + name_FOA)));
+
+                DWORD INTAddr_FOA = 0;
+                DWORD IATAddr_FOA = 0;
+                RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, pImportDescriptor->OriginalFirstThunk, &INTAddr_FOA);
+                RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, pImportDescriptor->FirstThunk,         &IATAddr_FOA);
+
+                importGridModel->setItem(i, 1, new QStandardItem(QString::number(pImportDescriptor->OriginalFirstThunk, 16).toUpper()));
+                importGridModel->setItem(i, 2, new QStandardItem(QString::number(INTAddr_FOA, 16).toUpper()));
+                importGridModel->setItem(i, 3, new QStandardItem(QString::number(pImportDescriptor->FirstThunk, 16).toUpper()));
+                importGridModel->setItem(i, 4, new QStandardItem(QString::number(IATAddr_FOA, 16).toUpper()));
+
+//                    assert(INTAddr_FOA & IATAddr_FOA);
+                PDWORD pThunkData_INT = NULL;
+                PDWORD pThunkData_IAT = NULL;
+                pThunkData_INT = (PDWORD)((size_t)pFileBuffer + INTAddr_FOA);
+                pThunkData_IAT = (PDWORD)((size_t)pFileBuffer + IATAddr_FOA);
+
+//                    while (*pThunkData_INT && *pThunkData_IAT)
+//                    {
+//                        if (*pThunkData_INT >> 31)         // 是序号
+//                        {
+//                            *pThunkData_INT &= 0x7fffffff; // 把最高位去掉
+//                        }
+//                        else
+//                        {
+//                            DWORD import_by_name_FOA = 0;
+//                            Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, *pThunkData_INT, &import_by_name_FOA);
+//                            PIMAGE_IMPORT_BY_NAME pImportByName = (PIMAGE_IMPORT_BY_NAME)((size_t)pFileBuffer + import_by_name_FOA);
+//                            pImportByName->Hint; // 导出序号，可能为0
+//                            printf("INT:%s", pImportByName->Name);
+//                        }
+
+//                        if (*pThunkData_IAT >> 31)         // 是序号
+//                        {
+//                            *pThunkData_IAT &= 0x7fffffff; // 把最高位去掉
+//                            cout << "      IAT:ordinal:" << *pThunkData_IAT << endl;
+//                        }
+//                        else
+//                        {
+//                            DWORD import_by_name_FOA = 0;
+//                            Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader,   *pThunkData_IAT, &import_by_name_FOA);
+//                            PIMAGE_IMPORT_BY_NAME pImportByName = (PIMAGE_IMPORT_BY_NAME)( (size_t)pFileBuffer + import_by_name_FOA);
+//                            printf("      IAT:%s\n", pImportByName->Name);
+//                        }
+//                        pThunkData_INT++, pThunkData_IAT++;
+//                    }
+                pImportDescriptor += 1;
+                i++;
             }
         }
     });
@@ -878,11 +929,8 @@ void ItemView10PE::initConnect()
                         relocation2GridModel->setItem(j, 0, new QStandardItem(QString::number(rva, 16).toUpper()));
                         DWORD foa = 0;
 
-                        if (pNTHeader32) {
-                            Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, rva, &foa);
-                        } else {
-                            Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, rva, &foa);
-                        }
+                        RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, rva, &foa);
+
                         relocation2GridModel->setItem(j, 1, new QStandardItem(QString::number(foa, 16).toUpper()));
                     } else {
 //                        cout << "the first 4 bits are not 0011!" << endl;
@@ -905,6 +953,119 @@ void ItemView10PE::initConnect()
         }
     });
 
-    //        SLOT(leftTabFavorTableRowDoubleClicked(const QModelIndex&)));
-    //    connect(relocationTableView,  SIGNAL(clicked(const QModelIndex&)),       this, SLOT(fileTableRowClicked(const QModelIndex&)));
+
+    connect(importTableView, &QTableView::doubleClicked, [this](const QModelIndex& current) {
+        auto rowIndex = current.row();
+
+        int i = 0;
+
+
+        PIMAGE_IMPORT_DESCRIPTOR pImportDescriptor = pImportDescriptorBase;
+
+        while (1)
+        {
+            if (i == rowIndex) {
+                DWORD INTAddr_FOA = 0;
+                DWORD IATAddr_FOA = 0;
+                RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, pImportDescriptor->OriginalFirstThunk, &INTAddr_FOA);
+                RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, pImportDescriptor->FirstThunk,         &IATAddr_FOA);
+
+                int count = 0;
+
+// 32位时
+                if (pNTHeader32) {
+                    PDWORD pThunkData_INT = NULL;
+                    PDWORD pThunkData_IAT = NULL;
+
+                    // PIMAGE_THUNK_DATA32 这里是导入查找表
+                    pThunkData_INT = (PDWORD)((size_t)pFileBuffer + INTAddr_FOA);
+                    pThunkData_IAT = (PDWORD)((size_t)pFileBuffer + IATAddr_FOA);
+
+
+                    while (*pThunkData_INT && *pThunkData_IAT)
+                    {
+                        import2GridModel->setItem(count, 0, new QStandardItem(QString::number((size_t)INTAddr_FOA, 16).toUpper()));
+
+                        if (*pThunkData_INT >> 31)         // 是序号
+                        {
+                            *pThunkData_INT &= 0x7fffffff; // 把最高位去掉
+                            import2GridModel->setItem(i, 3, new QStandardItem(QString::number(*pThunkData_INT, 16).toUpper()));
+                        }
+                        else
+                        {
+                            DWORD import_by_name_FOA = 0;
+                            RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, *pThunkData_INT, &import_by_name_FOA);
+                            PIMAGE_IMPORT_BY_NAME pImportByName = (PIMAGE_IMPORT_BY_NAME)((size_t)pFileBuffer + import_by_name_FOA);
+
+                            import2GridModel->setItem(count, 1, new QStandardItem(QString::number(*pThunkData_INT, 16).toUpper()));
+                            import2GridModel->setItem(count, 2, new QStandardItem(QString::number(import_by_name_FOA, 16).toUpper()));
+                            import2GridModel->setItem(count, 3, new QStandardItem(tr(pImportByName->Name)));
+                            import2GridModel->setItem(count, 4, new QStandardItem(QString::number(pImportByName->Hint, 16).toUpper()));
+                        }
+
+                        pThunkData_INT++, pThunkData_IAT++;
+                        INTAddr_FOA += 4;
+                        count++;
+                    }
+                } else {
+                    ULONGLONG *pThunkData_INT = NULL;
+                    ULONGLONG *pThunkData_IAT = NULL;
+
+// PIMAGE_THUNK_DATA64 这里是导入查找表
+                    pThunkData_INT = (ULONGLONG *)((size_t)pFileBuffer + INTAddr_FOA);
+                    pThunkData_IAT = (ULONGLONG *)((size_t)pFileBuffer + IATAddr_FOA);
+
+
+                    while (*pThunkData_INT && *pThunkData_IAT)
+                    {
+                        import2GridModel->setItem(count, 0, new QStandardItem(QString::number((size_t)INTAddr_FOA, 16).toUpper()));
+
+                        if (*pThunkData_INT >> 63)                 // 是序号
+                        {
+                            *pThunkData_INT &= 0x7fffffffffffffff; // 把最高位去掉
+                            import2GridModel->setItem(i, 3, new QStandardItem(QString::number(*pThunkData_INT, 16).toUpper()));
+                        }
+                        else
+                        {
+                            DWORD import_by_name_FOA = 0;
+                            RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, *pThunkData_INT, &import_by_name_FOA);
+                            PIMAGE_IMPORT_BY_NAME pImportByName = (PIMAGE_IMPORT_BY_NAME)((size_t)pFileBuffer + import_by_name_FOA);
+
+                            import2GridModel->setItem(count, 1, new QStandardItem(QString::number(*pThunkData_INT, 16).toUpper()));
+                            import2GridModel->setItem(count, 2, new QStandardItem(QString::number(import_by_name_FOA, 16).toUpper()));
+                            import2GridModel->setItem(count, 3, new QStandardItem(tr(pImportByName->Name)));
+                            import2GridModel->setItem(count, 4, new QStandardItem(QString::number(pImportByName->Hint, 16).toUpper()));
+                        }
+
+                        pThunkData_INT++, pThunkData_IAT++;
+                        INTAddr_FOA += 8;
+                        count++;
+                    }
+                }
+
+
+                auto removeCount = import2GridModel->rowCount() -  count;
+
+                if (removeCount > 0) {
+                    import2GridModel->removeRows(count, removeCount);
+                }
+
+                break;
+            } else {
+                pImportDescriptor += 1;
+                i++;
+            }
+        }
+    });
+}
+
+bool ItemView10PE::RVA_TO_FOA(PIMAGE_NT_HEADERS32 pNTHeader32,
+                              PIMAGE_NT_HEADERS64 pNTHeader64,
+                              PIMAGE_SECTION_HEADER pSectionHeader, IN DWORD RVA,
+                              OUT PDWORD FOA) {
+    if (pNTHeader32) {
+        return Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, RVA, FOA);
+    } else {
+        return Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, RVA, FOA);
+    }
 }

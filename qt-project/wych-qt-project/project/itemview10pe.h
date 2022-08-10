@@ -138,9 +138,16 @@ private:
 
     LPVOID pFileBuffer = NULL;
     PIMAGE_BASE_RELOCATION pRelocationTableBase = NULL;
+    PIMAGE_IMPORT_DESCRIPTOR pImportDescriptorBase = NULL;
     PIMAGE_SECTION_HEADER pSectionHeader = NULL;
     PIMAGE_NT_HEADERS32 pNTHeader32 = NULL;
     PIMAGE_NT_HEADERS64 pNTHeader64 = NULL;
+
+    bool RVA_TO_FOA(PIMAGE_NT_HEADERS32   pNTHeader32,
+                    PIMAGE_NT_HEADERS64   pNTHeader64,
+                    PIMAGE_SECTION_HEADER pSectionHeader,
+                    IN DWORD              RVA,
+                    OUT PDWORD            FOA);
 
 signals:
 };

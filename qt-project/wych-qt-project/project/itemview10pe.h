@@ -12,6 +12,13 @@
 #include <QTableView>
 #include <QPlainTextEdit>
 #include <QCheckBox>
+#include <QGroupBox>
+#include <QHeaderView>
+#include <QFileDialog>
+#include <QMessageBox>
+
+#include <Windows.h>
+
 
 class ItemView10PE : public QWidget {
     Q_OBJECT
@@ -92,11 +99,23 @@ private:
     QLineEdit *tb_resource_foa;
     QLineEdit *tb_base_relocation_foa;
 
+    QLineEdit *export_Name;
+    QLineEdit *export_Base;
+    QLineEdit *export_NumberOfFunctions;
+    QLineEdit *export_NumberOfNames;
+    QLineEdit *export_AddressOfFunctions;    // RVA from base of image
+    QLineEdit *export_AddressOfNames;        // RVA from base of image
+    QLineEdit *export_AddressOfNameOrdinals; // RVA from base of image
+    QLineEdit *export_AddressOfFunctions_foa;
+    QLineEdit *export_AddressOfNames_foa;
+    QLineEdit *export_AddressOfNameOrdinals_foa;
+
     QPushButton *btnStart;
 
     //    QPushButton *btnClients;
-    //    QPushButton *btnConsoleClear;
-    //    QCheckBox *ckConsoleEnable;
+    QPushButton *btnConsoleClear;
+    QCheckBox *ckConsoleEnable;
+
     //    QCheckBox *ckRefreshClients;
 
 
@@ -106,6 +125,22 @@ private:
     //    QTableView *infoTableView;
     QStandardItemModel *tableGridModel;
     QTableView *tableTableView;
+    QStandardItemModel *exportGridModel;
+    QTableView *exportTableView;
+    QStandardItemModel *importGridModel;
+    QTableView *importTableView;
+    QStandardItemModel *import2GridModel;
+    QTableView *import2TableView;
+    QStandardItemModel *relocationGridModel;
+    QTableView *relocationTableView;
+    QStandardItemModel *relocation2GridModel;
+    QTableView *relocation2TableView;
+
+    LPVOID pFileBuffer = NULL;
+    PIMAGE_BASE_RELOCATION pRelocationTableBase = NULL;
+    PIMAGE_SECTION_HEADER pSectionHeader = NULL;
+    PIMAGE_NT_HEADERS32 pNTHeader32 = NULL;
+    PIMAGE_NT_HEADERS64 pNTHeader64 = NULL;
 
 signals:
 };

@@ -1,5 +1,6 @@
 #include "itemview10pe.h"
-#include "mainwindow.h"
+
+// #include "mainwindow.h"
 #include "utils.h"
 
 #include <QTextCodec>
@@ -88,13 +89,16 @@ void ItemView10PE::initUI()
 
     // 第二层
     auto rightQWidgetGroupBox1 = new QGroupBox("数据目录表明细", rightQWidget);
-    auto rightQWidgetGroupBox1Layout = new QHBoxLayout(rightQWidgetGroupBox1);
+    auto rightQWidgetGroupBox1Layout = new QVBoxLayout(rightQWidgetGroupBox1);
 
     // 第三层
     auto tabTabWidget = new QTabWidget(rightQWidgetGroupBox1);
     auto tab = new QWidget(tabTabWidget);
+    auto exportTabTabWidgetLayout = new QVBoxLayout(tab);
     auto tab2 = new QWidget(tabTabWidget);
+    auto importTabTabWidgetLayout = new QVBoxLayout(tab2);
     auto tab3 = new QWidget(tabTabWidget);
+    auto relocationTabTabWidgetLayout = new QVBoxLayout(tab3);
     tabTabWidget->addTab( tab, tr("导出表"));
     tabTabWidget->addTab(tab2, tr("导入表"));
     tabTabWidget->addTab(tab3, tr("重定位表"));
@@ -102,12 +106,98 @@ void ItemView10PE::initUI()
     rightQWidgetLayout->addWidget(rightQWidgetGroupBox1);
 
 
+    // 第四层
+    auto exportTabTabWidgetGroupBox1 = new QGroupBox("头部", tab);
+    exportTabTabWidgetLayout->addWidget(exportTabTabWidgetGroupBox1);
+
+    exportTabTabWidgetLayout->setAlignment(Qt::AlignTop);
+    auto exportTabTabWidgetGroupBox1Layout = new QGridLayout(exportTabTabWidgetGroupBox1);
+    exportTabTabWidgetGroupBox1->setFixedHeight(200);
+
+
+    auto exportTabTabWidgetGroupBox2 = new QGroupBox("明细", tab);
+    exportTabTabWidgetLayout->addWidget(exportTabTabWidgetGroupBox2);
+    exportTabTabWidgetLayout->setAlignment(Qt::AlignTop);
+    auto exportTabTabWidgetGroupBox2Layout = new QGridLayout(exportTabTabWidgetGroupBox2);
+    exportTabTabWidgetGroupBox1->setFixedHeight(200);
+    exportTableView = new QTableView(this);
+    exportGridModel = new QStandardItemModel();
+    exportGridModel->setHorizontalHeaderLabels({  "索引",  "地址_RVA", "地址_FOA", "序号表",  "函数名" });
+    exportTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    exportTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    exportTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    exportTableView->setModel(exportGridModel);
+
+    //    exportTableView->setColumnHidden(0, true);
+    exportTabTabWidgetGroupBox2Layout->addWidget(exportTableView);
+
+
+    // 第四层(重定位)
+    auto relocationTabTabWidgetGroupBox = new QGroupBox("区段", tab3);
+    relocationTabTabWidgetLayout->addWidget(relocationTabTabWidgetGroupBox);
+    relocationTabTabWidgetLayout->setAlignment(Qt::AlignTop);
+    auto relocationTabTabWidgetGroupBoxLayout = new QGridLayout(relocationTabTabWidgetGroupBox);
+    relocationTabTabWidgetGroupBox->setFixedHeight(250);
+    relocationTableView = new QTableView(this);
+    relocationGridModel = new QStandardItemModel();
+    relocationGridModel->setHorizontalHeaderLabels({  "所属节",  "RVA", "数量", "大小(字节)" });
+    relocationTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    relocationTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    relocationTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    relocationTableView->setModel(relocationGridModel);
+    relocationTabTabWidgetGroupBoxLayout->addWidget(relocationTableView);
+
+    auto relocationTabTabWidgetGroupBox2 = new QGroupBox("块", tab3);
+    relocationTabTabWidgetLayout->addWidget(relocationTabTabWidgetGroupBox2);
+    relocationTabTabWidgetLayout->setAlignment(Qt::AlignTop);
+    auto relocationTabTabWidgetGroupBoxLayout2 = new QGridLayout(relocationTabTabWidgetGroupBox2);
+    relocation2TableView = new QTableView(this);
+    relocation2GridModel = new QStandardItemModel();
+    relocation2GridModel->setHorizontalHeaderLabels({  "RVA",  "FOA" });
+    relocation2TableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    relocation2TableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    relocation2TableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    relocation2TableView->setModel(relocation2GridModel);
+    relocationTabTabWidgetGroupBoxLayout2->addWidget(relocation2TableView);
+
+
+    // 第四层(导入)
+    auto importTabTabWidgetGroupBox = new QGroupBox("DLL", tab2);
+    importTabTabWidgetLayout->addWidget(importTabTabWidgetGroupBox);
+    importTabTabWidgetLayout->setAlignment(Qt::AlignTop);
+    auto importTabTabWidgetGroupBoxLayout = new QGridLayout(importTabTabWidgetGroupBox);
+    importTabTabWidgetGroupBox->setFixedHeight(250);
+    importTableView = new QTableView(this);
+    importGridModel = new QStandardItemModel();
+    importGridModel->setHorizontalHeaderLabels({  "DLL名称",  "OriginFirsthunk(指向INT)", "Firsthunk(指向IAT)" });
+    importTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    importTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    importTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    importTableView->setModel(importGridModel);
+    importTabTabWidgetGroupBoxLayout->addWidget(importTableView);
+
+    auto importTabWidgetGroupBox2 = new QGroupBox("函数", tab2);
+    importTabTabWidgetLayout->addWidget(importTabWidgetGroupBox2);
+    importTabTabWidgetLayout->setAlignment(Qt::AlignTop);
+    auto importTabWidgetGroupBoxLayout2 = new QGridLayout(importTabWidgetGroupBox2);
+    import2TableView = new QTableView(this);
+    import2GridModel = new QStandardItemModel();
+    import2GridModel->setHorizontalHeaderLabels({  "RVA",  "FOA", "函数名称" });
+    import2TableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    import2TableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    import2TableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    import2TableView->setModel(import2GridModel);
+    importTabWidgetGroupBoxLayout2->addWidget(import2TableView);
+
+
     // 控件
-    //    ckConsoleEnable = new QCheckBox("启动控制台");
+    ckConsoleEnable = new QCheckBox("启动控制台");
+
     //    ckRefreshClients = new QCheckBox("刷新客户端");
     btnStart = new QPushButton("选择文件");
 
-    //    btnConsoleClear = new QPushButton("清空控制台");
+    btnConsoleClear = new QPushButton("清空控制台");
+
     //    btnClients = new QPushButton("刷新客户端");
 
 
@@ -150,6 +240,17 @@ void ItemView10PE::initUI()
     tb_import_foa = new QLineEdit("");
     tb_resource_foa = new QLineEdit("");
     tb_base_relocation_foa = new QLineEdit("");
+
+    export_Name = new QLineEdit("");
+    export_Base = new QLineEdit("");
+    export_NumberOfFunctions = new QLineEdit("");
+    export_NumberOfNames = new QLineEdit("");
+    export_AddressOfFunctions = new QLineEdit("");
+    export_AddressOfNames = new QLineEdit("");
+    export_AddressOfNameOrdinals = new QLineEdit("");
+    export_AddressOfFunctions_foa = new QLineEdit("");
+    export_AddressOfNames_foa = new QLineEdit("");
+    export_AddressOfNameOrdinals_foa = new QLineEdit("");
 
 
     //    infoTableView = new QTableView(this);
@@ -266,11 +367,33 @@ void ItemView10PE::initUI()
     centerQWidgetGroupBox2Layout->addWidget(        tb_resource_foa,                 3, 3);
     centerQWidgetGroupBox2Layout->addWidget( tb_base_relocation_foa,                 4, 3);
 
-    //    centerQWidgetGroupBox1Layout->addWidget(ckConsoleEnable);
-    //    centerQWidgetGroupBox1Layout->addWidget(btnConsoleClear);
+    centerQWidgetGroupBox1Layout->addWidget(ckConsoleEnable);
+    centerQWidgetGroupBox1Layout->addWidget(btnConsoleClear);
+
     //    rightQWidgetGroupBox1Layout->addWidget(ckRefreshClients);
     //    rightQWidgetGroupBox1Layout->addWidget(      btnClients);
     //    rightQWidgetLayout->addWidget(infoTableView);
+
+    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("名称:"),                    1, 0);
+    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("Base:"),                  2, 0);
+    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("NumberOfFunctions:"),     3, 0);
+    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("NumberOfNames:"),         4, 0);
+    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("AddressOfFunctions:"),    5, 0);
+    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("AddressOfNameOrdinals:"), 6, 0);
+    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("AddressOfNames:"),        7, 0);
+    exportTabTabWidgetGroupBox1Layout->addWidget(                     export_Name,                                  1, 1);
+    exportTabTabWidgetGroupBox1Layout->addWidget(                     export_Base,                                  2, 1);
+    exportTabTabWidgetGroupBox1Layout->addWidget(        export_NumberOfFunctions,                                  3, 1);
+    exportTabTabWidgetGroupBox1Layout->addWidget(            export_NumberOfNames,                                  4, 1);
+    exportTabTabWidgetGroupBox1Layout->addWidget(       export_AddressOfFunctions,                                  5, 1);
+    exportTabTabWidgetGroupBox1Layout->addWidget(           export_AddressOfNames,                                  6, 1);
+    exportTabTabWidgetGroupBox1Layout->addWidget(    export_AddressOfNameOrdinals,                                  7, 1);
+    exportTabTabWidgetGroupBox1Layout->addWidget(   export_AddressOfFunctions_foa,                                  5, 3);
+    exportTabTabWidgetGroupBox1Layout->addWidget(export_AddressOfNameOrdinals_foa,                                  6, 3);
+    exportTabTabWidgetGroupBox1Layout->addWidget(       export_AddressOfNames_foa,                                  7, 3);
+    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("FOA:"),                   5, 2);
+    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("FOA:"),                   6, 2);
+    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("FOA:"),                   7, 2);
 
 
     layout->addWidget(  leftQWidget);
@@ -287,13 +410,18 @@ void ItemView10PE::initConnect()
         // 转char*
         //        auto str = fileName.toStdString();
         //        auto path = str.c_str();
-        LPVOID pFileBuffer = NULL;
+        if (pFileBuffer) {
+            free(pFileBuffer);
+        }
 
         auto size = Utils::ReadFile(path, &pFileBuffer);
 
         if ((size == NULL) || (pFileBuffer == NULL)) {
             return;
         }
+
+        // 重定位表指针
+        pRelocationTableBase = NULL;
 
 
         // 获取DosHeader
@@ -307,12 +435,14 @@ void ItemView10PE::initConnect()
         dos_e_lfanew->setText(QString::number(pDosHeader->e_lfanew, 16));
 
 
-        PIMAGE_SECTION_HEADER pSectionHeader = NULL;
+        pSectionHeader = NULL;
+        pNTHeader32 = NULL;
+        pNTHeader64 = NULL;
 
         // 判断32位
         if (*(PWORD)((size_t)pFileBuffer + pDosHeader->e_lfanew + 0x14) == 0x00E0) {
             // 获取NTHeader
-            PIMAGE_NT_HEADERS32 pNTHeader32 = (PIMAGE_NT_HEADERS32)((size_t)pFileBuffer + pDosHeader->e_lfanew);
+            pNTHeader32 = (PIMAGE_NT_HEADERS32)((size_t)pFileBuffer + pDosHeader->e_lfanew);
 
             if (pNTHeader32->Signature != IMAGE_NT_SIGNATURE) {
                 QMessageBox::warning(this, "警告", "nt header error!signature not match!");
@@ -404,9 +534,119 @@ void ItemView10PE::initConnect()
             if (removeCount > 0) {
                 tableGridModel->removeRows(pNTHeader32->FileHeader.NumberOfSections, removeCount);
             }
+
+            // 导出表
+            if (ExportTableFoa) {
+                PIMAGE_EXPORT_DIRECTORY pExportDirectory = NULL;
+                pExportDirectory =
+                    (PIMAGE_EXPORT_DIRECTORY)((size_t)pFileBuffer + ExportTableFoa);
+
+
+                export_Name->setText(QString::number(pExportDirectory->Name, 16).toUpper());
+                export_Base->setText(QString::number(pExportDirectory->Base, 16).toUpper());
+                export_NumberOfFunctions->setText(QString::number(pExportDirectory->NumberOfFunctions, 16).toUpper());
+                export_NumberOfNames->setText(QString::number(pExportDirectory->NumberOfNames, 16).toUpper());
+                export_AddressOfFunctions->setText(QString::number(pExportDirectory->AddressOfFunctions, 16).toUpper());
+                export_AddressOfNames->setText(QString::number(pExportDirectory->AddressOfNames, 16).toUpper());
+                export_AddressOfNameOrdinals->setText(QString::number(pExportDirectory->AddressOfNameOrdinals, 16).toUpper());
+
+
+                DWORD FunctionTableAddr = NULL;
+                DWORD NameTableAddr = NULL;
+                DWORD OrdinalTableAddr = NULL;
+
+                Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader,
+                                  pExportDirectory->AddressOfFunctions, &FunctionTableAddr);
+                Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader,
+                                  pExportDirectory->AddressOfNames, &NameTableAddr);
+                Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader,
+                                  pExportDirectory->AddressOfNameOrdinals, &OrdinalTableAddr);
+
+
+                export_AddressOfFunctions_foa->setText(QString::number(FunctionTableAddr, 16).toUpper());
+                export_AddressOfNames_foa->setText(QString::number(NameTableAddr, 16).toUpper());
+                export_AddressOfNameOrdinals_foa->setText(QString::number(OrdinalTableAddr, 16).toUpper());
+
+                PDWORD arr_fun = NULL;
+                PDWORD arr_name = NULL;
+                PWORD arr_ord = NULL;
+                arr_fun = (PDWORD)((size_t)pFileBuffer + FunctionTableAddr);    // 得到指向AddressOfFunction的指针
+                arr_name = (PDWORD)((size_t)pFileBuffer + NameTableAddr);       // 得到指向AddressOfNames的指针
+                arr_ord = (PWORD)((size_t)pFileBuffer + OrdinalTableAddr);      // 得到指向AddressOfNameOrdinal的指针
+
+
+                for (DWORD i = 0; i < pExportDirectory->NumberOfFunctions; i++) // 遍历函数表
+                {
+                    exportGridModel->setItem(i, 0, new QStandardItem(QString::number(i)));
+
+                    exportGridModel->setItem(i, 1, new QStandardItem(QString::number(arr_fun[i], 16).toUpper()));
+                    DWORD foa = 0;
+                    Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, arr_fun[i], &foa);
+                    exportGridModel->setItem(i, 2, new QStandardItem(QString::number(foa, 16).toUpper()));
+                }
+
+                auto removeCount = exportGridModel->rowCount() -  pExportDirectory->NumberOfFunctions;
+
+                if (removeCount > 0) {
+                    exportGridModel->removeRows(pExportDirectory->NumberOfFunctions, removeCount);
+                }
+
+
+                for (DWORD i = 0; i < pExportDirectory->NumberOfNames; i++) // 遍历name
+                {
+                    DWORD  name_rva = *(arr_name + i);
+
+                    if (name_rva) {
+                        DWORD  name_foa = 0;
+                        Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, name_rva, &name_foa);
+
+                        if (name_foa) {
+                            auto ordinal = *(arr_ord + i);
+                            exportGridModel->setItem(ordinal, 3, new QStandardItem(QString::number(ordinal, 16).toUpper()));
+                            exportGridModel->setItem(ordinal, 4, new QStandardItem(tr((char *)((size_t)pFileBuffer + name_foa))));
+                        }
+                    }
+                }
+            }
+
+            // 重定位表
+            if (RelocationTableFoa) {
+                pRelocationTableBase = (PIMAGE_BASE_RELOCATION)((size_t)pFileBuffer + RelocationTableFoa);
+                PIMAGE_BASE_RELOCATION pRelocationTable = pRelocationTableBase;
+                int i = 0;
+
+                while (1)
+                {
+                    if ((pRelocationTable->SizeOfBlock == 0) && (pRelocationTable->VirtualAddress == 0)) {
+                        break;
+                    }
+                    int num_of_addr = (pRelocationTable->SizeOfBlock - 8) / 2;
+                    relocationGridModel->setItem(i, 1, new QStandardItem(QString::number(pRelocationTable->VirtualAddress, 16).toUpper()));
+                    relocationGridModel->setItem(i, 2, new QStandardItem(QString::number(num_of_addr).toUpper()));
+                    relocationGridModel->setItem(i, 3, new QStandardItem(QString::number(pRelocationTable->SizeOfBlock).toUpper()));
+
+// 明细
+//                    PDWORD t_pAddr = NULL;
+//                    t_pAddr = (PDWORD)((size_t)pRelocationTable + 8);
+
+//                    for (int i = 0; i < num_of_addr; i++)
+//                    {
+//                        if ((t_pAddr[i] & 0x3000) == 0x3000) // 判断高三位是否为0011
+//                        {
+//                            (t_pAddr[i] & 0xfff) + pRelocationTable->VirtualAddress;
+//                        } else {}
+
+//                        else cout << "the first 4 bits are not 0011!" << endl;
+//                    }
+
+                    pRelocationTable = (PIMAGE_BASE_RELOCATION)((size_t)pRelocationTable + pRelocationTable->SizeOfBlock);
+
+                    i++;
+                }
+            }
         } else {
             // 获取NTHeader
-            PIMAGE_NT_HEADERS64 pNTHeader64 = (PIMAGE_NT_HEADERS64)((size_t)pFileBuffer + pDosHeader->e_lfanew);
+            pNTHeader64 = (PIMAGE_NT_HEADERS64)((size_t)pFileBuffer + pDosHeader->e_lfanew);
 
             if (pNTHeader64->Signature != IMAGE_NT_SIGNATURE) {
                 QMessageBox::warning(this, "警告", "nt header error!signature not match!");
@@ -500,6 +740,171 @@ void ItemView10PE::initConnect()
             if (removeCount > 0) {
                 tableGridModel->removeRows(pNTHeader64->FileHeader.NumberOfSections, removeCount);
             }
+
+            // 导出表
+            if (ExportTableFoa) {
+                PIMAGE_EXPORT_DIRECTORY pExportDirectory = NULL;
+                pExportDirectory =
+                    (PIMAGE_EXPORT_DIRECTORY)((size_t)pFileBuffer + ExportTableFoa);
+
+
+                export_Name->setText(QString::number(pExportDirectory->Name, 16).toUpper());
+                export_Base->setText(QString::number(pExportDirectory->Base, 16).toUpper());
+                export_NumberOfFunctions->setText(QString::number(pExportDirectory->NumberOfFunctions, 16).toUpper());
+                export_NumberOfNames->setText(QString::number(pExportDirectory->NumberOfNames, 16).toUpper());
+                export_AddressOfFunctions->setText(QString::number(pExportDirectory->AddressOfFunctions, 16).toUpper());
+                export_AddressOfNames->setText(QString::number(pExportDirectory->AddressOfNames, 16).toUpper());
+                export_AddressOfNameOrdinals->setText(QString::number(pExportDirectory->AddressOfNameOrdinals, 16).toUpper());
+
+
+                DWORD FunctionTableAddr = NULL;
+                DWORD NameTableAddr = NULL;
+                DWORD OrdinalTableAddr = NULL;
+
+                Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader,
+                                     pExportDirectory->AddressOfFunctions, &FunctionTableAddr);
+                Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader,
+                                     pExportDirectory->AddressOfNames, &NameTableAddr);
+                Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader,
+                                     pExportDirectory->AddressOfNameOrdinals, &OrdinalTableAddr);
+
+
+                export_AddressOfFunctions_foa->setText(QString::number(FunctionTableAddr, 16).toUpper());
+                export_AddressOfNames_foa->setText(QString::number(NameTableAddr, 16).toUpper());
+                export_AddressOfNameOrdinals_foa->setText(QString::number(OrdinalTableAddr, 16).toUpper());
+
+                PDWORD arr_fun = NULL;
+                PDWORD arr_name = NULL;
+                PWORD arr_ord = NULL;
+                arr_fun = (PDWORD)((size_t)pFileBuffer + FunctionTableAddr);    // 得到指向AddressOfFunction的指针
+                arr_name = (PDWORD)((size_t)pFileBuffer + NameTableAddr);       // 得到指向AddressOfNames的指针
+                arr_ord = (PWORD)((size_t)pFileBuffer + OrdinalTableAddr);      // 得到指向AddressOfNameOrdinal的指针
+
+
+                for (DWORD i = 0; i < pExportDirectory->NumberOfFunctions; i++) // 遍历函数表
+                {
+                    exportGridModel->setItem(i, 0, new QStandardItem(QString::number(i)));
+
+                    exportGridModel->setItem(i, 1, new QStandardItem(QString::number(arr_fun[i], 16).toUpper()));
+                    DWORD foa = 0;
+                    Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, arr_fun[i], &foa);
+                    exportGridModel->setItem(i, 2, new QStandardItem(QString::number(foa, 16).toUpper()));
+                }
+
+                auto removeCount = exportGridModel->rowCount() -  pExportDirectory->NumberOfFunctions;
+
+                if (removeCount > 0) {
+                    exportGridModel->removeRows(pExportDirectory->NumberOfFunctions, removeCount);
+                }
+
+
+                for (DWORD i = 0; i < pExportDirectory->NumberOfNames; i++) // 遍历name
+                {
+                    DWORD  name_rva = *(arr_name + i);
+
+                    if (name_rva) {
+                        DWORD  name_foa = 0;
+                        Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, name_rva, &name_foa);
+
+                        if (name_foa) {
+                            auto ordinal = *(arr_ord + i);
+                            exportGridModel->setItem(ordinal, 3, new QStandardItem(QString::number(ordinal, 16).toUpper()));
+                            exportGridModel->setItem(ordinal, 4, new QStandardItem(tr((char *)((size_t)pFileBuffer + name_foa))));
+                        }
+                    }
+                }
+            }
+
+            // 重定位表
+            if (RelocationTableFoa) {
+                pRelocationTableBase = (PIMAGE_BASE_RELOCATION)((size_t)pFileBuffer + RelocationTableFoa);
+                PIMAGE_BASE_RELOCATION pRelocationTable = pRelocationTableBase;
+                int i = 0;
+
+                while (1)
+                {
+                    if ((pRelocationTable->SizeOfBlock == 0) && (pRelocationTable->VirtualAddress == 0)) {
+                        break;
+                    }
+                    int num_of_addr = (pRelocationTable->SizeOfBlock - 8) / 2;
+                    relocationGridModel->setItem(i, 1, new QStandardItem(QString::number(pRelocationTable->VirtualAddress, 16).toUpper()));
+                    relocationGridModel->setItem(i, 2, new QStandardItem(QString::number(num_of_addr).toUpper()));
+                    relocationGridModel->setItem(i, 3, new QStandardItem(QString::number(pRelocationTable->SizeOfBlock).toUpper()));
+
+// 明细
+//                    PDWORD t_pAddr = NULL;
+//                    t_pAddr = (PDWORD)((size_t)pRelocationTable + 8);
+
+//                    for (int i = 0; i < num_of_addr; i++)
+//                    {
+//                        if ((t_pAddr[i] & 0x3000) == 0x3000) // 判断高三位是否为0011
+//                        {
+//                            (t_pAddr[i] & 0xfff) + pRelocationTable->VirtualAddress;
+//                        } else {}
+
+//                        else cout << "the first 4 bits are not 0011!" << endl;
+//                    }
+
+                    pRelocationTable = (PIMAGE_BASE_RELOCATION)((size_t)pRelocationTable + pRelocationTable->SizeOfBlock);
+
+                    i++;
+                }
+            }
         }
     });
+
+
+    connect(relocationTableView, &QTableView::doubleClicked, [this](const QModelIndex& current) {
+        auto rowIndex = current.row();
+
+        int i = 0;
+
+
+        PIMAGE_BASE_RELOCATION pRelocationTable = pRelocationTableBase;
+
+        while (1)
+        {
+            if (i == rowIndex) {
+                int num_of_addr = (pRelocationTable->SizeOfBlock - 8) / 2;
+                PWORD t_pAddr = NULL;
+                t_pAddr = (PWORD)((size_t)pRelocationTable + 8);
+                int removeAdd = 0;
+
+                for (int j = 0; j < num_of_addr; j++)
+                {
+                    if (((t_pAddr[j] & 0x3000) == 0x3000) || ((t_pAddr[j] & 0x2000) == 0x2000)) // 判断高三位是否为0011
+                    {
+                        auto rva = (t_pAddr[j] & 0xfff) + pRelocationTable->VirtualAddress;
+                        relocation2GridModel->setItem(j, 0, new QStandardItem(QString::number(rva, 16).toUpper()));
+                        DWORD foa = 0;
+
+                        if (pNTHeader32) {
+                            Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, rva, &foa);
+                        } else {
+                            Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, rva, &foa);
+                        }
+                        relocation2GridModel->setItem(j, 1, new QStandardItem(QString::number(foa, 16).toUpper()));
+                    } else {
+//                        cout << "the first 4 bits are not 0011!" << endl;
+                        removeAdd++;
+                        continue;
+                    }
+                }
+
+                auto removeCount = relocation2GridModel->rowCount() -  (num_of_addr  + removeAdd);
+
+                if (removeCount > 0) {
+                    relocation2GridModel->removeRows(num_of_addr - removeAdd, removeCount + removeAdd);
+                }
+
+                break;
+            } else {
+                pRelocationTable = (PIMAGE_BASE_RELOCATION)((size_t)pRelocationTable + pRelocationTable->SizeOfBlock);
+                i++;
+            }
+        }
+    });
+
+    //        SLOT(leftTabFavorTableRowDoubleClicked(const QModelIndex&)));
+    //    connect(relocationTableView,  SIGNAL(clicked(const QModelIndex&)),       this, SLOT(fileTableRowClicked(const QModelIndex&)));
 }

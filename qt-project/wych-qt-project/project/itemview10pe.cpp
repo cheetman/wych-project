@@ -4,6 +4,7 @@
 #include "utils.h"
 
 #include <QTextCodec>
+#include <tchar.h>
 
 
 ItemView10PE::ItemView10PE(QWidget *parent)
@@ -106,7 +107,7 @@ void ItemView10PE::initUI()
     rightQWidgetLayout->addWidget(rightQWidgetGroupBox1);
 
 
-    // 第四层
+    // 第四层(导出)
     auto exportTabTabWidgetGroupBox1 = new QGroupBox("头部", tab);
     exportTabTabWidgetLayout->addWidget(exportTabTabWidgetGroupBox1);
 
@@ -162,6 +163,15 @@ void ItemView10PE::initUI()
 
 
     // 第四层(导入)
+
+    auto importTabTabWidgetGroupBox3 = new QGroupBox("操作", tab2);
+    importTabTabWidgetLayout->addWidget(importTabTabWidgetGroupBox3);
+    importTabTabWidgetLayout->setAlignment(Qt::AlignTop);
+    auto importTabTabWidgetGroupBoxLayout3 = new QHBoxLayout(importTabTabWidgetGroupBox3);
+    importTabTabWidgetGroupBox3->setFixedHeight(60);
+    btnImportAdd = new QPushButton("新增DLL");
+    importTabTabWidgetGroupBoxLayout3->addWidget(btnImportAdd);
+
     auto importTabTabWidgetGroupBox = new QGroupBox("DLL", tab2);
     importTabTabWidgetLayout->addWidget(importTabTabWidgetGroupBox);
     importTabTabWidgetLayout->setAlignment(Qt::AlignTop);
@@ -401,10 +411,30 @@ void ItemView10PE::initUI()
     layout->addWidget( rightQWidget);
 }
 
+char t_NameOfNewSectionHeader[6] = { 'Y', 'U', 'C', 'H', 'U', 'A' };
+
 void ItemView10PE::initConnect()
 {
+    connect(btnImportAdd, &QPushButton::clicked, [this]() {
+        QString fileName = QFileDialog::getOpenFileName(this, tr("文件对话框！"), "F:", tr("动态链接库(*dll *exe)"));
+
+        if (fileName.isEmpty()) {
+            return;
+        }
+        auto path = (wchar_t *)fileName.utf16();
+
+        InjectImportTable();
+
+        //        CreateNewSection(pFileBuffer, pDosHeader, pNTHeader32, pSectionHeader, fileSize, 0x2000, t_NameOfNewSectionHeader);
+    });
+
+
     connect(btnStart, &QPushButton::clicked, [this]() {
-        QString fileName = QFileDialog::getOpenFileName(this, tr("文件对话框！"), "F:", tr("动态链接库(*dll *jpg);;" "执行文件(*exe)"));
+        QString fileName = QFileDialog::getOpenFileName(this, tr("文件对话框！"), "F:", tr("动态链接库(*dll *exe);;" "执行文件(*exe)"));
+
+        if (fileName.isEmpty()) {
+            return;
+        }
         auto path = (wchar_t *)fileName.utf16();
 
         // 转char*
@@ -414,22 +444,24 @@ void ItemView10PE::initConnect()
             free(pFileBuffer);
         }
 
-        auto size = Utils::ReadFile(path, &pFileBuffer);
+        fileSize = Utils::ReadFile(path, &pFileBuffer);
 
-        if ((size == NULL) || (pFileBuffer == NULL)) {
+        if ((fileSize == NULL) || (pFileBuffer == NULL)) {
             return;
         }
 
         // 重定位表指针
         pRelocationTableBase = NULL;
 
+        //        FilePath = path;
+        wcscpy(FilePath, path);
 
         // 获取DosHeader
         if (*((PWORD)pFileBuffer) != IMAGE_DOS_SIGNATURE) {
             QMessageBox::warning(this, "警告", "the first word is not MZ!");
             return;
         }
-        PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)pFileBuffer;
+        pDosHeader = (PIMAGE_DOS_HEADER)pFileBuffer;
 
         dos_e_magic->setText(QString::number(pDosHeader->e_magic, 16));
         dos_e_lfanew->setText(QString::number(pDosHeader->e_lfanew, 16));
@@ -1068,4 +1100,134 @@ bool ItemView10PE::RVA_TO_FOA(PIMAGE_NT_HEADERS32 pNTHeader32,
     } else {
         return Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, RVA, FOA);
     }
+}
+
+bool ItemView10PE::FOA_TO_RVA(PIMAGE_NT_HEADERS32 pNTHeader32,
+                              PIMAGE_NT_HEADERS64 pNTHeader64,
+                              PIMAGE_SECTION_HEADER pSectionHeader, IN DWORD FOA,
+                              OUT PDWORD RVA) {
+    if (pNTHeader32) {
+        return Utils::FOA_TO_RVA(pNTHeader32, pSectionHeader, FOA, RVA);
+    } else {
+        return Utils::FOA_TO_RVA_64(pNTHeader64, pSectionHeader, FOA, RVA);
+    }
+}
+
+void ItemView10PE::CreateNewSection(LPVOID                pFileBuffer,
+                                    PIMAGE_DOS_HEADER     pDosHeader,
+                                    PIMAGE_NT_HEADERS32   pNTHeader,
+                                    PIMAGE_SECTION_HEADER pFirstSectionHeader,
+                                    size_t                file_size,
+                                    size_t                size_of_new_section,
+                                    LPSTR                 NameOfNewSetionHeader)
+{
+    PIMAGE_SECTION_HEADER pNewSectionHeader = pFirstSectionHeader + pNTHeader->FileHeader.NumberOfSections;
+
+
+    // 判断最后一个节表末尾是否有能存放两个节表的空闲空间
+    if (pNTHeader->OptionalHeader.SizeOfHeaders - (pDosHeader->e_lfanew + sizeof(IMAGE_NT_HEADERS32) + pNTHeader->FileHeader.NumberOfSections * sizeof(IMAGE_SECTION_HEADER)) < sizeof(IMAGE_SECTION_HEADER) * 2)
+    {
+        QMessageBox::warning(this, "警告", "not enough space to add  section header!");
+        return;
+    }
+
+    //       EXIT_ERROR("not enough space to add  section header!");
+    memset(pNewSectionHeader + 1, 0, sizeof(IMAGE_SECTION_HEADER)); // 在添加的节表后面填充0
+
+    pNTHeader->FileHeader.NumberOfSections += 1;
+    pNTHeader->OptionalHeader.SizeOfImage += size_of_new_section;   // 修正PE头
+
+    realloc(pFileBuffer, file_size + size_of_new_section * 2);      // 在末尾增加需要增加的大小
+    // memset((PBYTE)pFileBuffer + size_of_new_section, 0,
+    // pNTHeader->OptionalHeader.FileAlignment);
+    // 再增加一个文件对齐大小的0
+
+    // 拷贝一个节表结构
+    memcpy(pNewSectionHeader, pFirstSectionHeader,   sizeof(IMAGE_SECTION_HEADER));
+
+    // 拷贝节表名称
+    memcpy(pNewSectionHeader, NameOfNewSetionHeader, sizeof(NameOfNewSetionHeader));
+
+    // 修改节表地址相关
+    pNewSectionHeader->Misc.VirtualSize = size_of_new_section;
+
+    PIMAGE_SECTION_HEADER t_LastSectionHeader = pNewSectionHeader - 1;
+    pNewSectionHeader->PointerToRawData = t_LastSectionHeader->PointerToRawData + t_LastSectionHeader->SizeOfRawData;
+    pNewSectionHeader->SizeOfRawData = size_of_new_section;
+    pNewSectionHeader->VirtualAddress = t_LastSectionHeader->VirtualAddress + t_LastSectionHeader->SizeOfRawData;
+}
+
+void ItemView10PE::InjectImportTable() {
+    CreateNewSection(pFileBuffer, pDosHeader, pNTHeader32, pSectionHeader, fileSize, 0x2000, t_NameOfNewSectionHeader);
+
+    DWORD ImportTable_FOA = 0;
+
+    if (!RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, pNTHeader32->OptionalHeader.DataDirectory[1].VirtualAddress, &ImportTable_FOA)) {
+        QMessageBox::warning(this, "警告", "rva to foa error!");
+        return;
+    }
+
+    DWORD t_rva = 0;
+    PIMAGE_IMPORT_DESCRIPTOR pImportDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)((size_t)pFileBuffer + ImportTable_FOA);
+    PIMAGE_IMPORT_DESCRIPTOR pNewImportDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)((size_t)pFileBuffer + fileSize + 0x10);
+    memset((LPVOID)((size_t)pFileBuffer + fileSize), 0, 0x1000);
+
+    PIMAGE_IMPORT_DESCRIPTOR t = pNewImportDescriptor;
+
+    while (pImportDescriptor->FirstThunk != 0 /*|| pImportDescriptor->OriginalFirstThunk != 0*/) // 导入表迁移
+    {
+        memcpy(pNewImportDescriptor, pImportDescriptor, sizeof(IMAGE_IMPORT_DESCRIPTOR));
+        pImportDescriptor++, pNewImportDescriptor++;
+    }
+
+    memset(pNewImportDescriptor, 0, sizeof(IMAGE_IMPORT_DESCRIPTOR) * 2);
+
+    // INT 表 IAT 表
+    PDWORD pNewINT = (PDWORD)((size_t)pFileBuffer + fileSize + 0x200);
+    PDWORD pNewIAT = (PDWORD)((size_t)pFileBuffer + fileSize + 0x300);
+    PIMAGE_IMPORT_BY_NAME pNewName = (PIMAGE_IMPORT_BY_NAME)((size_t)pFileBuffer + fileSize + 0x400);
+
+
+    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x200, &t_rva);
+    pNewImportDescriptor->OriginalFirstThunk = t_rva; // 修正导入表中INT指针
+    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x300, &t_rva);
+    pNewImportDescriptor->FirstThunk = t_rva;         // 修正导入表中IAT指针
+    pNewName->Hint = 0;
+    char funname[] = "ExportFunction";
+
+    // if (memcpy(pNewName->Name, funname, strlen(funname)))
+    //	printf("memcpy error!\n");
+    for (int i = 0; i < strlen(funname); i++) pNewName->Name[i] = funname[i];  // 修正Name表的函数名称
+
+    // Name表的rva 迁移
+    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x400, &t_rva);
+    *pNewIAT = t_rva; // 修正INT表指针
+    *pNewINT = t_rva; // 修正IAT表指针
+    *(pNewINT + 1) = 0;
+    *(pNewIAT + 1) = 0;
+
+
+    char dllname[] = "InjectDll.dll";
+
+    // if(memcpy((LPVOID)((DWORD)pFileBuffer+ file_size + 0x500), dllname, strlen(dllname)))
+    //	printf("memcpy error!\n");
+    PCHAR t_pchar = (PCHAR)((size_t)pFileBuffer + fileSize + 0x500);
+
+    for (int i = 0; i < strlen(dllname); i++) t_pchar[i] = dllname[i];
+
+    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x500, &t_rva);
+    pNewImportDescriptor->Name = t_rva;                                  // 修正导入表DLL名称
+
+    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x10,  &t_rva);
+    pNTHeader32->OptionalHeader.DataDirectory[1].VirtualAddress = t_rva; // 修正导入表指针
+    pNTHeader32->OptionalHeader.DataDirectory[1].Size += sizeof(IMAGE_IMPORT_DESCRIPTOR);
+
+    t->TimeDateStamp = 0;
+
+    // 写入文件
+    FILE *fp = _tfopen(FilePath, TEXT("wb"));
+    fwrite(pFileBuffer, fileSize + 0x2000 * 2, 1, fp);
+
+    // memset((LPVOID)((DWORD)pFileBuffer + file_size + 0x2000), 7, 0x2000);
+    fclose(fp);
 }

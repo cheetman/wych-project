@@ -23,6 +23,16 @@ public:
                               PIMAGE_SECTION_HEADER pSectionHeader,
                               IN DWORD              RVA,
                               OUT PDWORD            FOA);
+    static  bool FOA_TO_RVA(
+        PIMAGE_NT_HEADERS32   pNTHeader,
+        PIMAGE_SECTION_HEADER pSectionHeader,
+        IN DWORD              FOA,
+        OUT PDWORD            RVA);
+    static  bool FOA_TO_RVA_64(
+        PIMAGE_NT_HEADERS64   pNTHeader,
+        PIMAGE_SECTION_HEADER pSectionHeader,
+        IN DWORD              FOA,
+        OUT PDWORD            RVA);
 };
 
 #endif // UTILS_H

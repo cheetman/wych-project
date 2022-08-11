@@ -145,3 +145,57 @@ bool Utils::RVA_TO_FOA_64(
 
     return false; // 如果一直没有找到，返回false
 }
+
+bool Utils::FOA_TO_RVA(
+    PIMAGE_NT_HEADERS32 pNTHeader,
+    PIMAGE_SECTION_HEADER pSectionHeader, IN DWORD FOA,
+    OUT PDWORD RVA)
+{
+    if ((FOA < pNTHeader->OptionalHeader.SizeOfHeaders) ||
+        (pNTHeader->OptionalHeader.SectionAlignment ==
+         pNTHeader->OptionalHeader.FileAlignment))
+    {
+        *RVA = FOA;
+        return true;
+    }
+
+    for (int i = 0; i < pNTHeader->FileHeader.NumberOfSections; i++)
+    {
+        if ((FOA >= pSectionHeader[i].PointerToRawData) &&
+            (FOA < pSectionHeader[i].PointerToRawData +
+             pSectionHeader[i].Misc.VirtualSize))
+        {
+            *RVA = pSectionHeader[i].VirtualAddress + FOA -
+                   pSectionHeader[i].PointerToRawData;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Utils::FOA_TO_RVA_64(
+    PIMAGE_NT_HEADERS64 pNTHeader,
+    PIMAGE_SECTION_HEADER pSectionHeader, IN DWORD FOA,
+    OUT PDWORD RVA)
+{
+    if ((FOA < pNTHeader->OptionalHeader.SizeOfHeaders) ||
+        (pNTHeader->OptionalHeader.SectionAlignment ==
+         pNTHeader->OptionalHeader.FileAlignment))
+    {
+        *RVA = FOA;
+        return true;
+    }
+
+    for (int i = 0; i < pNTHeader->FileHeader.NumberOfSections; i++)
+    {
+        if ((FOA >= pSectionHeader[i].PointerToRawData) &&
+            (FOA < pSectionHeader[i].PointerToRawData +
+             pSectionHeader[i].Misc.VirtualSize))
+        {
+            *RVA = pSectionHeader[i].VirtualAddress + FOA -
+                   pSectionHeader[i].PointerToRawData;
+            return true;
+        }
+    }
+    return false;
+}

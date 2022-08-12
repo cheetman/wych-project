@@ -34,6 +34,7 @@ MAKE_LFLAGS += "/STACK:65536,4096"
 SOURCES += \
 #    itemview7.cpp \
     itemview10.cpp \
+    itemview10Inject.cpp \
     itemview10pe.cpp \
     itemview7player.cpp \
     itemview7vlcplayer.cpp \
@@ -57,6 +58,7 @@ SOURCES += \
 
 HEADERS += \
 #    itemview7.h \
+    itemview10Inject.h \
     itemview10.h \
     itemview10pe.h \
     itemview7player.h \

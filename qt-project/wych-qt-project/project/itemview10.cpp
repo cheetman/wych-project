@@ -1,4 +1,5 @@
 
+#include "itemview10Inject.h"
 #include "itemview10.h"
 #include "itemview10pe.h"
 #include "utils.h"
@@ -13,5 +14,6 @@ ItemView10::ItemView10(QWidget *parent) : QWidget(parent)
 
     tabLayout->addWidget(tabWidget);
 
-    tabWidget->addTab(new ItemView10PE(this), tr("PE结构"));
+    tabWidget->addTab(new ItemView10PE(this),     tr("PE结构"));
+    tabWidget->addTab(new Itemview10Inject(this), tr("注入"));
 }

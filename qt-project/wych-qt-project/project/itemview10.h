@@ -23,10 +23,11 @@
 #include <QTableWidget>
 #include <QLineEdit>
 
-#include <winsock2.h>
-#include <Windows.h>
-#include <tlhelp32.h>
-#include <winternl.h>
+// #include <winsock2.h>
+ #include <Windows.h>
+
+// #include <tlhelp32.h>
+// #include <winternl.h>
 
 
 class ItemView10 : public QWidget {

@@ -41,6 +41,12 @@ void Itemview10Inject::initUI()
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout2 = new QGridLayout(leftQWidgetGroupBox2);
 
+
+    auto leftQWidgetGroupBox3 = new QGroupBox("模块", this);
+    leftQWidgetLayout->addWidget(leftQWidgetGroupBox3);
+    leftQWidgetLayout->setAlignment(Qt::AlignTop);
+    auto leftQWidgetGroup1Layout3 = new QGridLayout(leftQWidgetGroupBox3);
+
     //    leftQWidgetGroupBox2->setFixedHeight(130);
 
     processTableView = new QTableView(this);
@@ -53,11 +59,14 @@ void Itemview10Inject::initUI()
     leftQWidgetGroup1Layout2->addWidget(processTableView);
 
 
-    //    auto leftQWidgetGroupBox3 = new QGroupBox("可选PE头", this);
-    //    leftQWidgetLayout->addWidget(leftQWidgetGroupBox3);
-    //    leftQWidgetLayout->setAlignment(Qt::AlignTop);
-    //    auto leftQWidgetGroup1Layout3 = new QGridLayout(leftQWidgetGroupBox3);
-    //    leftQWidgetGroupBox3->setFixedHeight(400);
+    moduleTableView = new QTableView(this);
+    moduleGridModel = new QStandardItemModel();
+    moduleGridModel->setHorizontalHeaderLabels({  "模块名称", "模块基址",  "模块大小" });
+    moduleTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    moduleTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    moduleTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    moduleTableView->setModel(moduleGridModel);
+    leftQWidgetGroup1Layout3->addWidget(moduleTableView);
 
 
     // 第一层
@@ -216,6 +225,7 @@ void Itemview10Inject::initUI()
     //    ckRefreshClients = new QCheckBox("刷新客户端");
     btnStart = new QPushButton("刷新进程");
     btnRemoteInject = new QPushButton("远程线程注入(32位测试通过)");
+    btnReflectiveInject = new QPushButton("反射注入");
 
     btnConsoleClear = new QPushButton("清空控制台");
 
@@ -226,8 +236,9 @@ void Itemview10Inject::initUI()
     auto lb_e_lfanew = new QLabel("e_lfanew:");
     lb_e_magic->setPalette(pe);
     lb_e_lfanew->setPalette(pe);
-    leftQWidgetGroup1Layout->addWidget(btnStart,        0, 0);
-    leftQWidgetGroup1Layout->addWidget(btnRemoteInject, 0, 1);
+    leftQWidgetGroup1Layout->addWidget(btnStart,            0, 0);
+    leftQWidgetGroup1Layout->addWidget(btnRemoteInject,     0, 1);
+    leftQWidgetGroup1Layout->addWidget(btnReflectiveInject, 0, 2);
 
 
     layout->addWidget(leftQWidget);
@@ -237,6 +248,91 @@ void Itemview10Inject::initUI()
 
 void Itemview10Inject::initConnect()
 {
+    // 反射注入
+    connect(btnReflectiveInject, &QPushButton::clicked, [this]() {
+        auto rowIndex = processTableView->currentIndex().row();
+
+        if (rowIndex < 0) {
+            return;
+        }
+
+        auto pidStr =  processGridModel->item(rowIndex, 1)->text();
+
+        int pid = pidStr.toInt();
+
+
+        QString fileName = QFileDialog::getOpenFileName(this, tr("文件对话框！"), "F:", tr("动态链接库(*dll *exe);"));
+
+        if (fileName.isEmpty()) {
+            return;
+        }
+        auto path = (wchar_t *)fileName.utf16();
+
+        HANDLE hFile = NULL;
+        HANDLE hModule = NULL;
+        HANDLE hProcess = NULL;
+        LPVOID lpBuffer = NULL;
+        DWORD dwLength = 0;
+        DWORD dwBytesRead = 0;
+
+        do
+        {
+            hFile = CreateFileW(path, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+            if (hFile == INVALID_HANDLE_VALUE) {
+                QMessageBox::warning(this, "警告", "Failed to open the DLL file!");
+                return;
+            }
+
+            dwLength = GetFileSize(hFile, NULL);
+
+            if ((dwLength == INVALID_FILE_SIZE) || (dwLength == 0)) {
+                QMessageBox::warning(this, "警告", "Failed to get the DLL file size!");
+                return;
+            }
+
+        #ifdef _DEBUG
+            wprintf(TEXT("[+] File Size: %d\n"), dwLength);
+        #endif // ifdef _DEBUG
+
+            lpBuffer = HeapAlloc(GetProcessHeap(), 0, dwLength);
+
+            if (!lpBuffer) {
+                QMessageBox::warning(this, "警告", "Failed to get the DLL file size!");
+                return;
+            }
+
+            if (ReadFile(hFile, lpBuffer, dwLength, &dwBytesRead, NULL) == FALSE)  {
+                QMessageBox::warning(this, "警告", "Failed to alloc a buffer!");
+                return;
+            }
+
+
+            hProcess = OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, FALSE, pid);
+
+            if (!hProcess) {
+                QMessageBox::warning(this, "警告", "Failed to open the target process!");
+                return;
+            }
+
+            hModule = Utils::LoadRemoteLibraryR(hProcess, lpBuffer, dwLength, NULL);
+
+            if (!hModule) {
+                QMessageBox::warning(this, "警告", "Failed to inject the DLL!");
+                return;
+            }
+
+            //                wprintf(TEXT("[+] Injected '%s' into process ID %d!"), cpDllFile, dwProcessId);
+
+            WaitForSingleObject(hModule, -1);
+        } while (0);
+
+        if (lpBuffer) HeapFree(GetProcessHeap(), 0, lpBuffer);
+
+        if (hProcess) CloseHandle(hProcess);
+    });
+
+
     // 远程线程加载DLL
     connect(btnRemoteInject, &QPushButton::clicked, [this]() {
         auto rowIndex = processTableView->currentIndex().row();
@@ -249,19 +345,25 @@ void Itemview10Inject::initConnect()
 
         int pid = pidStr.toInt();
 
-        DWORD dwProcessID = pid;
-        const char *szDllpathName = "C:\\WorkMe\\wych-csharp-project\\bin\\Win32\\Release\\InjectTestDll.dll";
+        QString fileName = QFileDialog::getOpenFileName(this, tr("文件对话框！"), "F:", tr("动态链接库(*dll *exe);"));
+
+        if (fileName.isEmpty()) {
+            return;
+        }
+        auto path = (wchar_t *)fileName.utf16();
 
 
         HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
 
         // 准备参数(1.参数要放在A进程中)
-        //        char string_inject[] = "InjectTestDll.dll";
-        //                char string_inject[] =  "C:\\WorkMe\\wych-csharp-project\\bin\\Win32\\Release\\InjectTestDll.dll";
-        //                const char *string_inject2 =  "C:\\WorkMe\\wych-csharp-project\\bin\\Win32\\Release\\InjectTestDll.dll";
+        //        const char *szDllpathName = "C:\\WorkMe\\wych-csharp-project\\bin\\Win32\\Release\\InjectTestDll.dll";
 
+
+        DWORD dwSize = (lstrlenW(path) + 1) * sizeof(wchar_t);
+
+        //         DWORD dwSize = strlen(szDllpathName) + 1;
         // 在进程中分配内存
-        LPVOID baseAddr = ::VirtualAllocEx(hProcess, NULL, strlen(szDllpathName) + 1, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+        LPVOID baseAddr = ::VirtualAllocEx(hProcess, NULL, dwSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
         if (baseAddr == NULL) {
             QMessageBox::warning(this, "警告", "VirtualAllocEx failure");
@@ -271,7 +373,7 @@ void Itemview10Inject::initConnect()
         // 写入内存
         SIZE_T NumberOfBytesWritten = 0;
 
-        if (!WriteProcessMemory(hProcess, baseAddr, szDllpathName, strlen(szDllpathName) + 1, &NumberOfBytesWritten)) {
+        if (!WriteProcessMemory(hProcess, baseAddr, path, dwSize, &NumberOfBytesWritten)) {
             QMessageBox::warning(this, "警告", "WriteProcessMemory failure");
             return;
         }
@@ -279,7 +381,7 @@ void Itemview10Inject::initConnect()
         // 创建远程线程(2.直接调用LoadLibrary)
         //        HMODULE hModule = GetModuleHandle(L"kernel32.dll");
         //        DWORD dwLoadAddr = (DWORD)GetProcAddress(hModule, "LoadLibraryA");
-        HANDLE hRemoteThread = ::CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)LoadLibraryA, /*TODO: */ baseAddr, 0, NULL);
+        HANDLE hRemoteThread = ::CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)LoadLibraryW, /*TODO: */ baseAddr, 0, NULL);
 
         // 3、等待线程函数结束， 获取线程退出码,即LoadLibrary的返回值，即dll的首地址
         WaitForSingleObject(hRemoteThread, -1);
@@ -290,11 +392,14 @@ void Itemview10Inject::initConnect()
             return;
         }
 
-        QMessageBox::warning(this, "警告", QString::number(GetLastError()));
+        //        QMessageBox::warning(this, "警告", QString::number(GetLastError()));
     });
 
 
     connect(btnStart, &QPushButton::clicked, [this]() {
+        // 清空
+        //        processGridModel->clear();
+
         PROCESSENTRY32 pe32;        // 进程结构
         pe32.dwSize = sizeof(pe32); // 在使用这个结构前，先设置它的大小
         // 给系统内所有的进程拍个快照
@@ -314,8 +419,8 @@ void Itemview10Inject::initConnect()
         DWORD row = 0;                       // 初始化行号，要在循环中递增
         BOOL bRet = FALSE;
         char bufferPID[20] = { 0 };          // 用于将PID，镜像基址，镜像大小unsigned long类型的值转化为char*类型
-        char bufferModBaseAddr[20] = { 0 };
-        char bufferImageSize[20] = { 0 };
+        TCHAR bufferImageSize[20] = { 0 };
+        TCHAR bufferModBaseAddr[20] = { 0 };
 
         HANDLE hModuleSnap = NULL;
         int i = 0;
@@ -333,23 +438,70 @@ void Itemview10Inject::initConnect()
             {
 // 获取镜像基址
 // 设置第row行第2列，镜像基址
-                _ultoa((unsigned long)(lpme.modBaseAddr), bufferModBaseAddr, 16);
-
-                processGridModel->setItem(i, 2, new QStandardItem(tr(bufferModBaseAddr)));
+                _i64tot_s((size_t)(lpme.modBaseAddr), bufferModBaseAddr, 20, 16);
+                processGridModel->setItem(i, 2, new QStandardItem(QString::fromWCharArray(bufferModBaseAddr)));
             }
 
             // 遍历DLL快照，找到进程的最后一个模块从而计算出镜像大小
-            do
-            {
-                bRet = Module32Next(hModuleSnap, &lpme);
-            } while (bRet);
+            if (bRet) {
+                do
+                {
+                    bRet = Module32Next(hModuleSnap, &lpme);
+                } while (bRet);
 
-            // 设置第row行第3列,镜像大小
-            _ultoa((unsigned long)(lpme.modBaseAddr) + (unsigned long)lpme.modBaseSize, bufferImageSize, 16);
-            processGridModel->setItem(i, 3, new QStandardItem(tr(bufferImageSize)));
+// 设置第row行第3列,镜像大小
+                _i64tot_s((size_t)(lpme.modBaseAddr) + (size_t)lpme.modBaseSize, bufferImageSize, 20, 16);
+                processGridModel->setItem(i, 3, new QStandardItem(QString::fromWCharArray(bufferImageSize)));
+            }
 
             bMore = Process32Next(hProcessSnap, &pe32);
             i++;
+        }
+        auto removeCount = processGridModel->rowCount() - i;
+
+        if (removeCount > 0) {
+            processGridModel->removeRows(i, removeCount);
+        }
+    });
+
+
+    connect(processTableView, &QTableView::doubleClicked, [this](const QModelIndex& current) {
+        auto rowIndex = current.row();
+        auto pid =  processGridModel->item(rowIndex, 1)->text().toInt();
+
+
+        HANDLE      hModuleSnap = NULL;
+        MODULEENTRY32 lpme; // DLL结构
+        lpme.dwSize = sizeof(MODULEENTRY32);
+        hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid);
+        BOOL bRet = Module32First(hModuleSnap, &lpme);
+        TCHAR bufferModBaseAddr[20] = { 0 };
+        TCHAR buffer[0x20];
+        int i = 0;
+
+        while (bRet)
+        {
+            // 设置模块名称
+            moduleGridModel->setItem(i, 0, new QStandardItem(QString::fromWCharArray(lpme.szModule)));
+
+
+            // 设置模块基址
+            _i64tot_s((size_t)(lpme.modBaseAddr), bufferModBaseAddr, 20, 16);
+            moduleGridModel->setItem(i, 1, new QStandardItem(QString::fromWCharArray(bufferModBaseAddr)));
+
+
+            // 设置模块大小
+            _i64tot_s(lpme.modBaseSize, buffer, 20, 16);
+            moduleGridModel->setItem(i, 2, new QStandardItem(QString::fromWCharArray(buffer)));
+
+            bRet = Module32Next(hModuleSnap, &lpme);
+            i++;
+        }
+
+        auto removeCount = moduleGridModel->rowCount() - i;
+
+        if (removeCount > 0) {
+            moduleGridModel->removeRows(i, removeCount);
         }
     });
 }

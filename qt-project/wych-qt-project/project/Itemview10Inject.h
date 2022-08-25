@@ -110,6 +110,7 @@ private:
 
     QPushButton *btnStart;
     QPushButton *btnRemoteInject;
+    QPushButton *btnReflectiveInject;
     QPushButton *btnConsoleClear;
     QPushButton *btnImportAdd;
     QCheckBox *ckConsoleEnable;
@@ -119,6 +120,8 @@ private:
 
     QStandardItemModel *processGridModel;
     QTableView *processTableView;
+    QStandardItemModel *moduleGridModel;
+    QTableView *moduleTableView;
     QStandardItemModel *exportGridModel;
     QTableView *exportTableView;
     QStandardItemModel *importGridModel;

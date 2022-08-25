@@ -5,6 +5,12 @@
 #include <Windows.h>
 
 
+#define DEREF(name) *(UINT_PTR *)(name)
+#define DEREF_64(name) *(DWORD64 *)(name)
+#define DEREF_32(name) *(DWORD *)(name)
+#define DEREF_16(name) *(WORD *)(name)
+#define DEREF_8(name) *(BYTE *)(name)
+
 class Utils {
 public:
 
@@ -33,6 +39,16 @@ public:
         PIMAGE_SECTION_HEADER pSectionHeader,
         IN DWORD              FOA,
         OUT PDWORD            RVA);
+
+    static HANDLE WINAPI LoadRemoteLibraryR(HANDLE hProcess,
+                                            LPVOID lpBuffer,
+                                            DWORD  dwLength,
+                                            LPVOID lpParameter);
+
+    static DWORD Rva2Offset(DWORD    dwRva,
+                            UINT_PTR uiBaseAddress);
+
+    static DWORD GetReflectiveLoaderOffset(VOID *lpReflectiveDllBuffer);
 };
 
 #endif // UTILS_H

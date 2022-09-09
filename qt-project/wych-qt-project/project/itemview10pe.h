@@ -19,6 +19,8 @@
 
 #include <Windows.h>
 
+#include <structs/pe.h>
+
 
 class ItemView10PE : public QWidget {
     Q_OBJECT
@@ -30,6 +32,8 @@ public:
 
     bool start(int         port,
                const char *host = "0.0.0.0");
+    void appendMessage(const QString& msg);
+    void showMessage(const QString& msg);
 
 protected:
 
@@ -37,9 +41,6 @@ protected:
     void initConnect();
     void postMessage(const QString& msg);
     void clearMessage();
-
-    void appendMessage(const QString& msg);
-    void showMessage(const QString& msg);
 
 private:
 
@@ -138,14 +139,19 @@ private:
     QTableView *relocation2TableView;
 
     wchar_t *FilePath = new wchar_t[260];
-    LPVOID pFileBuffer = NULL;
-    PIMAGE_DOS_HEADER pDosHeader = NULL;
-    PIMAGE_BASE_RELOCATION pRelocationTableBase = NULL;
-    PIMAGE_IMPORT_DESCRIPTOR pImportDescriptorBase = NULL;
-    PIMAGE_SECTION_HEADER pSectionHeader = NULL;
-    PIMAGE_NT_HEADERS32 pNTHeader32 = NULL;
-    PIMAGE_NT_HEADERS64 pNTHeader64 = NULL;
-    size_t fileSize = 0;
+    PE *pe = nullptr;
+
+    //    LPVOID pFileBuffer = NULL;
+    //    PIMAGE_DOS_HEADER pDosHeader = NULL;
+    //    PIMAGE_BASE_RELOCATION pRelocationTableBase = NULL;
+    //    PIMAGE_IMPORT_DESCRIPTOR pImportDescriptorBase = NULL;
+
+    //    PIMAGE_SECTION_HEADER pSectionHeader = NULL;
+
+    //    PIMAGE_NT_HEADERS32 pNTHeader32 = NULL;
+    //    PIMAGE_NT_HEADERS64 pNTHeader64 = NULL;
+
+    //    size_t fileSize = 0;
 
     bool RVA_TO_FOA(PIMAGE_NT_HEADERS32   pNTHeader32,
                     PIMAGE_NT_HEADERS64   pNTHeader64,
@@ -159,7 +165,7 @@ private:
                     IN DWORD              RVA,
                     OUT PDWORD            FOA);
 
-    void CreateNewSection(LPVOID                pFileBuffer,
+    void CreateNewSection(LPVOID               *pFileBuffer,
                           PIMAGE_DOS_HEADER     pDosHeader,
                           PIMAGE_NT_HEADERS32   pNTHeader,
                           PIMAGE_SECTION_HEADER pFirstSectionHeader,

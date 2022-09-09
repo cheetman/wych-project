@@ -3,8 +3,11 @@
 // #include "mainwindow.h"
 #include "utils.h"
 
+#include <QDateTime>
 #include <QTextCodec>
 #include <tchar.h>
+
+#include <structs/pe.h>
 
 
 ItemView10PE::ItemView10PE(QWidget *parent)
@@ -433,6 +436,7 @@ void ItemView10PE::initConnect()
         QString fileName = QFileDialog::getOpenFileName(this, tr("文件对话框！"), "F:", tr("动态链接库(*dll *exe);;" "执行文件(*exe)"));
 
         if (fileName.isEmpty()) {
+            appendMessage("请选择一个文件");
             return;
         }
         auto path = (wchar_t *)fileName.utf16();
@@ -440,224 +444,228 @@ void ItemView10PE::initConnect()
         // 转char*
         //        auto str = fileName.toStdString();
         //        auto path = str.c_str();
-        if (pFileBuffer) {
-            free(pFileBuffer);
+        //        if (pFileBuffer) {
+        //            free(pFileBuffer);
+        //        }
+
+        if (pe) {
+            free(pe);
+            pe = NULL;
         }
+        pe = new PE(path, this);
 
-        fileSize = Utils::ReadFile(path, &pFileBuffer);
-
-        if ((fileSize == NULL) || (pFileBuffer == NULL)) {
+        if (!pe->build()) {
             return;
         }
 
-        // 重定位表指针
-        pRelocationTableBase = NULL;
+        //        fileSize = Utils::ReadFile(path, &pFileBuffer);
 
-        //        FilePath = path;
+        //        if ((fileSize == NULL) || (pFileBuffer == NULL)) {
+        //            return;
+        //        }
+
+
         wcscpy(FilePath, path);
 
-        // 获取DosHeader
-        if (*((PWORD)pFileBuffer) != IMAGE_DOS_SIGNATURE) {
-            QMessageBox::warning(this, "警告", "the first word is not MZ!");
-            return;
-        }
-        pDosHeader = (PIMAGE_DOS_HEADER)pFileBuffer;
 
-        dos_e_magic->setText(QString::number(pDosHeader->e_magic, 16));
-        dos_e_lfanew->setText(QString::number(pDosHeader->e_lfanew, 16));
-
-
-        pSectionHeader = NULL;
-        pNTHeader32 = NULL;
-        pNTHeader64 = NULL;
-
-        DWORD ExportTableFoa = 0;
-        DWORD ImportTableFoa = 0;
-        DWORD ResourceTableFoa = 0;
-        DWORD RelocationTableFoa = 0;
-
+        dos_e_magic->setText(QString::number(pe->m_lpDosHeader->e_magic, 16));
+        dos_e_lfanew->setText(QString::number(pe->m_lpDosHeader->e_lfanew, 16));
 
         // 判断32位
-        if (*(PWORD)((size_t)pFileBuffer + pDosHeader->e_lfanew + 0x14) == 0x00E0) {
-            // 获取NTHeader
-            pNTHeader32 = (PIMAGE_NT_HEADERS32)((size_t)pFileBuffer + pDosHeader->e_lfanew);
+        if (pe->isX86()) {
+            // 1.文件头
+            pe_Machine->setText(QString::number(pe->m_lpNtHeader32->FileHeader.Machine, 16).toUpper());                         // 程序运行的CPU型号
+            pe_NumberOfSections->setText(QString::number(pe->m_lpNtHeader32->FileHeader.NumberOfSections, 16).toUpper());       // 节的数量
+            pe_TimeDateStamp->setText(QString::number(pe->m_lpNtHeader32->FileHeader.TimeDateStamp, 16).toUpper());             // 时间戳，编译器填写
+            pe_SizeOfOptionHeader->setText(QString::number(pe->m_lpNtHeader32->FileHeader.SizeOfOptionalHeader, 16).toUpper()); // 可选PE头的大小 32位文件默认E0h，64位PE文件默认为F0h，可自定义
+            pe_Characteristics->setText(QString::number(pe->m_lpNtHeader32->FileHeader.Characteristics, 16).toUpper());
 
-            if (pNTHeader32->Signature != IMAGE_NT_SIGNATURE) {
-                QMessageBox::warning(this, "警告", "nt header error!signature not match!");
-                return;
-            }
-            pe_Machine->setText(QString::number(pNTHeader32->FileHeader.Machine, 16).toUpper());                         // 程序运行的CPU型号
-            pe_NumberOfSections->setText(QString::number(pNTHeader32->FileHeader.NumberOfSections, 16).toUpper());       // 节的数量
-            pe_TimeDateStamp->setText(QString::number(pNTHeader32->FileHeader.TimeDateStamp, 16).toUpper());             // 时间戳，编译器填写
-            pe_SizeOfOptionHeader->setText(QString::number(pNTHeader32->FileHeader.SizeOfOptionalHeader, 16).toUpper()); // 可选PE头的大小 32位文件默认E0h，64位PE文件默认为F0h，可自定义
-            pe_Characteristics->setText(QString::number(pNTHeader32->FileHeader.Characteristics, 16).toUpper());
+            // 2.可选文件头
+            ope_Magic->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.Magic, 16).toUpper());
+            ope_SizeOfCode->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.SizeOfCode, 16).toUpper());
+            ope_SizeOfInitializedData->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.SizeOfInitializedData, 16).toUpper());
+            ope_SizeOfUninitializedData->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.SizeOfUninitializedData, 16).toUpper());
+            ope_AddressOfEntryPoint_RVA->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.AddressOfEntryPoint, 16).toUpper());
+            ope_BaseOfCode->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.BaseOfCode, 16).toUpper());
+            ope_BaseOfData->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.BaseOfData, 16).toUpper());
+            ope_ImageBase->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.ImageBase, 16).toUpper());
+            ope_SectionAlignment->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.SectionAlignment, 16).toUpper());
+            ope_FileAlignment->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.FileAlignment, 16).toUpper());
+            ope_SizeOfImage->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.SizeOfImage, 16).toUpper());
+            ope_SizeOfHeaders->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.SizeOfHeaders, 16).toUpper());
+            ope_CheckSum->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.CheckSum, 16).toUpper());
+            ope_SizeOfStackReserve->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.SizeOfStackReserve, 16).toUpper());
+            ope_SizeOfStackCommit->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.SizeOfStackCommit, 16).toUpper());
+            ope_SizeOfHeapReserve->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.SizeOfHeapReserve, 16).toUpper());
+            ope_SizeOfHeapCommit->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.SizeOfHeapCommit, 16).toUpper());
+            ope_NumberOfRvaAndSizes->setText(QString::number(pe->m_lpNtHeader32->OptionalHeader.NumberOfRvaAndSizes, 16).toUpper());
 
+            // 3.数据目录
+            tb_export_size->setText(QString::number(pe->m_lpExportTable->Size, 16).toUpper());
+            tb_import_size->setText(QString::number(pe->m_lpImportTable->Size, 16).toUpper());
+            tb_resource_size->setText(QString::number(pe->m_lpResourceTable->Size, 16).toUpper());
+            tb_base_relocation_size->setText(QString::number(pe->m_lpRelocationTable->Size, 16).toUpper());
+            tb_export_rva->setText(QString::number(pe->m_lpExportTable->VirtualAddress, 16).toUpper());
+            tb_import_rva->setText(QString::number(pe->m_lpImportTable->VirtualAddress, 16).toUpper());
+            tb_resource_rva->setText(QString::number(pe->m_lpResourceTable->VirtualAddress, 16).toUpper());
+            tb_base_relocation_rva->setText(QString::number(pe->m_lpRelocationTable->VirtualAddress, 16).toUpper());
 
-            ope_Magic->setText(QString::number(pNTHeader32->OptionalHeader.Magic, 16).toUpper());
-            ope_SizeOfCode->setText(QString::number(pNTHeader32->OptionalHeader.SizeOfCode, 16).toUpper());
-            ope_SizeOfInitializedData->setText(QString::number(pNTHeader32->OptionalHeader.SizeOfInitializedData, 16).toUpper());
-            ope_SizeOfUninitializedData->setText(QString::number(pNTHeader32->OptionalHeader.SizeOfUninitializedData, 16).toUpper());
-            ope_AddressOfEntryPoint_RVA->setText(QString::number(pNTHeader32->OptionalHeader.AddressOfEntryPoint, 16).toUpper());
-            ope_BaseOfCode->setText(QString::number(pNTHeader32->OptionalHeader.BaseOfCode, 16).toUpper());
-            ope_BaseOfData->setText(QString::number(pNTHeader32->OptionalHeader.BaseOfData, 16).toUpper());
-            ope_ImageBase->setText(QString::number(pNTHeader32->OptionalHeader.ImageBase, 16).toUpper());
-            ope_SectionAlignment->setText(QString::number(pNTHeader32->OptionalHeader.SectionAlignment, 16).toUpper());
-            ope_FileAlignment->setText(QString::number(pNTHeader32->OptionalHeader.FileAlignment, 16).toUpper());
-            ope_SizeOfImage->setText(QString::number(pNTHeader32->OptionalHeader.SizeOfImage, 16).toUpper());
-            ope_SizeOfHeaders->setText(QString::number(pNTHeader32->OptionalHeader.SizeOfHeaders, 16).toUpper());
-            ope_CheckSum->setText(QString::number(pNTHeader32->OptionalHeader.CheckSum, 16).toUpper());
-            ope_SizeOfStackReserve->setText(QString::number(pNTHeader32->OptionalHeader.SizeOfStackReserve, 16).toUpper());
-            ope_SizeOfStackCommit->setText(QString::number(pNTHeader32->OptionalHeader.SizeOfStackCommit, 16).toUpper());
-            ope_SizeOfHeapReserve->setText(QString::number(pNTHeader32->OptionalHeader.SizeOfHeapReserve, 16).toUpper());
-            ope_SizeOfHeapCommit->setText(QString::number(pNTHeader32->OptionalHeader.SizeOfHeapCommit, 16).toUpper());
-            ope_NumberOfRvaAndSizes->setText(QString::number(pNTHeader32->OptionalHeader.NumberOfRvaAndSizes, 16).toUpper());
-
-
-            pSectionHeader = (PIMAGE_SECTION_HEADER)(
-                (size_t)pNTHeader32 + sizeof(IMAGE_NT_SIGNATURE) +
-                sizeof(IMAGE_FILE_HEADER) + pNTHeader32->FileHeader.SizeOfOptionalHeader);
-
-            PIMAGE_DATA_DIRECTORY ExportTable =  &(pNTHeader32->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT]);
-            PIMAGE_DATA_DIRECTORY ImportTable =  &(pNTHeader32->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]);
-            PIMAGE_DATA_DIRECTORY ResourceTable =  &(pNTHeader32->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE]);
-            PIMAGE_DATA_DIRECTORY RelocationTable =  &(pNTHeader32->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC]);
-
-            tb_export_size->setText(QString::number(ExportTable->Size, 16).toUpper());
-            tb_import_size->setText(QString::number(ImportTable->Size, 16).toUpper());
-            tb_resource_size->setText(QString::number(ResourceTable->Size, 16).toUpper());
-            tb_base_relocation_size->setText(QString::number(RelocationTable->Size, 16).toUpper());
-            tb_export_rva->setText(QString::number(ExportTable->VirtualAddress, 16).toUpper());
-            tb_import_rva->setText(QString::number(ImportTable->VirtualAddress, 16).toUpper());
-            tb_resource_rva->setText(QString::number(ResourceTable->VirtualAddress, 16).toUpper());
-            tb_base_relocation_rva->setText(QString::number(RelocationTable->VirtualAddress, 16).toUpper());
+            tb_export_foa->setText(QString::number(pe->m_foaExportTable, 16).toUpper());
+            tb_import_foa->setText(QString::number(pe->m_foaImportTable, 16).toUpper());
+            tb_resource_foa->setText(QString::number(pe->m_foaResourceTable, 16).toUpper());
+            tb_base_relocation_foa->setText(QString::number(pe->m_foaRelocationTable, 16).toUpper());
 
 
-            if (ExportTable->VirtualAddress) {
-                Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, ExportTable->VirtualAddress, &ExportTableFoa);
-            }
-
-            if (ImportTable->VirtualAddress) {
-                Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, ImportTable->VirtualAddress, &ImportTableFoa);
-            }
-
-            if (ResourceTable->VirtualAddress) {
-                Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, ResourceTable->VirtualAddress, &ResourceTableFoa);
-            }
-
-            if (RelocationTable->VirtualAddress) {
-                Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, RelocationTable->VirtualAddress, &RelocationTableFoa);
-            }
-            tb_export_foa->setText(QString::number(ExportTableFoa, 16).toUpper());
-            tb_import_foa->setText(QString::number(ImportTableFoa, 16).toUpper());
-            tb_resource_foa->setText(QString::number(ResourceTableFoa, 16).toUpper());
-            tb_base_relocation_foa->setText(QString::number(RelocationTableFoa, 16).toUpper());
-
-            // 节表
-            for (int i = 0; i < pNTHeader32->FileHeader.NumberOfSections; i++)
+            // 4.节表
+            for (int i = 0; i < pe->m_lpNtHeader32->FileHeader.NumberOfSections; i++)
             {
-                tableGridModel->setItem(i, 0, new QStandardItem(tr((char *)(pSectionHeader[i].Name))));
-                tableGridModel->setItem(i, 1, new QStandardItem(QString::number(pSectionHeader[i].Misc.VirtualSize, 16).toUpper()));
-                tableGridModel->setItem(i, 2, new QStandardItem(QString::number(pSectionHeader[i].SizeOfRawData, 16).toUpper()));
-                tableGridModel->setItem(i, 3, new QStandardItem(QString::number(pSectionHeader[i].VirtualAddress, 16).toUpper()));
-                tableGridModel->setItem(i, 4, new QStandardItem(QString::number(pSectionHeader[i].PointerToRawData, 16).toUpper()));
-                tableGridModel->setItem(i, 5, new QStandardItem(QString::number(pSectionHeader[i].Characteristics, 16).toUpper()));
+                tableGridModel->setItem(i, 0, new QStandardItem(tr((char *)(pe->m_lpSecHeader[i].Name))));
+                tableGridModel->setItem(i, 1, new QStandardItem(QString::number(pe->m_lpSecHeader[i].Misc.VirtualSize, 16).toUpper()));
+                tableGridModel->setItem(i, 2, new QStandardItem(QString::number(pe->m_lpSecHeader[i].SizeOfRawData, 16).toUpper()));
+                tableGridModel->setItem(i, 3, new QStandardItem(QString::number(pe->m_lpSecHeader[i].VirtualAddress, 16).toUpper()));
+                tableGridModel->setItem(i, 4, new QStandardItem(QString::number(pe->m_lpSecHeader[i].PointerToRawData, 16).toUpper()));
+                tableGridModel->setItem(i, 5, new QStandardItem(QString::number(pe->m_lpSecHeader[i].Characteristics, 16).toUpper()));
             }
 
-            auto removeCount = tableGridModel->rowCount() - pNTHeader32->FileHeader.NumberOfSections;
+            auto removeCount = tableGridModel->rowCount() - pe->m_lpNtHeader32->FileHeader.NumberOfSections;
 
             if (removeCount > 0) {
-                tableGridModel->removeRows(pNTHeader32->FileHeader.NumberOfSections, removeCount);
+                tableGridModel->removeRows(pe->m_lpNtHeader32->FileHeader.NumberOfSections, removeCount);
+            }
+        } else {
+            pe_Machine->setText(QString::number(pe->m_lpNtHeader64->FileHeader.Machine, 16).toUpper());                         // 程序运行的CPU型号
+            pe_NumberOfSections->setText(QString::number(pe->m_lpNtHeader64->FileHeader.NumberOfSections, 16).toUpper());       // 节的数量
+            pe_TimeDateStamp->setText(QString::number(pe->m_lpNtHeader64->FileHeader.TimeDateStamp, 16).toUpper());             // 时间戳，编译器填写
+            pe_SizeOfOptionHeader->setText(QString::number(pe->m_lpNtHeader64->FileHeader.SizeOfOptionalHeader, 16).toUpper()); // 可选PE头的大小 32位文件默认E0h，64位PE文件默认为F0h，可自定义
+            pe_Characteristics->setText(QString::number(pe->m_lpNtHeader64->FileHeader.Characteristics, 16).toUpper());
+
+
+            ope_Magic->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.Magic, 16).toUpper());
+            ope_SizeOfCode->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.SizeOfCode, 16).toUpper());
+            ope_SizeOfInitializedData->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.SizeOfInitializedData, 16).toUpper());
+            ope_SizeOfUninitializedData->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.SizeOfUninitializedData, 16).toUpper());
+            ope_AddressOfEntryPoint_RVA->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.AddressOfEntryPoint, 16).toUpper());
+            ope_BaseOfCode->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.BaseOfCode, 16).toUpper());
+
+            //            ope_BaseOfData->setText(QString::number(pNTHeader64->OptionalHeader.BaseOfData, 16).toUpper());
+            ope_ImageBase->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.ImageBase, 16).toUpper());
+            ope_SectionAlignment->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.SectionAlignment, 16).toUpper());
+            ope_FileAlignment->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.FileAlignment, 16).toUpper());
+            ope_SizeOfImage->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.SizeOfImage, 16).toUpper());
+            ope_SizeOfHeaders->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.SizeOfHeaders, 16).toUpper());
+            ope_CheckSum->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.CheckSum, 16).toUpper());
+            ope_SizeOfStackReserve->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.SizeOfStackReserve, 16).toUpper());
+            ope_SizeOfStackCommit->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.SizeOfStackCommit, 16).toUpper());
+            ope_SizeOfHeapReserve->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.SizeOfHeapReserve, 16).toUpper());
+            ope_SizeOfHeapCommit->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.SizeOfHeapCommit, 16).toUpper());
+            ope_NumberOfRvaAndSizes->setText(QString::number(pe->m_lpNtHeader64->OptionalHeader.NumberOfRvaAndSizes, 16).toUpper());
+
+
+            // 3.数据目录
+            tb_export_size->setText(QString::number(pe->m_lpExportTable->Size, 16).toUpper());
+            tb_import_size->setText(QString::number(pe->m_lpImportTable->Size, 16).toUpper());
+            tb_resource_size->setText(QString::number(pe->m_lpResourceTable->Size, 16).toUpper());
+            tb_base_relocation_size->setText(QString::number(pe->m_lpRelocationTable->Size, 16).toUpper());
+            tb_export_rva->setText(QString::number(pe->m_lpExportTable->VirtualAddress, 16).toUpper());
+            tb_import_rva->setText(QString::number(pe->m_lpImportTable->VirtualAddress, 16).toUpper());
+            tb_resource_rva->setText(QString::number(pe->m_lpResourceTable->VirtualAddress, 16).toUpper());
+            tb_base_relocation_rva->setText(QString::number(pe->m_lpRelocationTable->VirtualAddress, 16).toUpper());
+
+            tb_export_foa->setText(QString::number(pe->m_foaExportTable, 16).toUpper());
+            tb_import_foa->setText(QString::number(pe->m_foaImportTable, 16).toUpper());
+            tb_resource_foa->setText(QString::number(pe->m_foaResourceTable, 16).toUpper());
+            tb_base_relocation_foa->setText(QString::number(pe->m_foaRelocationTable, 16).toUpper());
+
+
+            // 4.节表
+            for (int i = 0; i < pe->m_lpNtHeader64->FileHeader.NumberOfSections; i++)
+            {
+                tableGridModel->setItem(i, 0, new QStandardItem(tr((char *)(pe->m_lpSecHeader[i].Name))));
+                tableGridModel->setItem(i, 1, new QStandardItem(QString::number(pe->m_lpSecHeader[i].Misc.VirtualSize, 16).toUpper()));
+                tableGridModel->setItem(i, 2, new QStandardItem(QString::number(pe->m_lpSecHeader[i].SizeOfRawData, 16).toUpper()));
+                tableGridModel->setItem(i, 3, new QStandardItem(QString::number(pe->m_lpSecHeader[i].VirtualAddress, 16).toUpper()));
+                tableGridModel->setItem(i, 4, new QStandardItem(QString::number(pe->m_lpSecHeader[i].PointerToRawData, 16).toUpper()));
+                tableGridModel->setItem(i, 5, new QStandardItem(QString::number(pe->m_lpSecHeader[i].Characteristics, 16).toUpper()));
             }
 
-            // 导出表
-            if (ExportTableFoa) {
-                PIMAGE_EXPORT_DIRECTORY pExportDirectory = NULL;
-                pExportDirectory =
-                    (PIMAGE_EXPORT_DIRECTORY)((size_t)pFileBuffer + ExportTableFoa);
+            auto removeCount = tableGridModel->rowCount() -  pe->m_lpNtHeader64->FileHeader.NumberOfSections;
+
+            if (removeCount > 0) {
+                tableGridModel->removeRows(pe->m_lpNtHeader64->FileHeader.NumberOfSections, removeCount);
+            }
+        }
 
 
-                export_Name->setText(QString::number(pExportDirectory->Name, 16).toUpper());
-                export_Base->setText(QString::number(pExportDirectory->Base, 16).toUpper());
-                export_NumberOfFunctions->setText(QString::number(pExportDirectory->NumberOfFunctions, 16).toUpper());
-                export_NumberOfNames->setText(QString::number(pExportDirectory->NumberOfNames, 16).toUpper());
-                export_AddressOfFunctions->setText(QString::number(pExportDirectory->AddressOfFunctions, 16).toUpper());
-                export_AddressOfNames->setText(QString::number(pExportDirectory->AddressOfNames, 16).toUpper());
-                export_AddressOfNameOrdinals->setText(QString::number(pExportDirectory->AddressOfNameOrdinals, 16).toUpper());
+        // 5.导出表
+        if (pe->m_lpExportDirectory) {
+            export_Name->setText(QString::number(pe->m_lpExportDirectory->Name, 16).toUpper());
+            export_Base->setText(QString::number(pe->m_lpExportDirectory->Base, 16).toUpper());
+            export_NumberOfFunctions->setText(QString::number(pe->m_lpExportDirectory->NumberOfFunctions, 16).toUpper());
+            export_NumberOfNames->setText(QString::number(pe->m_lpExportDirectory->NumberOfNames, 16).toUpper());
+            export_AddressOfFunctions->setText(QString::number(pe->m_lpExportDirectory->AddressOfFunctions, 16).toUpper());
+            export_AddressOfNames->setText(QString::number(pe->m_lpExportDirectory->AddressOfNames, 16).toUpper());
+            export_AddressOfNameOrdinals->setText(QString::number(pe->m_lpExportDirectory->AddressOfNameOrdinals, 16).toUpper());
+            export_AddressOfFunctions_foa->setText(QString::number(pe->m_lpExportDirectory->AddressOfFunctions, 16).toUpper());
+            export_AddressOfNames_foa->setText(QString::number(pe->m_lpExportDirectory->AddressOfNames, 16).toUpper());
+            export_AddressOfNameOrdinals_foa->setText(QString::number(pe->m_lpExportDirectory->AddressOfNameOrdinals, 16).toUpper());
+
+            // 宽度注意
+            PDWORD arr_fun = NULL;
+            PDWORD arr_name = NULL;
+            PWORD arr_ord = NULL;
+            arr_fun = (PDWORD)((size_t)pe->m_lpFileData + pe->m_foaAddressOfFunctions);   // 得到指向AddressOfFunction的指针
+            arr_name = (PDWORD)((size_t)pe->m_lpFileData + pe->m_foaAddressOfNames);      // 得到指向AddressOfNames的指针
+            arr_ord = (PWORD)((size_t)pe->m_lpFileData + pe->m_foaAddressOfNameOrdinals); // 得到指向AddressOfNameOrdinal的指针
+
+            // 注意遍历顺序(具体我忘了)
+            for (DWORD i = 0; i < pe->m_lpExportDirectory->NumberOfFunctions; i++)        // 遍历函数表
+            {
+                exportGridModel->setItem(i, 0, new QStandardItem(QString::number(i)));
+                exportGridModel->setItem(i, 1, new QStandardItem(QString::number(arr_fun[i], 16).toUpper()));
+                DWORD foa = 0;
+                pe->rvaToFoa(arr_fun[i], &foa);
+                exportGridModel->setItem(i, 2, new QStandardItem(QString::number(foa, 16).toUpper()));
+            }
+
+            auto removeCount = exportGridModel->rowCount() -  pe->m_lpExportDirectory->NumberOfFunctions;
+
+            if (removeCount > 0) {
+                exportGridModel->removeRows(pe->m_lpExportDirectory->NumberOfFunctions, removeCount);
+            }
 
 
-                DWORD FunctionTableAddr = NULL;
-                DWORD NameTableAddr = NULL;
-                DWORD OrdinalTableAddr = NULL;
+            for (DWORD i = 0; i <  pe->m_lpExportDirectory->NumberOfNames; i++) // 遍历names
+            {
+                DWORD  name_rva = *(arr_name + i);
 
-                Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader,
-                                  pExportDirectory->AddressOfFunctions, &FunctionTableAddr);
-                Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader,
-                                  pExportDirectory->AddressOfNames, &NameTableAddr);
-                Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader,
-                                  pExportDirectory->AddressOfNameOrdinals, &OrdinalTableAddr);
+                if (name_rva) {
+                    DWORD  name_foa = 0;
+                    pe->rvaToFoa(name_rva, &name_foa);
 
-
-                export_AddressOfFunctions_foa->setText(QString::number(FunctionTableAddr, 16).toUpper());
-                export_AddressOfNames_foa->setText(QString::number(NameTableAddr, 16).toUpper());
-                export_AddressOfNameOrdinals_foa->setText(QString::number(OrdinalTableAddr, 16).toUpper());
-
-                PDWORD arr_fun = NULL;
-                PDWORD arr_name = NULL;
-                PWORD arr_ord = NULL;
-                arr_fun = (PDWORD)((size_t)pFileBuffer + FunctionTableAddr);    // 得到指向AddressOfFunction的指针
-                arr_name = (PDWORD)((size_t)pFileBuffer + NameTableAddr);       // 得到指向AddressOfNames的指针
-                arr_ord = (PWORD)((size_t)pFileBuffer + OrdinalTableAddr);      // 得到指向AddressOfNameOrdinal的指针
-
-
-                for (DWORD i = 0; i < pExportDirectory->NumberOfFunctions; i++) // 遍历函数表
-                {
-                    exportGridModel->setItem(i, 0, new QStandardItem(QString::number(i)));
-
-                    exportGridModel->setItem(i, 1, new QStandardItem(QString::number(arr_fun[i], 16).toUpper()));
-                    DWORD foa = 0;
-                    Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, arr_fun[i], &foa);
-                    exportGridModel->setItem(i, 2, new QStandardItem(QString::number(foa, 16).toUpper()));
-                }
-
-                auto removeCount = exportGridModel->rowCount() -  pExportDirectory->NumberOfFunctions;
-
-                if (removeCount > 0) {
-                    exportGridModel->removeRows(pExportDirectory->NumberOfFunctions, removeCount);
-                }
-
-
-                for (DWORD i = 0; i < pExportDirectory->NumberOfNames; i++) // 遍历name
-                {
-                    DWORD  name_rva = *(arr_name + i);
-
-                    if (name_rva) {
-                        DWORD  name_foa = 0;
-                        Utils::RVA_TO_FOA(pNTHeader32, pSectionHeader, name_rva, &name_foa);
-
-                        if (name_foa) {
-                            auto ordinal = *(arr_ord + i);
-                            exportGridModel->setItem(ordinal, 3, new QStandardItem(QString::number(ordinal, 16).toUpper()));
-                            exportGridModel->setItem(ordinal, 4, new QStandardItem(tr((char *)((size_t)pFileBuffer + name_foa))));
-                        }
+                    if (name_foa) {
+                        auto ordinal = *(arr_ord + i);
+                        exportGridModel->setItem(ordinal, 3, new QStandardItem(QString::number(ordinal, 16).toUpper()));
+                        exportGridModel->setItem(ordinal, 4, new QStandardItem(tr((char *)((size_t)pe->m_lpFileData + name_foa))));
                     }
                 }
             }
+        }
 
-            // 重定位表
-            if (RelocationTableFoa) {
-                pRelocationTableBase = (PIMAGE_BASE_RELOCATION)((size_t)pFileBuffer + RelocationTableFoa);
-                PIMAGE_BASE_RELOCATION pRelocationTable = pRelocationTableBase;
-                int i = 0;
 
-                while (1)
-                {
-                    if ((pRelocationTable->SizeOfBlock == 0) && (pRelocationTable->VirtualAddress == 0)) {
-                        break;
-                    }
-                    int num_of_addr = (pRelocationTable->SizeOfBlock - 8) / 2;
-                    relocationGridModel->setItem(i, 1, new QStandardItem(QString::number(pRelocationTable->VirtualAddress, 16).toUpper()));
-                    relocationGridModel->setItem(i, 2, new QStandardItem(QString::number(num_of_addr).toUpper()));
-                    relocationGridModel->setItem(i, 3, new QStandardItem(QString::number(pRelocationTable->SizeOfBlock).toUpper()));
+        // 6.重定位表
+        if (pe->m_lpRelocationBase) {
+            PIMAGE_BASE_RELOCATION lpRelocationTable = pe->m_lpRelocationBase;
+            int i = 0;
+
+            while (1)
+            {
+                if ((lpRelocationTable->SizeOfBlock == 0) && (lpRelocationTable->VirtualAddress == 0)) {
+                    break;
+                }
+                int num_of_addr = (lpRelocationTable->SizeOfBlock - 8) / 2;
+                relocationGridModel->setItem(i, 1, new QStandardItem(QString::number(lpRelocationTable->VirtualAddress, 16).toUpper()));
+                relocationGridModel->setItem(i, 2, new QStandardItem(QString::number(num_of_addr).toUpper()));
+                relocationGridModel->setItem(i, 3, new QStandardItem(QString::number(lpRelocationTable->SizeOfBlock).toUpper()));
 
 // 明细
 //                    PDWORD t_pAddr = NULL;
@@ -673,206 +681,16 @@ void ItemView10PE::initConnect()
 //                        else cout << "the first 4 bits are not 0011!" << endl;
 //                    }
 
-                    pRelocationTable = (PIMAGE_BASE_RELOCATION)((size_t)pRelocationTable + pRelocationTable->SizeOfBlock);
+                lpRelocationTable = (PIMAGE_BASE_RELOCATION)((size_t)lpRelocationTable + lpRelocationTable->SizeOfBlock);
 
-                    i++;
-                }
-            }
-        } else {
-            // 获取NTHeader
-            pNTHeader64 = (PIMAGE_NT_HEADERS64)((size_t)pFileBuffer + pDosHeader->e_lfanew);
-
-            if (pNTHeader64->Signature != IMAGE_NT_SIGNATURE) {
-                QMessageBox::warning(this, "警告", "nt header error!signature not match!");
-                return;
-            }
-            pe_Machine->setText(QString::number(pNTHeader64->FileHeader.Machine, 16).toUpper());                         // 程序运行的CPU型号
-            pe_NumberOfSections->setText(QString::number(pNTHeader64->FileHeader.NumberOfSections, 16).toUpper());       // 节的数量
-            pe_TimeDateStamp->setText(QString::number(pNTHeader64->FileHeader.TimeDateStamp, 16).toUpper());             // 时间戳，编译器填写
-            pe_SizeOfOptionHeader->setText(QString::number(pNTHeader64->FileHeader.SizeOfOptionalHeader, 16).toUpper()); // 可选PE头的大小 32位文件默认E0h，64位PE文件默认为F0h，可自定义
-            pe_Characteristics->setText(QString::number(pNTHeader64->FileHeader.Characteristics, 16).toUpper());
-
-
-            ope_Magic->setText(QString::number(pNTHeader64->OptionalHeader.Magic, 16).toUpper());
-            ope_SizeOfCode->setText(QString::number(pNTHeader64->OptionalHeader.SizeOfCode, 16).toUpper());
-            ope_SizeOfInitializedData->setText(QString::number(pNTHeader64->OptionalHeader.SizeOfInitializedData, 16).toUpper());
-            ope_SizeOfUninitializedData->setText(QString::number(pNTHeader64->OptionalHeader.SizeOfUninitializedData, 16).toUpper());
-            ope_AddressOfEntryPoint_RVA->setText(QString::number(pNTHeader64->OptionalHeader.AddressOfEntryPoint, 16).toUpper());
-            ope_BaseOfCode->setText(QString::number(pNTHeader64->OptionalHeader.BaseOfCode, 16).toUpper());
-
-            //            ope_BaseOfData->setText(QString::number(pNTHeader64->OptionalHeader.BaseOfData, 16).toUpper());
-            ope_ImageBase->setText(QString::number(pNTHeader64->OptionalHeader.ImageBase, 16).toUpper());
-            ope_SectionAlignment->setText(QString::number(pNTHeader64->OptionalHeader.SectionAlignment, 16).toUpper());
-            ope_FileAlignment->setText(QString::number(pNTHeader64->OptionalHeader.FileAlignment, 16).toUpper());
-            ope_SizeOfImage->setText(QString::number(pNTHeader64->OptionalHeader.SizeOfImage, 16).toUpper());
-            ope_SizeOfHeaders->setText(QString::number(pNTHeader64->OptionalHeader.SizeOfHeaders, 16).toUpper());
-            ope_CheckSum->setText(QString::number(pNTHeader64->OptionalHeader.CheckSum, 16).toUpper());
-            ope_SizeOfStackReserve->setText(QString::number(pNTHeader64->OptionalHeader.SizeOfStackReserve, 16).toUpper());
-            ope_SizeOfStackCommit->setText(QString::number(pNTHeader64->OptionalHeader.SizeOfStackCommit, 16).toUpper());
-            ope_SizeOfHeapReserve->setText(QString::number(pNTHeader64->OptionalHeader.SizeOfHeapReserve, 16).toUpper());
-            ope_SizeOfHeapCommit->setText(QString::number(pNTHeader64->OptionalHeader.SizeOfHeapCommit, 16).toUpper());
-            ope_NumberOfRvaAndSizes->setText(QString::number(pNTHeader64->OptionalHeader.NumberOfRvaAndSizes, 16).toUpper());
-
-
-            pSectionHeader = (PIMAGE_SECTION_HEADER)(
-                (size_t)pNTHeader64 + sizeof(IMAGE_NT_SIGNATURE) +
-                sizeof(IMAGE_FILE_HEADER) + pNTHeader64->FileHeader.SizeOfOptionalHeader);
-
-
-            PIMAGE_DATA_DIRECTORY ExportTable =  &(pNTHeader64->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT]);
-            PIMAGE_DATA_DIRECTORY ImportTable =  &(pNTHeader64->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT]);
-            PIMAGE_DATA_DIRECTORY ResourceTable =  &(pNTHeader64->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE]);
-            PIMAGE_DATA_DIRECTORY RelocationTable =  &(pNTHeader64->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC]);
-
-            tb_export_size->setText(QString::number(ExportTable->Size, 16).toUpper());
-            tb_import_size->setText(QString::number(ImportTable->Size, 16).toUpper());
-            tb_resource_size->setText(QString::number(ResourceTable->Size, 16).toUpper());
-            tb_base_relocation_size->setText(QString::number(RelocationTable->Size, 16).toUpper());
-            tb_export_rva->setText(QString::number(ExportTable->VirtualAddress, 16).toUpper());
-            tb_import_rva->setText(QString::number(ImportTable->VirtualAddress, 16).toUpper());
-            tb_resource_rva->setText(QString::number(ResourceTable->VirtualAddress, 16).toUpper());
-            tb_base_relocation_rva->setText(QString::number(RelocationTable->VirtualAddress, 16).toUpper());
-
-
-            if (ExportTable->VirtualAddress) {
-                Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, ExportTable->VirtualAddress, &ExportTableFoa);
-            }
-
-            if (ImportTable->VirtualAddress) {
-                Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, ImportTable->VirtualAddress, &ImportTableFoa);
-            }
-
-            if (ResourceTable->VirtualAddress) {
-                Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, ResourceTable->VirtualAddress, &ResourceTableFoa);
-            }
-
-            if (RelocationTable->VirtualAddress) {
-                Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, RelocationTable->VirtualAddress, &RelocationTableFoa);
-            }
-            tb_export_foa->setText(QString::number(ExportTableFoa, 16).toUpper());
-            tb_import_foa->setText(QString::number(ImportTableFoa, 16).toUpper());
-            tb_resource_foa->setText(QString::number(ResourceTableFoa, 16).toUpper());
-            tb_base_relocation_foa->setText(QString::number(RelocationTableFoa, 16).toUpper());
-
-            // 节表
-            for (int i = 0; i < pNTHeader64->FileHeader.NumberOfSections; i++)
-            {
-                tableGridModel->setItem(i, 0, new QStandardItem(tr((char *)(pSectionHeader[i].Name))));
-                tableGridModel->setItem(i, 1, new QStandardItem(QString::number(pSectionHeader[i].Misc.VirtualSize, 16).toUpper()));
-                tableGridModel->setItem(i, 2, new QStandardItem(QString::number(pSectionHeader[i].SizeOfRawData, 16).toUpper()));
-                tableGridModel->setItem(i, 3, new QStandardItem(QString::number(pSectionHeader[i].VirtualAddress, 16).toUpper()));
-                tableGridModel->setItem(i, 4, new QStandardItem(QString::number(pSectionHeader[i].PointerToRawData, 16).toUpper()));
-                tableGridModel->setItem(i, 5, new QStandardItem(QString::number(pSectionHeader[i].Characteristics, 16).toUpper()));
-            }
-
-            auto removeCount = tableGridModel->rowCount() - pNTHeader64->FileHeader.NumberOfSections;
-
-            if (removeCount > 0) {
-                tableGridModel->removeRows(pNTHeader64->FileHeader.NumberOfSections, removeCount);
-            }
-
-            // 导出表
-            if (ExportTableFoa) {
-                PIMAGE_EXPORT_DIRECTORY pExportDirectory = NULL;
-                pExportDirectory =
-                    (PIMAGE_EXPORT_DIRECTORY)((size_t)pFileBuffer + ExportTableFoa);
-
-
-                export_Name->setText(QString::number(pExportDirectory->Name, 16).toUpper());
-                export_Base->setText(QString::number(pExportDirectory->Base, 16).toUpper());
-                export_NumberOfFunctions->setText(QString::number(pExportDirectory->NumberOfFunctions, 16).toUpper());
-                export_NumberOfNames->setText(QString::number(pExportDirectory->NumberOfNames, 16).toUpper());
-                export_AddressOfFunctions->setText(QString::number(pExportDirectory->AddressOfFunctions, 16).toUpper());
-                export_AddressOfNames->setText(QString::number(pExportDirectory->AddressOfNames, 16).toUpper());
-                export_AddressOfNameOrdinals->setText(QString::number(pExportDirectory->AddressOfNameOrdinals, 16).toUpper());
-
-
-                DWORD FunctionTableAddr = NULL;
-                DWORD NameTableAddr = NULL;
-                DWORD OrdinalTableAddr = NULL;
-
-                Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader,
-                                     pExportDirectory->AddressOfFunctions, &FunctionTableAddr);
-                Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader,
-                                     pExportDirectory->AddressOfNames, &NameTableAddr);
-                Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader,
-                                     pExportDirectory->AddressOfNameOrdinals, &OrdinalTableAddr);
-
-
-                export_AddressOfFunctions_foa->setText(QString::number(FunctionTableAddr, 16).toUpper());
-                export_AddressOfNames_foa->setText(QString::number(NameTableAddr, 16).toUpper());
-                export_AddressOfNameOrdinals_foa->setText(QString::number(OrdinalTableAddr, 16).toUpper());
-
-                PDWORD arr_fun = NULL;
-                PDWORD arr_name = NULL;
-                PWORD arr_ord = NULL;
-                arr_fun = (PDWORD)((size_t)pFileBuffer + FunctionTableAddr);    // 得到指向AddressOfFunction的指针
-                arr_name = (PDWORD)((size_t)pFileBuffer + NameTableAddr);       // 得到指向AddressOfNames的指针
-                arr_ord = (PWORD)((size_t)pFileBuffer + OrdinalTableAddr);      // 得到指向AddressOfNameOrdinal的指针
-
-
-                for (DWORD i = 0; i < pExportDirectory->NumberOfFunctions; i++) // 遍历函数表
-                {
-                    exportGridModel->setItem(i, 0, new QStandardItem(QString::number(i)));
-
-                    exportGridModel->setItem(i, 1, new QStandardItem(QString::number(arr_fun[i], 16).toUpper()));
-                    DWORD foa = 0;
-                    Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, arr_fun[i], &foa);
-                    exportGridModel->setItem(i, 2, new QStandardItem(QString::number(foa, 16).toUpper()));
-                }
-
-                auto removeCount = exportGridModel->rowCount() -  pExportDirectory->NumberOfFunctions;
-
-                if (removeCount > 0) {
-                    exportGridModel->removeRows(pExportDirectory->NumberOfFunctions, removeCount);
-                }
-
-
-                for (DWORD i = 0; i < pExportDirectory->NumberOfNames; i++) // 遍历name
-                {
-                    DWORD  name_rva = *(arr_name + i);
-
-                    if (name_rva) {
-                        DWORD  name_foa = 0;
-                        Utils::RVA_TO_FOA_64(pNTHeader64, pSectionHeader, name_rva, &name_foa);
-
-                        if (name_foa) {
-                            auto ordinal = *(arr_ord + i);
-                            exportGridModel->setItem(ordinal, 3, new QStandardItem(QString::number(ordinal, 16).toUpper()));
-                            exportGridModel->setItem(ordinal, 4, new QStandardItem(tr((char *)((size_t)pFileBuffer + name_foa))));
-                        }
-                    }
-                }
-            }
-
-            // 重定位表
-            if (RelocationTableFoa) {
-                pRelocationTableBase = (PIMAGE_BASE_RELOCATION)((size_t)pFileBuffer + RelocationTableFoa);
-                PIMAGE_BASE_RELOCATION pRelocationTable = pRelocationTableBase;
-                int i = 0;
-
-                while (1)
-                {
-                    if ((pRelocationTable->SizeOfBlock == 0) && (pRelocationTable->VirtualAddress == 0)) {
-                        break;
-                    }
-                    int num_of_addr = (pRelocationTable->SizeOfBlock - 8) / 2;
-                    relocationGridModel->setItem(i, 1, new QStandardItem(QString::number(pRelocationTable->VirtualAddress, 16).toUpper()));
-                    relocationGridModel->setItem(i, 2, new QStandardItem(QString::number(num_of_addr).toUpper()));
-                    relocationGridModel->setItem(i, 3, new QStandardItem(QString::number(pRelocationTable->SizeOfBlock).toUpper()));
-
-                    pRelocationTable = (PIMAGE_BASE_RELOCATION)((size_t)pRelocationTable + pRelocationTable->SizeOfBlock);
-
-                    i++;
-                }
+                i++;
             }
         }
 
 
         // 导入表
-        if (ImportTableFoa) {
-            pImportDescriptorBase =    (PIMAGE_IMPORT_DESCRIPTOR)((size_t)pFileBuffer + ImportTableFoa);
-            PIMAGE_IMPORT_DESCRIPTOR pImportDescriptor = pImportDescriptorBase;
+        if (pe->m_lpImportDescriptor) {
+            PIMAGE_IMPORT_DESCRIPTOR pImportDescriptor = pe->m_lpImportDescriptor;
 
             int i = 0;
 
@@ -880,15 +698,15 @@ void ItemView10PE::initConnect()
             {
                 if (!pImportDescriptor->TimeDateStamp && !pImportDescriptor->FirstThunk) break;
                 DWORD name_FOA = 0;
-                RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, pImportDescriptor->Name, &name_FOA);
+                pe->rvaToFoa(pImportDescriptor->Name, &name_FOA);
 
 
-                importGridModel->setItem(i, 0, new QStandardItem(tr((PCHAR)(size_t)pFileBuffer + name_FOA)));
+                importGridModel->setItem(i, 0, new QStandardItem(tr((PCHAR)(size_t)pe->m_lpFileData + name_FOA)));
 
                 DWORD INTAddr_FOA = 0;
                 DWORD IATAddr_FOA = 0;
-                RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, pImportDescriptor->OriginalFirstThunk, &INTAddr_FOA);
-                RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, pImportDescriptor->FirstThunk,         &IATAddr_FOA);
+                pe->rvaToFoa(pImportDescriptor->OriginalFirstThunk, &INTAddr_FOA);
+                pe->rvaToFoa(pImportDescriptor->FirstThunk,         &IATAddr_FOA);
 
                 importGridModel->setItem(i, 1, new QStandardItem(QString::number(pImportDescriptor->OriginalFirstThunk, 16).toUpper()));
                 importGridModel->setItem(i, 2, new QStandardItem(QString::number(INTAddr_FOA, 16).toUpper()));
@@ -898,8 +716,8 @@ void ItemView10PE::initConnect()
 //                    assert(INTAddr_FOA & IATAddr_FOA);
                 PDWORD pThunkData_INT = NULL;
                 PDWORD pThunkData_IAT = NULL;
-                pThunkData_INT = (PDWORD)((size_t)pFileBuffer + INTAddr_FOA);
-                pThunkData_IAT = (PDWORD)((size_t)pFileBuffer + IATAddr_FOA);
+                pThunkData_INT = (PDWORD)((size_t)pe->m_lpFileData + INTAddr_FOA);
+                pThunkData_IAT = (PDWORD)((size_t)pe->m_lpFileData + IATAddr_FOA);
 
 //                    while (*pThunkData_INT && *pThunkData_IAT)
 //                    {
@@ -943,7 +761,7 @@ void ItemView10PE::initConnect()
         int i = 0;
 
 
-        PIMAGE_BASE_RELOCATION pRelocationTable = pRelocationTableBase;
+        PIMAGE_BASE_RELOCATION pRelocationTable = pe->m_lpRelocationBase;
 
         while (1)
         {
@@ -960,9 +778,7 @@ void ItemView10PE::initConnect()
                         auto rva = (t_pAddr[j] & 0xfff) + pRelocationTable->VirtualAddress;
                         relocation2GridModel->setItem(j, 0, new QStandardItem(QString::number(rva, 16).toUpper()));
                         DWORD foa = 0;
-
-                        RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, rva, &foa);
-
+                        pe->rvaToFoa(rva, &foa);
                         relocation2GridModel->setItem(j, 1, new QStandardItem(QString::number(foa, 16).toUpper()));
                     } else {
 //                        cout << "the first 4 bits are not 0011!" << endl;
@@ -992,26 +808,25 @@ void ItemView10PE::initConnect()
         int i = 0;
 
 
-        PIMAGE_IMPORT_DESCRIPTOR pImportDescriptor = pImportDescriptorBase;
+        PIMAGE_IMPORT_DESCRIPTOR pImportDescriptor = pe->m_lpImportDescriptor;
 
         while (1)
         {
             if (i == rowIndex) {
                 DWORD INTAddr_FOA = 0;
                 DWORD IATAddr_FOA = 0;
-                RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, pImportDescriptor->OriginalFirstThunk, &INTAddr_FOA);
-                RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, pImportDescriptor->FirstThunk,         &IATAddr_FOA);
-
+                pe->rvaToFoa(pImportDescriptor->OriginalFirstThunk, &INTAddr_FOA);
+                pe->rvaToFoa(pImportDescriptor->FirstThunk,         &IATAddr_FOA);
                 int count = 0;
 
 // 32位时
-                if (pNTHeader32) {
+                if (pe->isX86()) {
                     PDWORD pThunkData_INT = NULL;
                     PDWORD pThunkData_IAT = NULL;
 
                     // PIMAGE_THUNK_DATA32 这里是导入查找表
-                    pThunkData_INT = (PDWORD)((size_t)pFileBuffer + INTAddr_FOA);
-                    pThunkData_IAT = (PDWORD)((size_t)pFileBuffer + IATAddr_FOA);
+                    pThunkData_INT = (PDWORD)((size_t)pe->m_lpFileData + INTAddr_FOA);
+                    pThunkData_IAT = (PDWORD)((size_t)pe->m_lpFileData + IATAddr_FOA);
 
 
                     while (*pThunkData_INT && *pThunkData_IAT)
@@ -1026,8 +841,8 @@ void ItemView10PE::initConnect()
                         else
                         {
                             DWORD import_by_name_FOA = 0;
-                            RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, *pThunkData_INT, &import_by_name_FOA);
-                            PIMAGE_IMPORT_BY_NAME pImportByName = (PIMAGE_IMPORT_BY_NAME)((size_t)pFileBuffer + import_by_name_FOA);
+                            pe->rvaToFoa(*pThunkData_INT, &import_by_name_FOA);
+                            PIMAGE_IMPORT_BY_NAME pImportByName = (PIMAGE_IMPORT_BY_NAME)((size_t)pe->m_lpFileData + import_by_name_FOA);
 
                             import2GridModel->setItem(count, 1, new QStandardItem(QString::number(*pThunkData_INT, 16).toUpper()));
                             import2GridModel->setItem(count, 2, new QStandardItem(QString::number(import_by_name_FOA, 16).toUpper()));
@@ -1044,8 +859,8 @@ void ItemView10PE::initConnect()
                     ULONGLONG *pThunkData_IAT = NULL;
 
 // PIMAGE_THUNK_DATA64 这里是导入查找表
-                    pThunkData_INT = (ULONGLONG *)((size_t)pFileBuffer + INTAddr_FOA);
-                    pThunkData_IAT = (ULONGLONG *)((size_t)pFileBuffer + IATAddr_FOA);
+                    pThunkData_INT = (ULONGLONG *)((size_t)pe->m_lpFileData + INTAddr_FOA);
+                    pThunkData_IAT = (ULONGLONG *)((size_t)pe->m_lpFileData + IATAddr_FOA);
 
 
                     while (*pThunkData_INT && *pThunkData_IAT)
@@ -1060,8 +875,8 @@ void ItemView10PE::initConnect()
                         else
                         {
                             DWORD import_by_name_FOA = 0;
-                            RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, *pThunkData_INT, &import_by_name_FOA);
-                            PIMAGE_IMPORT_BY_NAME pImportByName = (PIMAGE_IMPORT_BY_NAME)((size_t)pFileBuffer + import_by_name_FOA);
+                            pe->rvaToFoa(*pThunkData_INT, &import_by_name_FOA);
+                            PIMAGE_IMPORT_BY_NAME pImportByName = (PIMAGE_IMPORT_BY_NAME)((size_t)pe->m_lpFileData + import_by_name_FOA);
 
                             import2GridModel->setItem(count, 1, new QStandardItem(QString::number(*pThunkData_INT, 16).toUpper()));
                             import2GridModel->setItem(count, 2, new QStandardItem(QString::number(import_by_name_FOA, 16).toUpper()));
@@ -1113,7 +928,25 @@ bool ItemView10PE::FOA_TO_RVA(PIMAGE_NT_HEADERS32 pNTHeader32,
     }
 }
 
-void ItemView10PE::CreateNewSection(LPVOID                pFileBuffer,
+// 创建新的节
+
+// 1. 算出新节表位置 = 第一个节表(指针)(pFirstSectionHeader) + 节数量 (pNTHeader->FileHeader.NumberOfSections)
+// 2. 计算节表空间够不够,一般都够。
+// pNTHeader->OptionalHeader.SizeOfHeaders  (总空间)
+// - (pDosHeader->e_lfanew + sizeof(IMAGE_NT_HEADERS32) + pNTHeader->FileHeader.NumberOfSections * sizeof(IMAGE_SECTION_HEADER)) (已使用的空间)
+// < sizeof(IMAGE_SECTION_HEADER) * 2 (两个节表空间)
+// 3.在添加的节表后面填充0 (memset(pNewSectionHeader + 1, 0, sizeof(IMAGE_SECTION_HEADER)); )
+// 4.节表数量+1 (pNTHeader->FileHeader.NumberOfSections += 1)
+// 5.SizeOfImage + 2000? pNTHeader->OptionalHeader.SizeOfImage += size_of_new_section
+// 6.拷贝节表结构
+// 7.填节表名称
+// 8.节表VirtualSize给了2000  pNewSectionHeader->Misc.VirtualSize
+// 9.节表SizeOfRawData给了2000  pNewSectionHeader->SizeOfRawData
+// 10.根据倒数第2个节表算出PointerToRawData （t_LastSectionHeader->PointerToRawData + t_LastSectionHeader->SizeOfRawData;）
+// 11.根据倒数第2个节表算出VirtualAddress （t_LastSectionHeader->VirtualAddress + t_LastSectionHeader->SizeOfRawData;）
+
+
+void ItemView10PE::CreateNewSection(LPVOID               *pFileBuffer,
                                     PIMAGE_DOS_HEADER     pDosHeader,
                                     PIMAGE_NT_HEADERS32   pNTHeader,
                                     PIMAGE_SECTION_HEADER pFirstSectionHeader,
@@ -1132,12 +965,12 @@ void ItemView10PE::CreateNewSection(LPVOID                pFileBuffer,
     }
 
     //       EXIT_ERROR("not enough space to add  section header!");
-    memset(pNewSectionHeader + 1, 0, sizeof(IMAGE_SECTION_HEADER)); // 在添加的节表后面填充0
+    memset(pNewSectionHeader + 1, 0, sizeof(IMAGE_SECTION_HEADER));            // 在添加的节表后面填充0
 
     pNTHeader->FileHeader.NumberOfSections += 1;
-    pNTHeader->OptionalHeader.SizeOfImage += size_of_new_section;   // 修正PE头
+    pNTHeader->OptionalHeader.SizeOfImage += size_of_new_section;              // 修正PE头
 
-    realloc(pFileBuffer, file_size + size_of_new_section * 2);      // 在末尾增加需要增加的大小
+    *pFileBuffer = realloc(*pFileBuffer, file_size + size_of_new_section * 2); // 在末尾增加需要增加的大小
     // memset((PBYTE)pFileBuffer + size_of_new_section, 0,
     // pNTHeader->OptionalHeader.FileAlignment);
     // 再增加一个文件对齐大小的0
@@ -1158,76 +991,101 @@ void ItemView10PE::CreateNewSection(LPVOID                pFileBuffer,
 }
 
 void ItemView10PE::InjectImportTable() {
-    CreateNewSection(pFileBuffer, pDosHeader, pNTHeader32, pSectionHeader, fileSize, 0x2000, t_NameOfNewSectionHeader);
+    //    CreateNewSection(&pFileBuffer, pDosHeader, pNTHeader32, pSectionHeader, fileSize, 0x2000, t_NameOfNewSectionHeader);
 
-    DWORD ImportTable_FOA = 0;
+    //    DWORD ImportTable_FOA = 0;
 
-    if (!RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, pNTHeader32->OptionalHeader.DataDirectory[1].VirtualAddress, &ImportTable_FOA)) {
-        QMessageBox::warning(this, "警告", "rva to foa error!");
-        return;
+    //    if (!RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, pNTHeader32->OptionalHeader.DataDirectory[1].VirtualAddress, &ImportTable_FOA)) {
+    //        QMessageBox::warning(this, "警告", "rva to foa error!");
+    //        return;
+    //    }
+
+    //    DWORD t_rva = 0;
+    //    PIMAGE_IMPORT_DESCRIPTOR pImportDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)((size_t)pFileBuffer + ImportTable_FOA);
+    //    PIMAGE_IMPORT_DESCRIPTOR pNewImportDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)((size_t)pFileBuffer + fileSize + 0x10);
+    //    memset((LPVOID)((size_t)pFileBuffer + fileSize), 0, 0x1000);
+
+    //    PIMAGE_IMPORT_DESCRIPTOR t = pNewImportDescriptor;
+
+    //    while (pImportDescriptor->FirstThunk != 0 /*|| pImportDescriptor->OriginalFirstThunk != 0*/) // 导入表迁移
+    //    {
+    //        memcpy(pNewImportDescriptor, pImportDescriptor, sizeof(IMAGE_IMPORT_DESCRIPTOR));
+    //        pImportDescriptor++, pNewImportDescriptor++;
+    //    }
+
+    //    memset(pNewImportDescriptor, 0, sizeof(IMAGE_IMPORT_DESCRIPTOR) * 2);
+
+    //    // INT 表 IAT 表
+    //    PDWORD pNewINT = (PDWORD)((size_t)pFileBuffer + fileSize + 0x200);
+    //    PDWORD pNewIAT = (PDWORD)((size_t)pFileBuffer + fileSize + 0x300);
+    //    PIMAGE_IMPORT_BY_NAME pNewName = (PIMAGE_IMPORT_BY_NAME)((size_t)pFileBuffer + fileSize + 0x400);
+
+
+    //    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x200, &t_rva);
+    //    pNewImportDescriptor->OriginalFirstThunk = t_rva; // 修正导入表中INT指针
+    //    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x300, &t_rva);
+    //    pNewImportDescriptor->FirstThunk = t_rva;         // 修正导入表中IAT指针
+    //    pNewName->Hint = 0;
+    //    char funname[] = "Add2";
+
+    //    // if (memcpy(pNewName->Name, funname, strlen(funname)))
+    //    //	printf("memcpy error!\n");
+    //    for (int i = 0; i < strlen(funname); i++) pNewName->Name[i] = funname[i];  // 修正Name表的函数名称
+
+    //    // Name表的rva 迁移
+    //    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x400, &t_rva);
+    //    *pNewIAT = t_rva; // 修正INT表指针
+    //    *pNewINT = t_rva; // 修正IAT表指针
+    //    *(pNewINT + 1) = 0;
+    //    *(pNewIAT + 1) = 0;
+
+
+    //    char dllname[] = "InjectTestDll.dll";
+
+    //    // if(memcpy((LPVOID)((DWORD)pFileBuffer+ file_size + 0x500), dllname, strlen(dllname)))
+    //    //	printf("memcpy error!\n");
+    //    PCHAR t_pchar = (PCHAR)((size_t)pFileBuffer + fileSize + 0x500);
+
+    //    for (int i = 0; i < strlen(dllname); i++) t_pchar[i] = dllname[i];
+
+    //    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x500, &t_rva);
+    //    pNewImportDescriptor->Name = t_rva;                                  // 修正导入表DLL名称
+
+    //    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x10,  &t_rva);
+    //    pNTHeader32->OptionalHeader.DataDirectory[1].VirtualAddress = t_rva; // 修正导入表指针
+    //    pNTHeader32->OptionalHeader.DataDirectory[1].Size += sizeof(IMAGE_IMPORT_DESCRIPTOR);
+
+    //    t->TimeDateStamp = 0;
+
+    //    // 写入文件
+    //    FILE *fp = _tfopen(FilePath, TEXT("wb"));
+    //    fwrite(pFileBuffer, fileSize + 0x2000 * 2, 1, fp);
+
+    //    // memset((LPVOID)((DWORD)pFileBuffer + file_size + 0x2000), 7, 0x2000);
+    //    fclose(fp);
+}
+
+void ItemView10PE::appendMessage(const QString& msg)
+{
+    QString text = edtMsg->toPlainText();
+
+    text += QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ");
+
+    //    text += QDateTime::currentDateTime().toString("[yyyy-MM-dd
+    // hh:mm:ss.zzz] ");
+    text += msg;
+
+    if (text.back() != '\n') {
+        text += "\n";
     }
+    showMessage(text);
+}
 
-    DWORD t_rva = 0;
-    PIMAGE_IMPORT_DESCRIPTOR pImportDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)((size_t)pFileBuffer + ImportTable_FOA);
-    PIMAGE_IMPORT_DESCRIPTOR pNewImportDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)((size_t)pFileBuffer + fileSize + 0x10);
-    memset((LPVOID)((size_t)pFileBuffer + fileSize), 0, 0x1000);
-
-    PIMAGE_IMPORT_DESCRIPTOR t = pNewImportDescriptor;
-
-    while (pImportDescriptor->FirstThunk != 0 /*|| pImportDescriptor->OriginalFirstThunk != 0*/) // 导入表迁移
-    {
-        memcpy(pNewImportDescriptor, pImportDescriptor, sizeof(IMAGE_IMPORT_DESCRIPTOR));
-        pImportDescriptor++, pNewImportDescriptor++;
-    }
-
-    memset(pNewImportDescriptor, 0, sizeof(IMAGE_IMPORT_DESCRIPTOR) * 2);
-
-    // INT 表 IAT 表
-    PDWORD pNewINT = (PDWORD)((size_t)pFileBuffer + fileSize + 0x200);
-    PDWORD pNewIAT = (PDWORD)((size_t)pFileBuffer + fileSize + 0x300);
-    PIMAGE_IMPORT_BY_NAME pNewName = (PIMAGE_IMPORT_BY_NAME)((size_t)pFileBuffer + fileSize + 0x400);
-
-
-    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x200, &t_rva);
-    pNewImportDescriptor->OriginalFirstThunk = t_rva; // 修正导入表中INT指针
-    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x300, &t_rva);
-    pNewImportDescriptor->FirstThunk = t_rva;         // 修正导入表中IAT指针
-    pNewName->Hint = 0;
-    char funname[] = "ExportFunction";
-
-    // if (memcpy(pNewName->Name, funname, strlen(funname)))
-    //	printf("memcpy error!\n");
-    for (int i = 0; i < strlen(funname); i++) pNewName->Name[i] = funname[i];  // 修正Name表的函数名称
-
-    // Name表的rva 迁移
-    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x400, &t_rva);
-    *pNewIAT = t_rva; // 修正INT表指针
-    *pNewINT = t_rva; // 修正IAT表指针
-    *(pNewINT + 1) = 0;
-    *(pNewIAT + 1) = 0;
-
-
-    char dllname[] = "InjectDll.dll";
-
-    // if(memcpy((LPVOID)((DWORD)pFileBuffer+ file_size + 0x500), dllname, strlen(dllname)))
-    //	printf("memcpy error!\n");
-    PCHAR t_pchar = (PCHAR)((size_t)pFileBuffer + fileSize + 0x500);
-
-    for (int i = 0; i < strlen(dllname); i++) t_pchar[i] = dllname[i];
-
-    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x500, &t_rva);
-    pNewImportDescriptor->Name = t_rva;                                  // 修正导入表DLL名称
-
-    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x10,  &t_rva);
-    pNTHeader32->OptionalHeader.DataDirectory[1].VirtualAddress = t_rva; // 修正导入表指针
-    pNTHeader32->OptionalHeader.DataDirectory[1].Size += sizeof(IMAGE_IMPORT_DESCRIPTOR);
-
-    t->TimeDateStamp = 0;
-
-    // 写入文件
-    FILE *fp = _tfopen(FilePath, TEXT("wb"));
-    fwrite(pFileBuffer, fileSize + 0x2000 * 2, 1, fp);
-
-    // memset((LPVOID)((DWORD)pFileBuffer + file_size + 0x2000), 7, 0x2000);
-    fclose(fp);
+void ItemView10PE::showMessage(const QString& msg)
+{
+    edtMsg->setPlainText(msg);
+    QTextCursor cursor = edtMsg->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    edtMsg->setTextCursor(cursor);
+    edtMsg->repaint();
 }

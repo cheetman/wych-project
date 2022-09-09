@@ -48,6 +48,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
 #    qftp.cpp \
+    structs/pe.cpp \
     qurlinfo.cpp \
     selectdialog.cpp \
     tcpserver.cpp \
@@ -72,6 +73,7 @@ HEADERS += \
     itemview9tcp.h \
     mainwindow.h \
 #    qftp.h \
+    structs/pe.h \
     qurlinfo.h \
     selectdialog.h \
     tcpserver.h \

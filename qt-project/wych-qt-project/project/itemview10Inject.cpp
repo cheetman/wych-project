@@ -416,9 +416,7 @@ void Itemview10Inject::initConnect()
         // WCHAR procPath[_MAX_PATH] = {0};
         MODULEENTRY32 lpme;                  // DLL结构
         lpme.dwSize = sizeof(MODULEENTRY32); // 在使用这个结构前，先设置它的大小
-        DWORD row = 0;                       // 初始化行号，要在循环中递增
         BOOL bRet = FALSE;
-        char bufferPID[20] = { 0 };          // 用于将PID，镜像基址，镜像大小unsigned long类型的值转化为char*类型
         TCHAR bufferImageSize[20] = { 0 };
         TCHAR bufferModBaseAddr[20] = { 0 };
 

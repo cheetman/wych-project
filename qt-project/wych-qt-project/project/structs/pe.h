@@ -7,6 +7,7 @@
 class PE  {
 public:
 
+    PE();
     PE(const wchar_t *path,
        void          *parent);
     ~PE();
@@ -18,7 +19,7 @@ public:
     PIMAGE_NT_HEADERS32 m_lpNtHeader32 = NULL;
     PIMAGE_NT_HEADERS64 m_lpNtHeader64 = NULL;
 
-    // 节表
+    // 节表(第一个表地址，根据NumberOfSections循环。包含每个节的RVA和FOA)
     // 地址 = NT头地址(foa) + NT头大小(PE文件标识(4字节) + 文件头(20字节) + 可选头(SizeOfOptionalHeader字节))
     PIMAGE_SECTION_HEADER m_lpSecHeader = NULL;
 
@@ -65,6 +66,9 @@ public:
     bool isX64();
     bool rvaToFoa(IN DWORD   RVA,
                   OUT PDWORD FOA);
+
+    bool foaToRva(IN DWORD   FOA,
+                  OUT PDWORD RVA);
 
 private:
 

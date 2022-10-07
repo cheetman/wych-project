@@ -414,8 +414,6 @@ void ItemView10PE::initUI()
     layout->addWidget( rightQWidget);
 }
 
-char t_NameOfNewSectionHeader[6] = { 'Y', 'U', 'C', 'H', 'U', 'A' };
-
 void ItemView10PE::initConnect()
 {
     connect(btnImportAdd, &QPushButton::clicked, [this]() {
@@ -943,126 +941,151 @@ bool ItemView10PE::FOA_TO_RVA(PIMAGE_NT_HEADERS32 pNTHeader32,
 // 8.节表VirtualSize给了2000  pNewSectionHeader->Misc.VirtualSize
 // 9.节表SizeOfRawData给了2000  pNewSectionHeader->SizeOfRawData
 // 10.根据倒数第2个节表算出PointerToRawData （t_LastSectionHeader->PointerToRawData + t_LastSectionHeader->SizeOfRawData;）
-// 11.根据倒数第2个节表算出VirtualAddress （t_LastSectionHeader->VirtualAddress + t_LastSectionHeader->SizeOfRawData;）
+// 这里有问题，看下面注释 11.根据倒数第2个节表算出VirtualAddress （t_LastSectionHeader->VirtualAddress + t_LastSectionHeader->SizeOfRawData;）
 
 
-void ItemView10PE::CreateNewSection(LPVOID               *pFileBuffer,
-                                    PIMAGE_DOS_HEADER     pDosHeader,
-                                    PIMAGE_NT_HEADERS32   pNTHeader,
-                                    PIMAGE_SECTION_HEADER pFirstSectionHeader,
-                                    size_t                file_size,
-                                    size_t                size_of_new_section,
-                                    LPSTR                 NameOfNewSetionHeader)
+bool ItemView10PE::CreateNewSection(PE    *pe,
+                                    size_t size_of_new_section,
+                                    LPSTR  NameOfNewSetionHeader)
 {
-    PIMAGE_SECTION_HEADER pNewSectionHeader = pFirstSectionHeader + pNTHeader->FileHeader.NumberOfSections;
+    // NameOfNewSetionHeader 这个注意文件对齐值
+    // 先判断最后一个节表末尾是否有能存放两个节表的空闲空间
+    PIMAGE_SECTION_HEADER pNewSectionHeader = pe->m_lpSecHeader + pe->m_lpNtHeader32->FileHeader.NumberOfSections;
 
-
-    // 判断最后一个节表末尾是否有能存放两个节表的空闲空间
-    if (pNTHeader->OptionalHeader.SizeOfHeaders - (pDosHeader->e_lfanew + sizeof(IMAGE_NT_HEADERS32) + pNTHeader->FileHeader.NumberOfSections * sizeof(IMAGE_SECTION_HEADER)) < sizeof(IMAGE_SECTION_HEADER) * 2)
+    if (pe->m_lpNtHeader32->OptionalHeader.SizeOfHeaders - (pe->m_lpDosHeader->e_lfanew + sizeof(IMAGE_NT_HEADERS32) +  pe->m_lpNtHeader32->FileHeader.NumberOfSections * sizeof(IMAGE_SECTION_HEADER)) < sizeof(IMAGE_SECTION_HEADER) * 2)
     {
         QMessageBox::warning(this, "警告", "not enough space to add  section header!");
-        return;
+        return false;
     }
 
-    //       EXIT_ERROR("not enough space to add  section header!");
-    memset(pNewSectionHeader + 1, 0, sizeof(IMAGE_SECTION_HEADER));            // 在添加的节表后面填充0
 
-    pNTHeader->FileHeader.NumberOfSections += 1;
-    pNTHeader->OptionalHeader.SizeOfImage += size_of_new_section;              // 修正PE头
+    void *newLpFileData = realloc(pe->m_lpFileData, pe->m_fileSize + size_of_new_section); // 在末尾增加需要增加的大小
 
-    *pFileBuffer = realloc(*pFileBuffer, file_size + size_of_new_section * 2); // 在末尾增加需要增加的大小
+    if (newLpFileData == NULL) {
+        QMessageBox::warning(this, "警告", "扩容失败!");
+
+        // 应该不用free
+    } else {
+        pe->m_lpFileData = newLpFileData;
+        pe->m_fileSize = pe->m_fileSize + size_of_new_section;
+
+        if (pe->build()) {
+            pNewSectionHeader = pe->m_lpSecHeader + pe->m_lpNtHeader32->FileHeader.NumberOfSections;
+        } else {
+            QMessageBox::warning(this, "警告", "扩容构建失败!");
+            return false;
+        }
+    }
+
     // memset((PBYTE)pFileBuffer + size_of_new_section, 0,
     // pNTHeader->OptionalHeader.FileAlignment);
     // 再增加一个文件对齐大小的0
 
+    memset(pNewSectionHeader + 1, 0, sizeof(IMAGE_SECTION_HEADER));        // 在添加的节表后面填充0
+
+    pe->m_lpNtHeader32->FileHeader.NumberOfSections += 1;
+    pe->m_lpNtHeader32->OptionalHeader.SizeOfImage += size_of_new_section; // 修正PE头
+
+
     // 拷贝一个节表结构
-    memcpy(pNewSectionHeader, pFirstSectionHeader,   sizeof(IMAGE_SECTION_HEADER));
+    // 注意要有读写权限，一般第一个是.text都有读写权限
+    memcpy(pNewSectionHeader, pe->m_lpSecHeader,     sizeof(IMAGE_SECTION_HEADER));
 
     // 拷贝节表名称
     memcpy(pNewSectionHeader, NameOfNewSetionHeader, sizeof(NameOfNewSetionHeader));
 
     // 修改节表地址相关
     pNewSectionHeader->Misc.VirtualSize = size_of_new_section;
+    pNewSectionHeader->SizeOfRawData = size_of_new_section;
 
     PIMAGE_SECTION_HEADER t_LastSectionHeader = pNewSectionHeader - 1;
     pNewSectionHeader->PointerToRawData = t_LastSectionHeader->PointerToRawData + t_LastSectionHeader->SizeOfRawData;
-    pNewSectionHeader->SizeOfRawData = size_of_new_section;
-    pNewSectionHeader->VirtualAddress = t_LastSectionHeader->VirtualAddress + t_LastSectionHeader->SizeOfRawData;
+
+    // 注意内存对齐，注意VirtualSize可能大于SizeOfRawData
+    // 如果VirtualAddress算错会导致无法运行
+    // pNewSectionHeader->VirtualAddress = t_LastSectionHeader->VirtualAddress + t_LastSectionHeader->SizeOfRawData; 这么写不对，除非文件对齐和内存对齐一致。
+    int maxSize = t_LastSectionHeader->SizeOfRawData;
+
+    if (t_LastSectionHeader->Misc.VirtualSize > maxSize) maxSize = t_LastSectionHeader->Misc.VirtualSize;
+    int size = (maxSize / pe->m_lpNtHeader32->OptionalHeader.SectionAlignment + 1) * pe->m_lpNtHeader32->OptionalHeader.SectionAlignment;
+    pNewSectionHeader->VirtualAddress = t_LastSectionHeader->VirtualAddress + size;
 }
 
+// 注意坑，必须包含 C000 0000 也就是必须有代码写入的权限，因为有IAT要初始化写入
 void ItemView10PE::InjectImportTable() {
-    //    CreateNewSection(&pFileBuffer, pDosHeader, pNTHeader32, pSectionHeader, fileSize, 0x2000, t_NameOfNewSectionHeader);
+    DWORD oldFileSize = pe->m_fileSize;
 
-    //    DWORD ImportTable_FOA = 0;
+    // 节表名称
+    char t_NameOfNewSectionHeader[6] = { 'Y', 'U', 'C', 'H', 'U', 'A' };
 
-    //    if (!RVA_TO_FOA(pNTHeader32, pNTHeader64, pSectionHeader, pNTHeader32->OptionalHeader.DataDirectory[1].VirtualAddress, &ImportTable_FOA)) {
-    //        QMessageBox::warning(this, "警告", "rva to foa error!");
-    //        return;
-    //    }
-
-    //    DWORD t_rva = 0;
-    //    PIMAGE_IMPORT_DESCRIPTOR pImportDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)((size_t)pFileBuffer + ImportTable_FOA);
-    //    PIMAGE_IMPORT_DESCRIPTOR pNewImportDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)((size_t)pFileBuffer + fileSize + 0x10);
-    //    memset((LPVOID)((size_t)pFileBuffer + fileSize), 0, 0x1000);
-
-    //    PIMAGE_IMPORT_DESCRIPTOR t = pNewImportDescriptor;
-
-    //    while (pImportDescriptor->FirstThunk != 0 /*|| pImportDescriptor->OriginalFirstThunk != 0*/) // 导入表迁移
-    //    {
-    //        memcpy(pNewImportDescriptor, pImportDescriptor, sizeof(IMAGE_IMPORT_DESCRIPTOR));
-    //        pImportDescriptor++, pNewImportDescriptor++;
-    //    }
-
-    //    memset(pNewImportDescriptor, 0, sizeof(IMAGE_IMPORT_DESCRIPTOR) * 2);
-
-    //    // INT 表 IAT 表
-    //    PDWORD pNewINT = (PDWORD)((size_t)pFileBuffer + fileSize + 0x200);
-    //    PDWORD pNewIAT = (PDWORD)((size_t)pFileBuffer + fileSize + 0x300);
-    //    PIMAGE_IMPORT_BY_NAME pNewName = (PIMAGE_IMPORT_BY_NAME)((size_t)pFileBuffer + fileSize + 0x400);
+    CreateNewSection(pe, 0x2000, t_NameOfNewSectionHeader);
 
 
-    //    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x200, &t_rva);
-    //    pNewImportDescriptor->OriginalFirstThunk = t_rva; // 修正导入表中INT指针
-    //    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x300, &t_rva);
-    //    pNewImportDescriptor->FirstThunk = t_rva;         // 修正导入表中IAT指针
-    //    pNewName->Hint = 0;
-    //    char funname[] = "Add2";
+    // 原导入表
+    // m_lpImportDescriptor
 
-    //    // if (memcpy(pNewName->Name, funname, strlen(funname)))
-    //    //	printf("memcpy error!\n");
-    //    for (int i = 0; i < strlen(funname); i++) pNewName->Name[i] = funname[i];  // 修正Name表的函数名称
+    // 新导入表
+    PIMAGE_IMPORT_DESCRIPTOR pNewImportDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)((size_t)pe->m_lpFileData + oldFileSize + 0x10);
+    memset((LPVOID)((size_t)pe->m_lpFileData + oldFileSize), 0, 0x1000);
 
-    //    // Name表的rva 迁移
-    //    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x400, &t_rva);
-    //    *pNewIAT = t_rva; // 修正INT表指针
-    //    *pNewINT = t_rva; // 修正IAT表指针
-    //    *(pNewINT + 1) = 0;
-    //    *(pNewIAT + 1) = 0;
+    PIMAGE_IMPORT_DESCRIPTOR oldImport = pe->m_lpImportDescriptor;
+    PIMAGE_IMPORT_DESCRIPTOR newImport = pNewImportDescriptor;
+
+    while (oldImport->FirstThunk != 0 /*|| pImportDescriptor->OriginalFirstThunk != 0*/) // 导入表迁移
+    {
+        memcpy(newImport, oldImport, sizeof(IMAGE_IMPORT_DESCRIPTOR));
+        oldImport++, newImport++;
+    }
+    memset(newImport, 0, sizeof(IMAGE_IMPORT_DESCRIPTOR) * 2);
+
+    // INT 表 IAT 表
+    PDWORD pNewINT = (PDWORD)((size_t)pe->m_lpFileData + oldFileSize + 0x200);
+    PDWORD pNewIAT = (PDWORD)((size_t)pe->m_lpFileData + oldFileSize + 0x300);
+    PIMAGE_IMPORT_BY_NAME pNewName = (PIMAGE_IMPORT_BY_NAME)((size_t)pe->m_lpFileData + oldFileSize + 0x400);
+
+    DWORD t_rva;
+    pe->foaToRva(oldFileSize + 0x200, &t_rva);
+    newImport->OriginalFirstThunk = t_rva; // 修正导入表中INT指针
+    pe->foaToRva(oldFileSize + 0x300, &t_rva);
+    newImport->FirstThunk = t_rva;         // 修正导入表中IAT指针
+    pNewName->Hint = 0;
+    char funname[] = "Add2";
+
+    // if (memcpy(pNewName->Name, funname, strlen(funname)))
+    //	printf("memcpy error!\n");
+    for (int i = 0; i < strlen(funname); i++) pNewName->Name[i] = funname[i];  // 修正Name表的函数名称
+
+    // Name表的rva 迁移
+    pe->foaToRva(oldFileSize + 0x400, &t_rva);
+    *pNewIAT = t_rva; // 修正INT表指针
+    *pNewINT = t_rva; // 修正IAT表指针
+    *(pNewINT + 1) = 0;
+    *(pNewIAT + 1) = 0;
 
 
-    //    char dllname[] = "InjectTestDll.dll";
+    char dllname[] = "InjectTestDll.dll";
 
-    //    // if(memcpy((LPVOID)((DWORD)pFileBuffer+ file_size + 0x500), dllname, strlen(dllname)))
-    //    //	printf("memcpy error!\n");
-    //    PCHAR t_pchar = (PCHAR)((size_t)pFileBuffer + fileSize + 0x500);
+    // if(memcpy((LPVOID)((DWORD)pFileBuffer+ file_size + 0x500), dllname, strlen(dllname)))
+    //	printf("memcpy error!\n");
+    PCHAR t_pchar = (PCHAR)((size_t)pe->m_lpFileData + oldFileSize + 0x500);
 
-    //    for (int i = 0; i < strlen(dllname); i++) t_pchar[i] = dllname[i];
+    for (int i = 0; i < strlen(dllname); i++) t_pchar[i] = dllname[i];
 
-    //    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x500, &t_rva);
-    //    pNewImportDescriptor->Name = t_rva;                                  // 修正导入表DLL名称
+    pe->foaToRva(oldFileSize + 0x500, &t_rva);
+    newImport->Name = t_rva;                                                    // 修正导入表DLL名称
 
-    //    FOA_TO_RVA(pNTHeader32, pNTHeader64, pSectionHeader, fileSize + 0x10,  &t_rva);
-    //    pNTHeader32->OptionalHeader.DataDirectory[1].VirtualAddress = t_rva; // 修正导入表指针
-    //    pNTHeader32->OptionalHeader.DataDirectory[1].Size += sizeof(IMAGE_IMPORT_DESCRIPTOR);
+    pe->foaToRva(oldFileSize + 0x10,  &t_rva);
+    pe->m_lpNtHeader32->OptionalHeader.DataDirectory[1].VirtualAddress = t_rva; // 修正导入表指针
+    pe->m_lpNtHeader32->OptionalHeader.DataDirectory[1].Size += sizeof(IMAGE_IMPORT_DESCRIPTOR);
 
-    //    t->TimeDateStamp = 0;
+    newImport->TimeDateStamp = 0;
 
-    //    // 写入文件
-    //    FILE *fp = _tfopen(FilePath, TEXT("wb"));
-    //    fwrite(pFileBuffer, fileSize + 0x2000 * 2, 1, fp);
+    // 写入文件
+    FILE *fp = _tfopen(FilePath, TEXT("wb"));
+    fwrite(pe->m_lpFileData, pe->m_fileSize, 1, fp);
+    fclose(fp);
 
-    //    // memset((LPVOID)((DWORD)pFileBuffer + file_size + 0x2000), 7, 0x2000);
-    //    fclose(fp);
+    // memset((LPVOID)((DWORD)pFileBuffer + file_size + 0x2000), 7, 0x2000);
 }
 
 void ItemView10PE::appendMessage(const QString& msg)

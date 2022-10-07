@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <itemview10pe.h>
 
+PE::PE() {}
 
 PE::PE(const  wchar_t *path, void *parent)
 {
@@ -185,6 +186,55 @@ bool PE::rvaToFoa(IN DWORD RVA, OUT PDWORD FOA) {
                 return true;
             }
 
+        warning("rvaToFoa error!");
+        return false;
+    }
+}
+
+bool PE::foaToRva(IN DWORD FOA, OUT PDWORD RVA) {
+    if (isX86()) {
+        if ((FOA < m_lpNtHeader32->OptionalHeader.SizeOfHeaders) ||
+            (m_lpNtHeader32->OptionalHeader.SectionAlignment ==
+             m_lpNtHeader32->OptionalHeader.FileAlignment))
+        {
+            *RVA = FOA;
+            return true;
+        }
+
+        for (int i = 0; i < m_lpNtHeader32->FileHeader.NumberOfSections; i++)
+        {
+            if ((FOA >= m_lpSecHeader[i].PointerToRawData) &&
+                (FOA < m_lpSecHeader[i].PointerToRawData +
+                 m_lpSecHeader[i].Misc.VirtualSize))
+            {
+                *RVA = m_lpSecHeader[i].VirtualAddress + FOA -
+                       m_lpSecHeader[i].PointerToRawData;
+                return true;
+            }
+        }
+
+        warning("foaToRva error!");
+        return false;
+    } else {
+        if ((FOA < m_lpNtHeader64->OptionalHeader.SizeOfHeaders) ||
+            (m_lpNtHeader64->OptionalHeader.SectionAlignment ==
+             m_lpNtHeader64->OptionalHeader.FileAlignment))
+        {
+            *RVA = FOA;
+            return true;
+        }
+
+        for (int i = 0; i < m_lpNtHeader64->FileHeader.NumberOfSections; i++)
+        {
+            if ((FOA >= m_lpSecHeader[i].PointerToRawData) &&
+                (FOA < m_lpSecHeader[i].PointerToRawData +
+                 m_lpSecHeader[i].Misc.VirtualSize))
+            {
+                *RVA = m_lpSecHeader[i].VirtualAddress + FOA -
+                       m_lpSecHeader[i].PointerToRawData;
+                return true;
+            }
+        }
         warning("rvaToFoa error!");
         return false;
     }

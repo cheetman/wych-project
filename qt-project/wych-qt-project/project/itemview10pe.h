@@ -165,13 +165,9 @@ private:
                     IN DWORD              RVA,
                     OUT PDWORD            FOA);
 
-    void CreateNewSection(LPVOID               *pFileBuffer,
-                          PIMAGE_DOS_HEADER     pDosHeader,
-                          PIMAGE_NT_HEADERS32   pNTHeader,
-                          PIMAGE_SECTION_HEADER pFirstSectionHeader,
-                          size_t                file_size,
-                          size_t                size_of_new_section,
-                          LPSTR                 NameOfNewSetionHeader);
+    bool CreateNewSection(PE    *pe,
+                          size_t size_of_new_section,
+                          LPSTR  NameOfNewSetionHeader);
 
     void InjectImportTable();
 

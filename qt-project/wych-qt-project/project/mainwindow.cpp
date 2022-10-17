@@ -3,6 +3,8 @@
 #include "customevent.h"
 #include "itemview10.h"
 
+#include <ItemView11.h>
+
 SINGLETON_IMPL(MainWindow)
 
 MainWindow::MainWindow(QWidget *parent)
@@ -22,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
     //    tabWidget->addTab(new ItemView7(this), tr("7.视频播放器(FTP)"));
     tabWidget->addTab(new ItemView9(this),  tr("9.游戏辅助测试"));
     tabWidget->addTab(new ItemView10(this), tr("10.底层测试"));
+    tabWidget->addTab(new ItemView11(this), tr("11.安卓底层测试"));
 
 
     QWidget *widget = new QWidget(this);

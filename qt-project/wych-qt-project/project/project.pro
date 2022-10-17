@@ -36,6 +36,8 @@ SOURCES += \
     itemview10.cpp \
     itemview10Inject.cpp \
     itemview10pe.cpp \
+    itemview11.cpp \
+    itemview11cmd.cpp \
     itemview7player.cpp \
     itemview7vlcplayer.cpp \
     itemview8.cpp \
@@ -62,6 +64,8 @@ HEADERS += \
     itemview10Inject.h \
     itemview10.h \
     itemview10pe.h \
+    itemview11.h \
+    itemview11cmd.h \
     itemview7player.h \
     itemview7vlcplayer.h \
     itemview8.h \

@@ -37,6 +37,8 @@ protected:
     void         showMessage(const QString& msg);
     virtual void customEvent(QEvent *e);
 
+    void         inputCmd();
+
 private:
 
     QLineEdit *dos_e_magic;
@@ -108,13 +110,14 @@ private:
 
     QPushButton *btnStart;
     QPushButton *btnRemoteInject;
-    QPushButton *btnReflectiveInject;
+    QPushButton *btnExit;
     QPushButton *btnConsoleClear;
     QPushButton *btnImportAdd;
     QCheckBox *ckConsoleEnable;
 
 
     QPlainTextEdit *edtMsg;
+    QLineEdit *leInputCmd;
 
     QStandardItemModel *processGridModel;
     QTableView *processTableView;
@@ -126,10 +129,12 @@ private:
     QTableView *importTableView;
     QStandardItemModel *import2GridModel;
     QTableView *import2TableView;
-    QStandardItemModel *relocationGridModel;
-    QTableView *relocationTableView;
-    QStandardItemModel *relocation2GridModel;
-    QTableView *relocation2TableView;
+    QStandardItemModel *android1GridModel;
+    QTableView *android1TableView;
+    QStandardItemModel *android2GridModel;
+    QTableView *android2TableView;
+
+    bool isStart = false;
 
 signals:
 };

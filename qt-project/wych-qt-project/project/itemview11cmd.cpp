@@ -6,6 +6,11 @@
 #include <tchar.h>
 #include <Windows.h>
 #include <TlHelp32.h>
+#include <QJsonParseError>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QSettings>
+
 #include "winapi.h"
 #include "process.h"
 
@@ -35,37 +40,36 @@ void ItemView11Cmd::initUI()
     leftQWidgetGroupBox1->setFixedHeight(150);
 
 
-    auto leftQWidgetGroupBox2 = new QGroupBox("进程", this);
-    leftQWidgetLayout->addWidget(leftQWidgetGroupBox2);
-    leftQWidgetLayout->setAlignment(Qt::AlignTop);
-    auto leftQWidgetGroup1Layout2 = new QGridLayout(leftQWidgetGroupBox2);
+    //    auto leftQWidgetGroupBox2 = new QGroupBox("进程", this);
+    //    leftQWidgetLayout->addWidget(leftQWidgetGroupBox2);
+    //    leftQWidgetLayout->setAlignment(Qt::AlignTop);
+    //    auto leftQWidgetGroup1Layout2 = new QGridLayout(leftQWidgetGroupBox2);
 
 
-    auto leftQWidgetGroupBox3 = new QGroupBox("模块", this);
-    leftQWidgetLayout->addWidget(leftQWidgetGroupBox3);
-    leftQWidgetLayout->setAlignment(Qt::AlignTop);
-    auto leftQWidgetGroup1Layout3 = new QGridLayout(leftQWidgetGroupBox3);
-
-    //    leftQWidgetGroupBox2->setFixedHeight(130);
-
-    processTableView = new QTableView(this);
-    processGridModel = new QStandardItemModel();
-    processGridModel->setHorizontalHeaderLabels({  "进程", "PID",  "镜像基址", "镜像大小" });
-    processTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    processTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    processTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    processTableView->setModel(processGridModel);
-    leftQWidgetGroup1Layout2->addWidget(processTableView);
+    //    auto leftQWidgetGroupBox3 = new QGroupBox("模块", this);
+    //    leftQWidgetLayout->addWidget(leftQWidgetGroupBox3);
+    //    leftQWidgetLayout->setAlignment(Qt::AlignTop);
+    //    auto leftQWidgetGroup1Layout3 = new QGridLayout(leftQWidgetGroupBox3);
 
 
-    moduleTableView = new QTableView(this);
-    moduleGridModel = new QStandardItemModel();
-    moduleGridModel->setHorizontalHeaderLabels({  "模块名称", "模块基址",  "模块大小" });
-    moduleTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    moduleTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    moduleTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    moduleTableView->setModel(moduleGridModel);
-    leftQWidgetGroup1Layout3->addWidget(moduleTableView);
+    //    processTableView = new QTableView(this);
+    //    processGridModel = new QStandardItemModel();
+    //    processGridModel->setHorizontalHeaderLabels({  "进程", "PID",  "镜像基址", "镜像大小" });
+    //    processTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    //    processTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    //    processTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    //    processTableView->setModel(processGridModel);
+    //    leftQWidgetGroup1Layout2->addWidget(processTableView);
+
+
+    //    moduleTableView = new QTableView(this);
+    //    moduleGridModel = new QStandardItemModel();
+    //    moduleGridModel->setHorizontalHeaderLabels({  "模块名称", "模块基址",  "模块大小" });
+    //    moduleTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    //    moduleTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    //    moduleTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    //    moduleTableView->setModel(moduleGridModel);
+    //    leftQWidgetGroup1Layout3->addWidget(moduleTableView);
 
 
     // 第一层
@@ -82,6 +86,10 @@ void ItemView11Cmd::initUI()
     edtMsg = new QPlainTextEdit();
     edtMsg->setReadOnly(true);
     centerQWidgetLayout->addWidget(edtMsg);
+
+
+    leInputCmd = new QLineEdit();
+    centerQWidgetLayout->addWidget(leInputCmd);
 
 
     // 第一层
@@ -106,94 +114,163 @@ void ItemView11Cmd::initUI()
 
     // tabTabWidget->addTab(tab,  tr("导出表"));
     // tabTabWidget->addTab(tab2, tr("导入表"));
-    tabTabWidget->addTab(tab3, tr("重定位表"));
+    tabTabWidget->addTab(tab3, tr("安卓命令"));
     rightQWidgetGroupBox1Layout->addWidget(tabTabWidget);
     rightQWidgetLayout->addWidget(rightQWidgetGroupBox1);
 
 
     // 第四层(重定位)
-    auto relocationTabTabWidgetGroupBox = new QGroupBox("区段", tab3);
+    auto relocationTabTabWidgetGroupBox = new QGroupBox("cmd", tab3);
     relocationTabTabWidgetLayout->addWidget(relocationTabTabWidgetGroupBox);
     relocationTabTabWidgetLayout->setAlignment(Qt::AlignTop);
     auto relocationTabTabWidgetGroupBoxLayout = new QGridLayout(relocationTabTabWidgetGroupBox);
     relocationTabTabWidgetGroupBox->setFixedHeight(250);
-    relocationTableView = new QTableView(this);
-    relocationGridModel = new QStandardItemModel();
-    relocationGridModel->setHorizontalHeaderLabels({  "所属节",  "RVA", "数量", "大小(字节)" });
-    relocationTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    relocationTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    relocationTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    relocationTableView->setModel(relocationGridModel);
-    relocationTabTabWidgetGroupBoxLayout->addWidget(relocationTableView);
+    android1TableView = new QTableView(this);
+    android1GridModel = new QStandardItemModel();
+    android1GridModel->setHorizontalHeaderLabels({  "命令",  "说明", "类型", "回车" });
+    android1TableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    android1TableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    android1TableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    android1TableView->setModel(android1GridModel);
+    relocationTabTabWidgetGroupBoxLayout->addWidget(android1TableView);
 
-    auto relocationTabTabWidgetGroupBox2 = new QGroupBox("块", tab3);
+    auto relocationTabTabWidgetGroupBox2 = new QGroupBox("adb", tab3);
     relocationTabTabWidgetLayout->addWidget(relocationTabTabWidgetGroupBox2);
     relocationTabTabWidgetLayout->setAlignment(Qt::AlignTop);
     auto relocationTabTabWidgetGroupBoxLayout2 = new QGridLayout(relocationTabTabWidgetGroupBox2);
-    relocation2TableView = new QTableView(this);
-    relocation2GridModel = new QStandardItemModel();
-    relocation2GridModel->setHorizontalHeaderLabels({  "RVA",  "FOA" });
-    relocation2TableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    relocation2TableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    relocation2TableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    relocation2TableView->setModel(relocation2GridModel);
-    relocationTabTabWidgetGroupBoxLayout2->addWidget(relocation2TableView);
+    android2TableView = new QTableView(this);
+    android2GridModel = new QStandardItemModel();
+    android2GridModel->setHorizontalHeaderLabels({  "命令",  "说明", "类型", "回车"  });
+    android2TableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    android2TableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    android2TableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    android2TableView->setModel(android2GridModel);
+    relocationTabTabWidgetGroupBoxLayout2->addWidget(android2TableView);
 
 
     // 控件
     ckConsoleEnable = new QCheckBox("启动控制台");
 
     btnStart = new QPushButton("启动连接控制台");
-    btnRemoteInject = new QPushButton("输入");
 
-    btnReflectiveInject = new QPushButton("退出");
+    //    btnRemoteInject = new QPushButton("输入");
+
+    btnExit = new QPushButton("退出");
 
     btnConsoleClear = new QPushButton("清空控制台");
 
-    leftQWidgetGroup1Layout->addWidget(           btnStart, 0, 0);
-    leftQWidgetGroup1Layout->addWidget(    btnRemoteInject, 1, 0);
+    leftQWidgetGroup1Layout->addWidget(btnStart, 0, 0);
 
-    leftQWidgetGroup1Layout->addWidget(btnReflectiveInject, 2, 0);
+    //    leftQWidgetGroup1Layout->addWidget(btnRemoteInject, 1, 0);
+
+    leftQWidgetGroup1Layout->addWidget(btnExit, 1, 0);
 
 
     layout->addWidget(  leftQWidget);
     layout->addWidget(centerQWidget);
     layout->addWidget( rightQWidget);
+
+    // 用于toLocal8Bit支持中文
+    QTextCodec::setCodecForLocale(QTextCodec::codecForName("GBK"));
+
+
+    // 初始化
+    // 读取配置
+    QSettings settings("configs/setting.ini", QSettings::IniFormat);
+    QFile     file(settings.value("DefaultDir/Cmd", "D:\\cmdConsoloList.json").toString());
+
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QString value = file.readAll();
+        file.close();
+        QJsonParseError parseJsonErr;
+        auto document = QJsonDocument::fromJson(value.toUtf8(), &parseJsonErr);
+
+        if (!(parseJsonErr.error == QJsonParseError::NoError)) {
+            QMessageBox::about(this, "提示", "配置文件错误！");
+            return;
+        }
+
+        if (document.isObject()) {
+            QJsonObject jsonObj =  document.object();
+
+            if (jsonObj.contains("android1")) {
+                QJsonArray jsonArray = jsonObj["android1"].toArray();
+
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    QJsonObject jsonObj2 = jsonArray.at(i).toObject();
+
+                    android1GridModel->setItem(i, 0, new QStandardItem(jsonObj2["name"].toString()));
+                    android1GridModel->setItem(i, 1, new QStandardItem(jsonObj2["cmd"].toString()));
+                    android1GridModel->setItem(i, 2, new QStandardItem(jsonObj2["type"].toString()));
+                    android1GridModel->setItem(i, 3, new QStandardItem(jsonObj2["return"].toString()));
+                }
+            }
+        }
+    } else {
+        // QMessageBox::warning(this, tr("错误"), tr("配置文件打开失败！"));
+    }
 }
 
 HANDLE hRead, hWrite;
 HANDLE hRead2, hWrite2;
 
+void ItemView11Cmd::inputCmd()
+{
+    if (isStart) {
+        // QByteArray ba = leInputCmd->text().toLatin1();
+        QByteArray ba = leInputCmd->text().toLocal8Bit();
+        char *input = ba.data();
+
+        //        int   count = strlen(input) + 2;
+        char newInput[50];
+        sprintf(newInput, "%s\r\n", input);
+        DWORD dwWrited;
+        WriteFile(hWrite2, newInput, strlen(newInput), &dwWrited, NULL);
+    }
+}
+
 void ItemView11Cmd::initConnect()
 {
-    // 反射注入
-    connect(btnReflectiveInject, &QPushButton::clicked, [this]() {
-        const char *dd = "exit\r\n";
-        DWORD dwWrited;
-
-        WriteFile(hWrite2, "exit\r\n", strlen(dd), &dwWrited, NULL);
+    // 事件 - 输入回车
+    connect(leInputCmd, &QLineEdit::returnPressed, [this]() {
+        if (isStart) {
+            inputCmd();
+        }
     });
 
 
-    // 远程线程加载DLL
-    connect(btnRemoteInject, &QPushButton::clicked, [this]() {
-        const char *dd = "FDSFDF32434 \r\n";
-
-        // const char *dd = "FDSFDF \r\n";
-
-
-        DWORD dwWrited;
-
-        WriteFile(hWrite2, dd, strlen(dd), &dwWrited, NULL);
+    // 退出
+    connect(btnExit, &QPushButton::clicked, [this]() {
+        if (isStart) {
+            const char *dd = "exit\r\n";
+            DWORD dwWrited;
+            WriteFile(hWrite2, "exit\r\n", strlen(dd), &dwWrited, NULL);
+            isStart = false;
+        }
     });
 
 
     connect(btnStart, &QPushButton::clicked, [this]() {
-        edtMsg->setPlainText("");
+        if (!isStart) {
+            edtMsg->setPlainText("");
 
-        unsigned threadid;
-        HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &ItemView11Cmd::start, this, NULL, &threadid);
-        CloseHandle(hThread);
+            unsigned threadid;
+            HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &ItemView11Cmd::start, this, NULL, &threadid);
+            CloseHandle(hThread);
+            isStart = true;
+        }
+    });
+
+    connect(android1TableView, &QTableView::doubleClicked, [this](const QModelIndex& current) {
+        if (isStart) {
+            auto name =  android1GridModel->item(current.row(), 1)->text();
+            auto returnFlag =  android1GridModel->item(current.row(), 3)->text();
+            leInputCmd->setText(name);
+
+            if (returnFlag == "true") {
+                inputCmd();
+            }
+        }
     });
 }
 
@@ -262,7 +339,6 @@ unsigned __stdcall ItemView11Cmd::start(void *param) {
         }
 
         buffer[bytesRead] = '\0';
-
 
         obj->postMessage(QString::fromLocal8Bit(buffer));
 

@@ -16,6 +16,18 @@
 #include <QHeaderView>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <Windows.h>
+
+struct handle_data {
+    unsigned long process_id;
+    HWND          window_handle;
+};
+
+BOOL   CALLBACK enum_windows_callback(HWND   handle,
+                                      LPARAM lParam);
+
+BOOL   CALLBACK enum_child_windows_callback(HWND   handle,
+                                            LPARAM lParam);
 
 
 class Itemview10Inject : public QWidget {

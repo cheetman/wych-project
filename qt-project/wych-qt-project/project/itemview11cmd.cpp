@@ -18,6 +18,7 @@ ItemView11Cmd::ItemView11Cmd(QWidget *parent)
     : QWidget{parent}
 {
     initUI();
+
     initConnect();
 }
 
@@ -124,7 +125,7 @@ void ItemView11Cmd::initUI()
     relocationTabTabWidgetLayout->addWidget(relocationTabTabWidgetGroupBox);
     relocationTabTabWidgetLayout->setAlignment(Qt::AlignTop);
     auto relocationTabTabWidgetGroupBoxLayout = new QGridLayout(relocationTabTabWidgetGroupBox);
-    relocationTabTabWidgetGroupBox->setFixedHeight(250);
+    relocationTabTabWidgetGroupBox->setFixedHeight(350);
     android1TableView = new QTableView(this);
     android1GridModel = new QStandardItemModel();
     android1GridModel->setHorizontalHeaderLabels({  "命令",  "说明", "类型", "回车" });
@@ -153,17 +154,13 @@ void ItemView11Cmd::initUI()
 
     btnStart = new QPushButton("启动连接控制台");
 
-    //    btnRemoteInject = new QPushButton("输入");
 
     btnExit = new QPushButton("退出");
 
     btnConsoleClear = new QPushButton("清空控制台");
 
     leftQWidgetGroup1Layout->addWidget(btnStart, 0, 0);
-
-    //    leftQWidgetGroup1Layout->addWidget(btnRemoteInject, 1, 0);
-
-    leftQWidgetGroup1Layout->addWidget(btnExit, 1, 0);
+    leftQWidgetGroup1Layout->addWidget( btnExit, 1, 0);
 
 
     layout->addWidget(  leftQWidget);
@@ -203,6 +200,19 @@ void ItemView11Cmd::initUI()
                     android1GridModel->setItem(i, 1, new QStandardItem(jsonObj2["cmd"].toString()));
                     android1GridModel->setItem(i, 2, new QStandardItem(jsonObj2["type"].toString()));
                     android1GridModel->setItem(i, 3, new QStandardItem(jsonObj2["return"].toString()));
+                }
+            }
+
+            if (jsonObj.contains("android2")) {
+                QJsonArray jsonArray = jsonObj["android2"].toArray();
+
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    QJsonObject jsonObj2 = jsonArray.at(i).toObject();
+
+                    android2GridModel->setItem(i, 0, new QStandardItem(jsonObj2["name"].toString()));
+                    android2GridModel->setItem(i, 1, new QStandardItem(jsonObj2["cmd"].toString()));
+                    android2GridModel->setItem(i, 2, new QStandardItem(jsonObj2["type"].toString()));
+                    android2GridModel->setItem(i, 3, new QStandardItem(jsonObj2["return"].toString()));
                 }
             }
         }
@@ -272,6 +282,18 @@ void ItemView11Cmd::initConnect()
             }
         }
     });
+
+    connect(android2TableView, &QTableView::doubleClicked, [this](const QModelIndex& current) {
+        if (isStart) {
+            auto name =  android2GridModel->item(current.row(), 1)->text();
+            auto returnFlag =  android2GridModel->item(current.row(), 3)->text();
+            leInputCmd->setText(name);
+
+            if (returnFlag == "true") {
+                inputCmd();
+            }
+        }
+    });
 }
 
 unsigned __stdcall ItemView11Cmd::start(void *param) {
@@ -315,14 +337,24 @@ unsigned __stdcall ItemView11Cmd::start(void *param) {
 
     PROCESS_INFORMATION pi;
 
+    wchar_t cmdLine[256] = { 0 };
+    GetSystemDirectory(cmdLine, sizeof(cmdLine));
+    wcscat(cmdLine, (L"\\cmd.exe"));
+
     wchar_t lpCommandLine[200];
     wcsncpy(lpCommandLine, TEXT("cmd.exe /k ping baidu.com"), 40);
 
-    if (!CreateProcess(NULL, lpCommandLine, NULL, NULL, TRUE, NULL, NULL, NULL, &si, &pi)) // 创建子进程
+    if (!CreateProcess(cmdLine, NULL, NULL, NULL, TRUE, NULL, NULL, NULL, &si, &pi)) // 创建子进程
+
+    // if (!CreateProcess(NULL, lpCommandLine, NULL, NULL, TRUE, NULL, NULL, NULL, &si, &pi)) // 创建子进程
     {
         QMessageBox::critical(obj, "错误", "CreateProcess Failed!");
         return 1;
     }
+    CloseHandle(hWrite);
+    CloseHandle(hRead2);
+    CloseHandle(    pi.hThread);
+    CloseHandle(    pi.hProcess);
 
     // CloseHandle(hWrite); // 关闭管道句柄
 
@@ -351,8 +383,6 @@ unsigned __stdcall ItemView11Cmd::start(void *param) {
     }
 
     CloseHandle(  hRead);
-    CloseHandle( hRead2);
-    CloseHandle( hWrite);
     CloseHandle(hWrite2);
     return 0;
 }

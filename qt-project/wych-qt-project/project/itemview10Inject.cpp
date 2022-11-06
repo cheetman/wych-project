@@ -6,6 +6,7 @@
 #include <tchar.h>
 #include <Windows.h>
 #include <TlHelp32.h>
+#include <QDateTime>
 
 Itemview10Inject::Itemview10Inject(QWidget *parent)
     : QWidget{parent}
@@ -42,12 +43,11 @@ void Itemview10Inject::initUI()
     auto leftQWidgetGroup1Layout2 = new QGridLayout(leftQWidgetGroupBox2);
 
 
-    auto leftQWidgetGroupBox3 = new QGroupBox("模块", this);
-    leftQWidgetLayout->addWidget(leftQWidgetGroupBox3);
-    leftQWidgetLayout->setAlignment(Qt::AlignTop);
-    auto leftQWidgetGroup1Layout3 = new QGridLayout(leftQWidgetGroupBox3);
+    //    auto leftQWidgetGroupBox3 = new QGroupBox("模块", this);
+    //    leftQWidgetLayout->addWidget(leftQWidgetGroupBox3);
+    //    leftQWidgetLayout->setAlignment(Qt::AlignTop);
+    //    auto leftQWidgetGroup1Layout3 = new QGridLayout(leftQWidgetGroupBox3);
 
-    //    leftQWidgetGroupBox2->setFixedHeight(130);
 
     processTableView = new QTableView(this);
     processGridModel = new QStandardItemModel();
@@ -59,39 +59,17 @@ void Itemview10Inject::initUI()
     leftQWidgetGroup1Layout2->addWidget(processTableView);
 
 
-    moduleTableView = new QTableView(this);
-    moduleGridModel = new QStandardItemModel();
-    moduleGridModel->setHorizontalHeaderLabels({  "模块名称", "模块基址",  "模块大小" });
-    moduleTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    moduleTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    moduleTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    moduleTableView->setModel(moduleGridModel);
-    leftQWidgetGroup1Layout3->addWidget(moduleTableView);
-
-
-    // 第一层
+    // 第一层 (中间列)
     auto centerQWidget = new QWidget(this);
     auto centerQWidgetLayout = new QVBoxLayout(centerQWidget);
 
 
-    // 第二层
+    // 第二层(中间列)
 
-    auto centerQWidgetGroupBox2 = new QGroupBox("数据目录表", centerQWidget);
+    auto centerQWidgetGroupBox2 = new QGroupBox("进程状态", centerQWidget);
     auto centerQWidgetGroupBox2Layout = new QGridLayout(centerQWidgetGroupBox2);
     centerQWidgetLayout->addWidget(centerQWidgetGroupBox2);
 
-    auto centerQWidgetGroupBox3 = new QGroupBox("节表", centerQWidget);
-    auto centerQWidgetGroupBox3Layout = new QVBoxLayout(centerQWidgetGroupBox3);
-    centerQWidgetLayout->addWidget(centerQWidgetGroupBox3);
-
-    //    tableTableView = new QTableView(this);
-    //    tableGridModel = new QStandardItemModel();
-    //    tableGridModel->setHorizontalHeaderLabels({  "Name", "VirtualSize",  "SizeOfRawData", "VirtualAddress", "PointerToRawData", "Characteristics" });
-    //    tableTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    //    tableTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    //    tableTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    //    tableTableView->setModel(tableGridModel);
-    //    centerQWidgetGroupBox3Layout->addWidget(tableTableView);
 
     auto centerQWidgetGroupBox1 = new QGroupBox("控制台设置", centerQWidget);
     auto centerQWidgetGroupBox1Layout = new QHBoxLayout(centerQWidgetGroupBox1);
@@ -102,16 +80,16 @@ void Itemview10Inject::initUI()
     centerQWidgetLayout->addWidget(edtMsg);
 
 
-    // 第一层
+    // 第一层(右边列)
     auto rightQWidget = new QWidget(this);
     auto rightQWidgetLayout = new QVBoxLayout(rightQWidget);
 
 
-    // 第二层
+    // 第二层(右边列)
     auto rightQWidgetGroupBox1 = new QGroupBox("数据目录表明细", rightQWidget);
     auto rightQWidgetGroupBox1Layout = new QVBoxLayout(rightQWidgetGroupBox1);
 
-    // 第三层
+    // 第三层(右边列)
     auto tabTabWidget = new QTabWidget(rightQWidgetGroupBox1);
     auto tab = new QWidget(tabTabWidget);
     auto exportTabTabWidgetLayout = new QVBoxLayout(tab);
@@ -119,37 +97,49 @@ void Itemview10Inject::initUI()
     auto importTabTabWidgetLayout = new QVBoxLayout(tab2);
     auto tab3 = new QWidget(tabTabWidget);
     auto relocationTabTabWidgetLayout = new QVBoxLayout(tab3);
-    tabTabWidget->addTab(tab,  tr("导出表"));
+    tabTabWidget->addTab(tab,  tr("模块"));
     tabTabWidget->addTab(tab2, tr("导入表"));
     tabTabWidget->addTab(tab3, tr("重定位表"));
     rightQWidgetGroupBox1Layout->addWidget(tabTabWidget);
     rightQWidgetLayout->addWidget(rightQWidgetGroupBox1);
 
 
-    // 第四层(导出)
+    // 第四层(导出)(右边列)
     auto exportTabTabWidgetGroupBox1 = new QGroupBox("头部", tab);
     exportTabTabWidgetLayout->addWidget(exportTabTabWidgetGroupBox1);
 
     exportTabTabWidgetLayout->setAlignment(Qt::AlignTop);
     auto exportTabTabWidgetGroupBox1Layout = new QGridLayout(exportTabTabWidgetGroupBox1);
-    exportTabTabWidgetGroupBox1->setFixedHeight(200);
+    exportTabTabWidgetGroupBox1->setFixedHeight(100);
 
 
     auto exportTabTabWidgetGroupBox2 = new QGroupBox("明细", tab);
     exportTabTabWidgetLayout->addWidget(exportTabTabWidgetGroupBox2);
     exportTabTabWidgetLayout->setAlignment(Qt::AlignTop);
     auto exportTabTabWidgetGroupBox2Layout = new QGridLayout(exportTabTabWidgetGroupBox2);
-    exportTabTabWidgetGroupBox1->setFixedHeight(200);
-    exportTableView = new QTableView(this);
-    exportGridModel = new QStandardItemModel();
-    exportGridModel->setHorizontalHeaderLabels({  "索引",  "地址_RVA", "地址_FOA", "序号表",  "函数名" });
-    exportTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    exportTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    exportTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    exportTableView->setModel(exportGridModel);
+    exportTabTabWidgetGroupBox1->setFixedHeight(150);
+
+    moduleTableView = new QTableView(this);
+    moduleGridModel = new QStandardItemModel();
+    moduleGridModel->setHorizontalHeaderLabels({  "模块名称", "模块基址",  "模块大小" });
+    moduleTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    moduleTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    moduleTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    moduleTableView->setModel(moduleGridModel);
 
     //    exportTableView->setColumnHidden(0, true);
-    exportTabTabWidgetGroupBox2Layout->addWidget(exportTableView);
+    exportTabTabWidgetGroupBox2Layout->addWidget(moduleTableView);
+
+
+    //    exportTableView = new QTableView(this);
+    //    exportGridModel = new QStandardItemModel();
+    //    exportGridModel->setHorizontalHeaderLabels({  "索引",  "地址_RVA", "地址_FOA", "序号表",  "函数名" });
+    //    exportTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    //    exportTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    //    exportTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    //    exportTableView->setModel(exportGridModel);
+
+    //    exportTabTabWidgetGroupBox2Layout->addWidget(exportTableView);
 
 
     // 第四层(重定位)
@@ -221,13 +211,23 @@ void Itemview10Inject::initUI()
 
     // 控件
     ckConsoleEnable = new QCheckBox("启动控制台");
-
-    //    ckRefreshClients = new QCheckBox("刷新客户端");
     btnStart = new QPushButton("刷新进程");
     btnRemoteInject = new QPushButton("远程线程注入(32位测试通过)");
     btnReflectiveInject = new QPushButton("反射注入");
-
     btnConsoleClear = new QPushButton("清空控制台");
+
+    tb_export_rva = new QLineEdit("");
+    tb_import_rva = new QLineEdit("");
+    tb_resource_rva = new QLineEdit("");
+    tb_base_relocation_rva = new QLineEdit("");
+    tb_export_size = new QLineEdit("");
+    tb_import_size = new QLineEdit("");
+    tb_resource_size = new QLineEdit("");
+    tb_base_relocation_size = new QLineEdit("");
+    tb_export_foa = new QLineEdit("");
+    tb_import_foa = new QLineEdit("");
+    tb_resource_foa = new QLineEdit("");
+    tb_base_relocation_foa = new QLineEdit("");
 
 
     QPalette pe;
@@ -241,9 +241,61 @@ void Itemview10Inject::initUI()
     leftQWidgetGroup1Layout->addWidget(btnReflectiveInject, 0, 2);
 
 
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("导出表:"),      1, 0);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("导入表:"),      2, 0);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("资源表:"),      3, 0);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("重定位表:"),     4, 0);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("大小:"),       0, 1);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("RVA:"),      0, 2);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("FOA:"),      0, 3);
+    centerQWidgetGroupBox2Layout->addWidget(tb_export_size,          1, 1);
+    centerQWidgetGroupBox2Layout->addWidget(tb_import_size,          2, 1);
+    centerQWidgetGroupBox2Layout->addWidget(tb_resource_size,        3, 1);
+    centerQWidgetGroupBox2Layout->addWidget(tb_base_relocation_size, 4, 1);
+    centerQWidgetGroupBox2Layout->addWidget(tb_export_rva,           1, 2);
+    centerQWidgetGroupBox2Layout->addWidget(tb_import_rva,           2, 2);
+    centerQWidgetGroupBox2Layout->addWidget(tb_resource_rva,         3, 2);
+    centerQWidgetGroupBox2Layout->addWidget(tb_base_relocation_rva,  4, 2);
+    centerQWidgetGroupBox2Layout->addWidget(tb_export_foa,           1, 3);
+    centerQWidgetGroupBox2Layout->addWidget(tb_import_foa,           2, 3);
+    centerQWidgetGroupBox2Layout->addWidget(tb_resource_foa,         3, 3);
+    centerQWidgetGroupBox2Layout->addWidget(tb_base_relocation_foa,  4, 3);
+
     layout->addWidget(leftQWidget);
     layout->addWidget(centerQWidget);
     layout->addWidget(rightQWidget);
+}
+
+BOOL  CALLBACK enum_windows_callback(HWND handle, LPARAM lParam)
+{
+    handle_data & data = *(handle_data *)lParam;
+    unsigned long process_id = 0;
+
+    GetWindowThreadProcessId(handle, &process_id);
+
+
+    BOOL is_main_window = GetWindow(handle, GW_OWNER) == (HWND)0 && IsWindowVisible(handle);
+
+    if ((data.process_id != process_id) || !is_main_window) return TRUE;
+
+    data.window_handle = handle;
+    return FALSE;
+}
+
+BOOL  CALLBACK enum_child_windows_callback(HWND hwndChild, LPARAM lParam)
+{
+    int i, idChild;
+
+    idChild = GetWindowLong(hwndChild, GWL_ID);
+
+    TCHAR m_Name[MAXBYTE];
+    TCHAR m_Title[MAXBYTE];
+    GetClassName(hwndChild, m_Name, MAXBYTE);   // 获得指定窗⼝所属的类的类名
+    GetWindowText(hwndChild, m_Title, MAXBYTE); // 查找标题
+
+    HWND p = GetParent(hwndChild);
+
+    return TRUE;
 }
 
 void Itemview10Inject::initConnect()
@@ -396,6 +448,7 @@ void Itemview10Inject::initConnect()
     });
 
 
+    // 刷新进程
     connect(btnStart, &QPushButton::clicked, [this]() {
         // 清空
         //        processGridModel->clear();
@@ -407,7 +460,7 @@ void Itemview10Inject::initConnect()
 
         if (hProcessSnap == INVALID_HANDLE_VALUE)
         {
-            // 输出错误信息
+            appendMessage(tr("CreateToolhelp32Snapshot 报错 errorcode:[%1]").arg(GetLastError()));
             return;
         }
         BOOL bMore = Process32First(hProcessSnap, &pe32);
@@ -450,6 +503,8 @@ void Itemview10Inject::initConnect()
 // 设置第row行第3列,镜像大小
                 _i64tot_s((size_t)(lpme.modBaseAddr) + (size_t)lpme.modBaseSize, bufferImageSize, 20, 16);
                 processGridModel->setItem(i, 3, new QStandardItem(QString::fromWCharArray(bufferImageSize)));
+
+                CloseHandle(hModuleSnap);
             }
 
             bMore = Process32Next(hProcessSnap, &pe32);
@@ -460,6 +515,9 @@ void Itemview10Inject::initConnect()
         if (removeCount > 0) {
             processGridModel->removeRows(i, removeCount);
         }
+
+        CloseHandle(hProcessSnap);
+        appendMessage(tr("刷新进程成功!"));
     });
 
 
@@ -467,11 +525,27 @@ void Itemview10Inject::initConnect()
         auto rowIndex = current.row();
         auto pid =  processGridModel->item(rowIndex, 1)->text().toInt();
 
+        // 刷新窗口
+        handle_data data;
+        data.process_id = pid;
+        data.window_handle = 0;
+        EnumWindows(enum_windows_callback, (LPARAM)&data);
 
+        if (data.window_handle) {
+            EnumChildWindows(data.window_handle, enum_child_windows_callback, (LPARAM)0);
+        }
+
+
+        // 刷新模块
         HANDLE      hModuleSnap = NULL;
         MODULEENTRY32 lpme; // DLL结构
         lpme.dwSize = sizeof(MODULEENTRY32);
         hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid);
+
+        if (hModuleSnap == INVALID_HANDLE_VALUE) {
+            appendMessage(tr("CreateToolhelp32Snapshot 报错 errorcode:[%1]").arg(GetLastError()));
+            return;
+        }
         BOOL bRet = Module32First(hModuleSnap, &lpme);
         TCHAR bufferModBaseAddr[20] = { 0 };
         TCHAR buffer[0x20];
@@ -501,5 +575,33 @@ void Itemview10Inject::initConnect()
         if (removeCount > 0) {
             moduleGridModel->removeRows(i, removeCount);
         }
+
+        CloseHandle(hModuleSnap);
+        appendMessage(tr("刷新进程模块成功"));
     });
+}
+
+void Itemview10Inject::appendMessage(const QString& msg)
+{
+    QString text = edtMsg->toPlainText();
+
+    text += QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ");
+
+    //    text += QDateTime::currentDateTime().toString("[yyyy-MM-dd
+    // hh:mm:ss.zzz] ");
+    text += msg;
+
+    if (text.back() != '\n') {
+        text += "\n";
+    }
+    showMessage(text);
+}
+
+void Itemview10Inject::showMessage(const QString& msg)
+{
+    edtMsg->setPlainText(msg);
+    QTextCursor cursor = edtMsg->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    edtMsg->setTextCursor(cursor);
+    edtMsg->repaint();
 }

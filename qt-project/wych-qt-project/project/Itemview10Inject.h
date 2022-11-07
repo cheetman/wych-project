@@ -100,10 +100,10 @@ private:
     QLineEdit *tb_import_rva;
     QLineEdit *tb_resource_rva;
     QLineEdit *tb_base_relocation_rva;
-    QLineEdit *tb_export_size;
-    QLineEdit *tb_import_size;
-    QLineEdit *tb_resource_size;
-    QLineEdit *tb_base_relocation_size;
+    QLineEdit *tb_window_size;
+    QLineEdit *tb_window2_size;
+    QLineEdit *tb_window_position;
+    QLineEdit *tb_window2_position;
     QLineEdit *tb_export_foa;
     QLineEdit *tb_import_foa;
     QLineEdit *tb_resource_foa;
@@ -121,10 +121,10 @@ private:
     QLineEdit *export_AddressOfNameOrdinals_foa;
 
     QPushButton *btnStart;
+    QPushButton *btnDebugPrivilege;
     QPushButton *btnRemoteInject;
     QPushButton *btnReflectiveInject;
     QPushButton *btnConsoleClear;
-    QPushButton *btnImportAdd;
     QCheckBox *ckConsoleEnable;
 
 
@@ -136,8 +136,8 @@ private:
     QTableView *moduleTableView;
     QStandardItemModel *exportGridModel;
     QTableView *exportTableView;
-    QStandardItemModel *importGridModel;
-    QTableView *importTableView;
+    QStandardItemModel *WindowsGridModel;
+    QTableView *WindowsTableView;
     QStandardItemModel *import2GridModel;
     QTableView *import2TableView;
     QStandardItemModel *relocationGridModel;

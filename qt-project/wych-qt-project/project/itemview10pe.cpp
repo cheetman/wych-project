@@ -53,12 +53,12 @@ void ItemView10PE::initUI()
     leftQWidgetGroupBox3->setFixedHeight(400);
 
 
-    // 第一层
+    // 第一层(中间列)
     auto centerQWidget = new QWidget(this);
     auto centerQWidgetLayout = new QVBoxLayout(centerQWidget);
 
 
-    // 第二层
+    // 第二层(中间列)
 
     auto centerQWidgetGroupBox2 = new QGroupBox("数据目录表", centerQWidget);
     auto centerQWidgetGroupBox2Layout = new QGridLayout(centerQWidgetGroupBox2);
@@ -86,12 +86,12 @@ void ItemView10PE::initUI()
     centerQWidgetLayout->addWidget(edtMsg);
 
 
-    // 第一层
+    // 第一层(右边列)
     auto rightQWidget = new QWidget(this);
     auto rightQWidgetLayout = new QVBoxLayout(rightQWidget);
 
 
-    // 第二层
+    // 第二层(右边列)
     auto rightQWidgetGroupBox1 = new QGroupBox("数据目录表明细", rightQWidget);
     auto rightQWidgetGroupBox1Layout = new QVBoxLayout(rightQWidgetGroupBox1);
 

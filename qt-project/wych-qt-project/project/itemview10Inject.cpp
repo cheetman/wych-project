@@ -7,6 +7,11 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 #include <QDateTime>
+#include <vector>
+
+
+std::vector<HWND> childWindows;
+
 
 Itemview10Inject::Itemview10Inject(QWidget *parent)
     : QWidget{parent}
@@ -51,7 +56,7 @@ void Itemview10Inject::initUI()
 
     processTableView = new QTableView(this);
     processGridModel = new QStandardItemModel();
-    processGridModel->setHorizontalHeaderLabels({  "进程", "PID",  "镜像基址", "镜像大小" });
+    processGridModel->setHorizontalHeaderLabels({ "窗口", "进程", "PID", "平台", "镜像基址", "镜像大小" });
     processTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     processTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     processTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -98,7 +103,7 @@ void Itemview10Inject::initUI()
     auto tab3 = new QWidget(tabTabWidget);
     auto relocationTabTabWidgetLayout = new QVBoxLayout(tab3);
     tabTabWidget->addTab(tab,  tr("模块"));
-    tabTabWidget->addTab(tab2, tr("导入表"));
+    tabTabWidget->addTab(tab2, tr("窗口"));
     tabTabWidget->addTab(tab3, tr("重定位表"));
     rightQWidgetGroupBox1Layout->addWidget(tabTabWidget);
     rightQWidgetLayout->addWidget(rightQWidgetGroupBox1);
@@ -110,14 +115,14 @@ void Itemview10Inject::initUI()
 
     exportTabTabWidgetLayout->setAlignment(Qt::AlignTop);
     auto exportTabTabWidgetGroupBox1Layout = new QGridLayout(exportTabTabWidgetGroupBox1);
-    exportTabTabWidgetGroupBox1->setFixedHeight(100);
+
+    //    exportTabTabWidgetGroupBox1->setFixedHeight(100);
 
 
     auto exportTabTabWidgetGroupBox2 = new QGroupBox("明细", tab);
     exportTabTabWidgetLayout->addWidget(exportTabTabWidgetGroupBox2);
     exportTabTabWidgetLayout->setAlignment(Qt::AlignTop);
     auto exportTabTabWidgetGroupBox2Layout = new QGridLayout(exportTabTabWidgetGroupBox2);
-    exportTabTabWidgetGroupBox1->setFixedHeight(150);
 
     moduleTableView = new QTableView(this);
     moduleGridModel = new QStandardItemModel();
@@ -171,47 +176,51 @@ void Itemview10Inject::initUI()
     relocationTabTabWidgetGroupBoxLayout2->addWidget(relocation2TableView);
 
 
-    // 第四层(导入)
+    // 第四层(窗口)
 
     auto importTabTabWidgetGroupBox3 = new QGroupBox("操作", tab2);
     importTabTabWidgetLayout->addWidget(importTabTabWidgetGroupBox3);
     importTabTabWidgetLayout->setAlignment(Qt::AlignTop);
     auto importTabTabWidgetGroupBoxLayout3 = new QHBoxLayout(importTabTabWidgetGroupBox3);
-    importTabTabWidgetGroupBox3->setFixedHeight(60);
-    btnImportAdd = new QPushButton("新增DLL");
-    importTabTabWidgetGroupBoxLayout3->addWidget(btnImportAdd);
 
-    auto importTabTabWidgetGroupBox = new QGroupBox("DLL", tab2);
+    //    importTabTabWidgetGroupBox3->setFixedHeight(60);
+    //    importTabTabWidgetGroupBoxLayout3->addWidget(btnImportAdd);
+
+
+    auto importTabTabWidgetGroupBox = new QGroupBox("窗口明细", tab2);
     importTabTabWidgetLayout->addWidget(importTabTabWidgetGroupBox);
     importTabTabWidgetLayout->setAlignment(Qt::AlignTop);
     auto importTabTabWidgetGroupBoxLayout = new QGridLayout(importTabTabWidgetGroupBox);
-    importTabTabWidgetGroupBox->setFixedHeight(250);
-    importTableView = new QTableView(this);
-    importGridModel = new QStandardItemModel();
-    importGridModel->setHorizontalHeaderLabels({  "DLL名称",  "OriginFirsthunk[INT]", "FOA", "Firsthunk[IAT]", "FOA" });
-    importTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    importTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    importTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    importTableView->setModel(importGridModel);
-    importTabTabWidgetGroupBoxLayout->addWidget(importTableView);
 
-    auto importTabWidgetGroupBox2 = new QGroupBox("函数", tab2);
-    importTabTabWidgetLayout->addWidget(importTabWidgetGroupBox2);
-    importTabTabWidgetLayout->setAlignment(Qt::AlignTop);
-    auto importTabWidgetGroupBoxLayout2 = new QGridLayout(importTabWidgetGroupBox2);
-    import2TableView = new QTableView(this);
-    import2GridModel = new QStandardItemModel();
-    import2GridModel->setHorizontalHeaderLabels({ "查找表FOA(+4/+8)",  "提示/名称表RVA",  "提示/名称表FOA", "函数名称", "HINT[导出表索引]" });
-    import2TableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    import2TableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    import2TableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    import2TableView->setModel(import2GridModel);
-    importTabWidgetGroupBoxLayout2->addWidget(import2TableView);
+    //    importTabTabWidgetGroupBox->setFixedHeight(250);
+    WindowsTableView = new QTableView(this);
+    WindowsGridModel = new QStandardItemModel();
+    WindowsGridModel->setHorizontalHeaderLabels({  "句柄",  "父句柄", "标题", "类", "窗口大小" });
+    WindowsTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    WindowsTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    WindowsTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    WindowsTableView->setModel(WindowsGridModel);
+    importTabTabWidgetGroupBoxLayout->addWidget(WindowsTableView);
+
+    //    auto importTabWidgetGroupBox2 = new QGroupBox("函数", tab2);
+    //    importTabTabWidgetLayout->addWidget(importTabWidgetGroupBox2);
+    //    importTabTabWidgetLayout->setAlignment(Qt::AlignTop);
+    //    auto importTabWidgetGroupBoxLayout2 = new QGridLayout(importTabWidgetGroupBox2);
+    //    import2TableView = new QTableView(this);
+    //    import2GridModel = new QStandardItemModel();
+    //    import2GridModel->setHorizontalHeaderLabels({ "查找表FOA(+4/+8)",  "提示/名称表RVA",  "提示/名称表FOA", "函数名称", "HINT[导出表索引]" });
+    //    import2TableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    //    import2TableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    //    import2TableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    //    import2TableView->setModel(import2GridModel);
+    //    importTabWidgetGroupBoxLayout2->addWidget(import2TableView);
 
 
     // 控件
     ckConsoleEnable = new QCheckBox("启动控制台");
+    ckConsoleEnable->setChecked(true);
     btnStart = new QPushButton("刷新进程");
+    btnDebugPrivilege = new QPushButton("Debug权限");
     btnRemoteInject = new QPushButton("远程线程注入(32位测试通过)");
     btnReflectiveInject = new QPushButton("反射注入");
     btnConsoleClear = new QPushButton("清空控制台");
@@ -220,10 +229,10 @@ void Itemview10Inject::initUI()
     tb_import_rva = new QLineEdit("");
     tb_resource_rva = new QLineEdit("");
     tb_base_relocation_rva = new QLineEdit("");
-    tb_export_size = new QLineEdit("");
-    tb_import_size = new QLineEdit("");
-    tb_resource_size = new QLineEdit("");
-    tb_base_relocation_size = new QLineEdit("");
+    tb_window_size = new QLineEdit("");
+    tb_window2_size = new QLineEdit("");
+    tb_window_position = new QLineEdit("");
+    tb_window2_position = new QLineEdit("");
     tb_export_foa = new QLineEdit("");
     tb_import_foa = new QLineEdit("");
     tb_resource_foa = new QLineEdit("");
@@ -237,29 +246,36 @@ void Itemview10Inject::initUI()
     lb_e_magic->setPalette(pe);
     lb_e_lfanew->setPalette(pe);
     leftQWidgetGroup1Layout->addWidget(btnStart,            0, 0);
-    leftQWidgetGroup1Layout->addWidget(btnRemoteInject,     0, 1);
-    leftQWidgetGroup1Layout->addWidget(btnReflectiveInject, 0, 2);
+    leftQWidgetGroup1Layout->addWidget(btnDebugPrivilege,   0, 1);
+    leftQWidgetGroup1Layout->addWidget(btnRemoteInject,     1, 0);
+    leftQWidgetGroup1Layout->addWidget(btnReflectiveInject, 1, 1);
 
 
-    centerQWidgetGroupBox2Layout->addWidget(new QLabel("导出表:"),      1, 0);
-    centerQWidgetGroupBox2Layout->addWidget(new QLabel("导入表:"),      2, 0);
-    centerQWidgetGroupBox2Layout->addWidget(new QLabel("资源表:"),      3, 0);
-    centerQWidgetGroupBox2Layout->addWidget(new QLabel("重定位表:"),     4, 0);
-    centerQWidgetGroupBox2Layout->addWidget(new QLabel("大小:"),       0, 1);
-    centerQWidgetGroupBox2Layout->addWidget(new QLabel("RVA:"),      0, 2);
-    centerQWidgetGroupBox2Layout->addWidget(new QLabel("FOA:"),      0, 3);
-    centerQWidgetGroupBox2Layout->addWidget(tb_export_size,          1, 1);
-    centerQWidgetGroupBox2Layout->addWidget(tb_import_size,          2, 1);
-    centerQWidgetGroupBox2Layout->addWidget(tb_resource_size,        3, 1);
-    centerQWidgetGroupBox2Layout->addWidget(tb_base_relocation_size, 4, 1);
-    centerQWidgetGroupBox2Layout->addWidget(tb_export_rva,           1, 2);
-    centerQWidgetGroupBox2Layout->addWidget(tb_import_rva,           2, 2);
-    centerQWidgetGroupBox2Layout->addWidget(tb_resource_rva,         3, 2);
-    centerQWidgetGroupBox2Layout->addWidget(tb_base_relocation_rva,  4, 2);
-    centerQWidgetGroupBox2Layout->addWidget(tb_export_foa,           1, 3);
-    centerQWidgetGroupBox2Layout->addWidget(tb_import_foa,           2, 3);
-    centerQWidgetGroupBox2Layout->addWidget(tb_resource_foa,         3, 3);
-    centerQWidgetGroupBox2Layout->addWidget(tb_base_relocation_foa,  4, 3);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("窗口大小:"), 1, 0);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("内部大小:"), 2, 0);
+
+    //    centerQWidgetGroupBox2Layout->addWidget(new QLabel("资源表:"),      3, 0);
+    //    centerQWidgetGroupBox2Layout->addWidget(new QLabel("重定位表:"),     4, 0);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("大小:"),   0, 1);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("坐标:"),   0, 2);
+
+    //    centerQWidgetGroupBox2Layout->addWidget(new QLabel("FOA:"),      0, 3);
+    centerQWidgetGroupBox2Layout->addWidget(tb_window_size,      1, 1);
+    centerQWidgetGroupBox2Layout->addWidget(tb_window2_size,     2, 1);
+    centerQWidgetGroupBox2Layout->addWidget(tb_window_position,  1, 2);
+    centerQWidgetGroupBox2Layout->addWidget(tb_window2_position, 2, 2);
+
+
+    centerQWidgetGroupBox1Layout->addWidget(ckConsoleEnable);
+    centerQWidgetGroupBox1Layout->addWidget(btnConsoleClear);
+
+
+    //    centerQWidgetGroupBox2Layout->addWidget(tb_resource_rva,         3, 2);
+    //    centerQWidgetGroupBox2Layout->addWidget(tb_base_relocation_rva,  4, 2);
+    //    centerQWidgetGroupBox2Layout->addWidget(tb_export_foa,           1, 3);
+    //    centerQWidgetGroupBox2Layout->addWidget(tb_import_foa,           2, 3);
+    //    centerQWidgetGroupBox2Layout->addWidget(tb_resource_foa,         3, 3);
+    //    centerQWidgetGroupBox2Layout->addWidget(tb_base_relocation_foa,  4, 3);
 
     layout->addWidget(leftQWidget);
     layout->addWidget(centerQWidget);
@@ -284,22 +300,46 @@ BOOL  CALLBACK enum_windows_callback(HWND handle, LPARAM lParam)
 
 BOOL  CALLBACK enum_child_windows_callback(HWND hwndChild, LPARAM lParam)
 {
-    int i, idChild;
+    childWindows.push_back(hwndChild);
 
-    idChild = GetWindowLong(hwndChild, GWL_ID);
+    // int idChild = GetWindowLong(hwndChild, GWL_ID);
 
-    TCHAR m_Name[MAXBYTE];
-    TCHAR m_Title[MAXBYTE];
-    GetClassName(hwndChild, m_Name, MAXBYTE);   // 获得指定窗⼝所属的类的类名
-    GetWindowText(hwndChild, m_Title, MAXBYTE); // 查找标题
+    //    TCHAR m_Name[MAXBYTE];
+    //    TCHAR m_Title[MAXBYTE];
+    //    GetClassName(hwndChild, m_Name, MAXBYTE);   // 获得指定窗⼝所属的类的类名
+    //    GetWindowText(hwndChild, m_Title, MAXBYTE); // 查找标题
 
-    HWND p = GetParent(hwndChild);
+    //    HWND p = GetParent(hwndChild);
 
     return TRUE;
 }
 
 void Itemview10Inject::initConnect()
 {
+    connect(btnConsoleClear, &QPushButton::clicked, [this]() {
+        clearMessage();
+    });
+
+    connect(btnDebugPrivilege, &QPushButton::clicked, [this]() {
+        HANDLE hToken;
+        BOOL fOk = FALSE;
+
+        if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
+        {
+            TOKEN_PRIVILEGES tp;
+            tp.PrivilegeCount = 1;
+            LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &tp.Privileges[0].Luid);
+
+            tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+            AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(tp), NULL, NULL);
+
+            fOk = (GetLastError() == ERROR_SUCCESS);
+            CloseHandle(hToken);
+        }
+        appendMessage(tr("提升权限：%1!").arg(fOk));
+    });
+
+
     // 反射注入
     connect(btnReflectiveInject, &QPushButton::clicked, [this]() {
         auto rowIndex = processTableView->currentIndex().row();
@@ -308,7 +348,7 @@ void Itemview10Inject::initConnect()
             return;
         }
 
-        auto pidStr =  processGridModel->item(rowIndex, 1)->text();
+        auto pidStr =  processGridModel->item(rowIndex, 2)->text();
 
         int pid = pidStr.toInt();
 
@@ -393,7 +433,7 @@ void Itemview10Inject::initConnect()
             return;
         }
 
-        auto pidStr =  processGridModel->item(rowIndex, 1)->text();
+        auto pidStr =  processGridModel->item(rowIndex, 2)->text();
 
         int pid = pidStr.toInt();
 
@@ -478,8 +518,118 @@ void Itemview10Inject::initConnect()
 
         while (bMore)
         {
-            processGridModel->setItem(i, 0, new QStandardItem(QString::fromWCharArray(pe32.szExeFile)));
-            processGridModel->setItem(i, 1, new QStandardItem(QString::number(pe32.th32ProcessID)));
+            BOOL is32;
+
+            QString platform;
+            HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
+
+            if (hProcess == 0)
+            {
+                appendMessage(tr("OpenProcess[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
+                platform = tr("-");
+            }
+            else {
+                IsWow64Process(hProcess, &is32);
+
+                platform = is32 ? tr("x86") : tr("x64");
+
+// 64-bit process on 64-bit Windows : FALSE
+// 32-bit process on 64-bit Windows : TRUE
+// 32-bit process on 32-bit Windows : FALSE
+
+// 必须相同系统
+                if (is32 != (sizeof(intptr_t) == 4)) {
+                    bMore = Process32Next(hProcessSnap, &pe32);
+                    CloseHandle(hProcess);
+                    continue;
+                }
+
+
+// 判断窗口
+                handle_data data;
+                data.process_id = pe32.th32ProcessID;
+                data.window_handle = 0;
+                EnumWindows(enum_windows_callback, (LPARAM)&data);
+
+                if (data.window_handle) {
+                    processGridModel->setItem(i, 0, new QStandardItem(tr("✔")));
+                }
+
+// 获取用户信息
+                while (true) {
+                    HANDLE hToken;
+
+                    if (!OpenProcessToken(hProcess, TOKEN_QUERY, &hToken)) {
+                        appendMessage(tr("OpenProcessToken[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
+                        break;
+                    }
+
+                    DWORD dwError;
+                    DWORD len = 0;
+
+                    if (!GetTokenInformation(hToken, TokenOwner, NULL, 0, &len))
+                    {
+                        dwError = GetLastError();
+
+                        if (dwError != ERROR_INSUFFICIENT_BUFFER)
+                        {
+                            appendMessage(tr("GetTokenInformation[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
+                            CloseHandle(hToken);
+                            break;
+                        }
+                    }
+
+
+                    PTOKEN_OWNER to = (PTOKEN_OWNER)LocalAlloc(LPTR, len);
+
+                    if (!to)
+                    {
+                        appendMessage(tr("LocalAlloc[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
+                        CloseHandle(hToken);
+                        break;
+                    }
+
+                    if (!GetTokenInformation(hToken, TokenOwner, to, len, &len))
+                    {
+                        appendMessage(tr("GetTokenInformation[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
+                        LocalFree(to);
+                        CloseHandle(hToken);
+                        break;
+                    }
+
+                    char nameUser[256] = { 0 };
+                    char domainName[256] = { 0 };
+                    DWORD nameUserLen = 256;
+                    DWORD domainNameLen = 256;
+                    SID_NAME_USE snu;
+
+                    if (!LookupAccountSidA(NULL, to->Owner, nameUser, &nameUserLen, domainName, &domainNameLen, &snu))
+                    {
+                        dwError = GetLastError();
+                        appendMessage(tr("LookupAccountSid[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
+                        LocalFree(to);
+                        CloseHandle(hToken);
+                        break;
+                    }
+
+
+                    LocalFree(to);
+                    CloseHandle(hToken);
+                    processGridModel->setItem(i, 6, new QStandardItem(QString::fromLocal8Bit(nameUser)));
+
+//                    processGridModel->setItem(i, 6, new QStandardItem(QString::fromLocal8Bit(nameUser)));
+                    processGridModel->setItem(i, 7, new QStandardItem(tr(domainName)));
+                    break;
+                }
+
+
+                CloseHandle(hProcess);
+            }
+
+
+            processGridModel->setItem(i, 3, new QStandardItem(platform));
+            processGridModel->setItem(i, 1, new QStandardItem(QString::fromWCharArray(pe32.szExeFile)));
+            processGridModel->setItem(i, 2, new QStandardItem(QString::number(pe32.th32ProcessID)));
 
             // 给一个已存在的进程内所有的DLL拍个快照
             hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pe32.th32ProcessID);
@@ -490,7 +640,7 @@ void Itemview10Inject::initConnect()
 // 获取镜像基址
 // 设置第row行第2列，镜像基址
                 _i64tot_s((size_t)(lpme.modBaseAddr), bufferModBaseAddr, 20, 16);
-                processGridModel->setItem(i, 2, new QStandardItem(QString::fromWCharArray(bufferModBaseAddr)));
+                processGridModel->setItem(i, 4, new QStandardItem(QString::fromWCharArray(bufferModBaseAddr)));
             }
 
             // 遍历DLL快照，找到进程的最后一个模块从而计算出镜像大小
@@ -502,13 +652,15 @@ void Itemview10Inject::initConnect()
 
 // 设置第row行第3列,镜像大小
                 _i64tot_s((size_t)(lpme.modBaseAddr) + (size_t)lpme.modBaseSize, bufferImageSize, 20, 16);
-                processGridModel->setItem(i, 3, new QStandardItem(QString::fromWCharArray(bufferImageSize)));
+                processGridModel->setItem(i, 5, new QStandardItem(QString::fromWCharArray(bufferImageSize)));
 
                 CloseHandle(hModuleSnap);
             }
 
-            bMore = Process32Next(hProcessSnap, &pe32);
             i++;
+
+
+            bMore = Process32Next(hProcessSnap, &pe32);
         }
         auto removeCount = processGridModel->rowCount() - i;
 
@@ -523,7 +675,7 @@ void Itemview10Inject::initConnect()
 
     connect(processTableView, &QTableView::doubleClicked, [this](const QModelIndex& current) {
         auto rowIndex = current.row();
-        auto pid =  processGridModel->item(rowIndex, 1)->text().toInt();
+        auto pid =  processGridModel->item(rowIndex, 2)->text().toInt();
 
         // 刷新窗口
         handle_data data;
@@ -531,8 +683,68 @@ void Itemview10Inject::initConnect()
         data.window_handle = 0;
         EnumWindows(enum_windows_callback, (LPARAM)&data);
 
+
         if (data.window_handle) {
-            EnumChildWindows(data.window_handle, enum_child_windows_callback, (LPARAM)0);
+            // 窗口大小
+
+            RECT rect{ 0, 0, 0, 0 };
+            GetWindowRect(data.window_handle, &rect);
+
+
+            tb_window_size->setText(tr("[ %1 x %2 ]").arg(rect.right - rect.left).arg(rect.bottom - rect.top));
+            tb_window_position->setText(tr("(%1,%2),(%3,%4)").arg(rect.left).arg(rect.top).arg(rect.right).arg(rect.bottom));
+
+            // 内部窗口，注意没有位置坐标
+            RECT rect2{ 0, 0, 0, 0 };
+            POINT point{ 0, 0 };
+            GetClientRect(data.window_handle, &rect2);
+
+
+            // 算内部窗口的坐标
+            ClientToScreen(data.window_handle, &point);
+            tb_window2_size->setText(tr("[ %1 x %2 ]").arg(rect2.right - rect2.left).arg(rect2.bottom - rect2.top));
+            tb_window2_position->setText(tr("(%1,%2),(%3,%4)").arg(point.x).arg(point.y).arg(point.x + rect2.right).arg(point.y + rect2.bottom));
+
+            //            GetClientRect(obj->gameHwnd, &obj->gameRect);
+            //            obj->gamePoint.x = 0;
+            //            obj->gamePoint.y = 0;
+            //            ClientToScreen(obj->gameHwnd, &obj->gamePoint);
+            //            MoveWindow(obj->newHwnd, obj->gamePoint.x, obj->gamePoint.y, obj->gameRect.right, obj->gameRect.bottom, true);
+
+            childWindows.clear();
+
+            EnumChildWindows(data.window_handle, enum_child_windows_callback, (LPARAM)NULL);
+
+            TCHAR m_Name[MAXBYTE];
+            TCHAR m_Title[MAXBYTE];
+            GetClassName(data.window_handle, m_Name, MAXBYTE);   // 获得指定窗⼝所属的类的类名
+            GetWindowText(data.window_handle, m_Title, MAXBYTE); // 查找标题
+
+            WindowsGridModel->setItem(0, 0, new QStandardItem(QString::number((intptr_t)(data.window_handle), 16)));
+            WindowsGridModel->setItem(0, 2, new QStandardItem(QString::fromWCharArray(m_Name)));
+            WindowsGridModel->setItem(0, 3, new QStandardItem(QString::fromWCharArray(m_Title)));
+
+
+            for (std::vector<HWND>::iterator iter = childWindows.begin(); iter != childWindows.end(); ++iter) {
+                int index = std::distance(childWindows.begin(), iter) + 1;
+
+
+                GetClassName((*iter), m_Name, MAXBYTE);   // 获得指定窗⼝所属的类的类名
+                GetWindowText((*iter), m_Title, MAXBYTE); // 查找标题
+                HWND p = GetParent((*iter));
+
+                WindowsGridModel->setItem(index, 0, new QStandardItem(QString::number((intptr_t)(*iter), 16)));
+                WindowsGridModel->setItem(index, 1, new QStandardItem(QString::number((intptr_t)p, 16)));
+                WindowsGridModel->setItem(index, 2, new QStandardItem(QString::fromWCharArray(m_Name)));
+                WindowsGridModel->setItem(index, 3, new QStandardItem(QString::fromWCharArray(m_Title)));
+            }
+
+
+            auto removeCount = WindowsGridModel->rowCount() - (childWindows.size() + 1);
+
+            if (removeCount > 0) {
+                WindowsGridModel->removeRows(childWindows.size() + 1, removeCount);
+            }
         }
 
 
@@ -604,4 +816,9 @@ void Itemview10Inject::showMessage(const QString& msg)
     cursor.movePosition(QTextCursor::End);
     edtMsg->setTextCursor(cursor);
     edtMsg->repaint();
+}
+
+void Itemview10Inject::clearMessage()
+{
+    edtMsg->clear();
 }

@@ -1,5 +1,5 @@
-#ifndef ITEMVIEW10INJECT_H
-#define ITEMVIEW10INJECT_H
+#ifndef ITEMVIEW10SCRIPT_H
+#define ITEMVIEW10SCRIPT_H
 
 #include <QWidget>
 #include <QLabel>
@@ -18,25 +18,16 @@
 #include <QMessageBox>
 #include <Windows.h>
 
-struct handle_data {
-    unsigned long process_id;
-    HWND          window_handle;
-};
-
-BOOL   CALLBACK enum_windows_callback(HWND   handle,
-                                      LPARAM lParam);
-
-BOOL   CALLBACK enum_child_windows_callback(HWND   handle,
-                                            LPARAM lParam);
+#include <components/pixmapwidget.h>
 
 
-class Itemview10Inject : public QWidget {
+class Itemview10Script : public QWidget {
     Q_OBJECT
 
 public:
 
-    explicit Itemview10Inject(QWidget *parent = nullptr);
-    ~Itemview10Inject();
+    explicit Itemview10Script(QWidget *parent = nullptr);
+    ~Itemview10Script();
 
     bool start(int         port,
                const char *host = "0.0.0.0");
@@ -52,6 +43,8 @@ protected:
     void showMessage(const QString& msg);
 
 private:
+
+    PixmapWidget *pixmapWidget;
 
     QLineEdit *dos_e_magic;
     QLineEdit *dos_e_lfanew;
@@ -100,6 +93,10 @@ private:
     QLineEdit *tb_import_rva;
     QLineEdit *tb_resource_rva;
     QLineEdit *tb_base_relocation_rva;
+    QLineEdit *tb_process_name;
+    QLineEdit *tb_process_handle;
+    QLineEdit *tb_window_name;
+    QLineEdit *tb_window_handle;
     QLineEdit *tb_window_size;
     QLineEdit *tb_window2_size;
     QLineEdit *tb_window_position;
@@ -145,39 +142,7 @@ private:
     QStandardItemModel *relocation2GridModel;
     QTableView *relocation2TableView;
 
-    //    wchar_t *FilePath = new wchar_t[260];
-    //    LPVOID pFileBuffer = NULL;
-    //    PIMAGE_DOS_HEADER pDosHeader = NULL;
-    //    PIMAGE_BASE_RELOCATION pRelocationTableBase = NULL;
-    //    PIMAGE_IMPORT_DESCRIPTOR pImportDescriptorBase = NULL;
-    //    PIMAGE_SECTION_HEADER pSectionHeader = NULL;
-    //    PIMAGE_NT_HEADERS32 pNTHeader32 = NULL;
-    //    PIMAGE_NT_HEADERS64 pNTHeader64 = NULL;
-    //    size_t fileSize = 0;
-
-    //    bool RVA_TO_FOA(PIMAGE_NT_HEADERS32   pNTHeader32,
-    //                    PIMAGE_NT_HEADERS64   pNTHeader64,
-    //                    PIMAGE_SECTION_HEADER pSectionHeader,
-    //                    IN DWORD              RVA,
-    //                    OUT PDWORD            FOA);
-
-    //    bool FOA_TO_RVA(PIMAGE_NT_HEADERS32   pNTHeader32,
-    //                    PIMAGE_NT_HEADERS64   pNTHeader64,
-    //                    PIMAGE_SECTION_HEADER pSectionHeader,
-    //                    IN DWORD              RVA,
-    //                    OUT PDWORD            FOA);
-
-    //    void CreateNewSection(LPVOID                pFileBuffer,
-    //                          PIMAGE_DOS_HEADER     pDosHeader,
-    //                          PIMAGE_NT_HEADERS32   pNTHeader,
-    //                          PIMAGE_SECTION_HEADER pFirstSectionHeader,
-    //                          size_t                file_size,
-    //                          size_t                size_of_new_section,
-    //                          LPSTR                 NameOfNewSetionHeader);
-
-    //    void InjectImportTable();
-
 signals:
 };
 
-#endif // ITEMVIEW10INJECT_H
+#endif // ITEMVIEW10SCRIPT_H

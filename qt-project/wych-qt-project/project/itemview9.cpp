@@ -121,7 +121,9 @@ ItemView9::ItemView9(QWidget *parent) : QWidget(parent)
 
     auto tab1 = new QWidget(this);
     auto tabLayout1 = new QGridLayout(tab1);
+
     tabWidget->addTab(tab1, tr("植物大战僵尸"));
+    tab1->hide();
 
     auto btn11 = new QPushButton(tr("测试阳光"), tab1);
     auto btn12 = new QPushButton(tr("测试金钱"), tab1);

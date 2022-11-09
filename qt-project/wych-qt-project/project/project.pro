@@ -3,6 +3,7 @@ QT       += multimedia
 QT       += multimediawidgets
 QT       += xml
 QT       += concurrent
+QT       += winextras
 
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -33,8 +34,10 @@ MAKE_LFLAGS += "/STACK:65536,4096"
 
 SOURCES += \
 #    itemview7.cpp \
+    components/pixmapwidget.cpp \
     itemview10.cpp \
     itemview10Inject.cpp \
+    itemview10Script.cpp \
     itemview10pe.cpp \
     itemview11.cpp \
     itemview11cmd.cpp \
@@ -61,8 +64,10 @@ SOURCES += \
 
 HEADERS += \
 #    itemview7.h \
+    components/pixmapwidget.h \
     itemview10Inject.h \
     itemview10.h \
+    itemview10Script.h \
     itemview10pe.h \
     itemview11.h \
     itemview11cmd.h \

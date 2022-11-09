@@ -56,7 +56,7 @@ void Itemview10Inject::initUI()
 
     processTableView = new QTableView(this);
     processGridModel = new QStandardItemModel();
-    processGridModel->setHorizontalHeaderLabels({ "窗口", "进程", "PID", "平台", "镜像基址", "镜像大小" });
+    processGridModel->setHorizontalHeaderLabels({ "窗口", "进程", "PID", "平台", "镜像基址", "镜像大小", "用户名", "用户所属" });
     processTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     processTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     processTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -224,6 +224,7 @@ void Itemview10Inject::initUI()
     btnRemoteInject = new QPushButton("远程线程注入(32位测试通过)");
     btnReflectiveInject = new QPushButton("反射注入");
     btnConsoleClear = new QPushButton("清空控制台");
+    btnWindowPrint = new QPushButton("截图");
 
     tb_export_rva = new QLineEdit("");
     tb_import_rva = new QLineEdit("");
@@ -269,6 +270,8 @@ void Itemview10Inject::initUI()
     centerQWidgetGroupBox1Layout->addWidget(ckConsoleEnable);
     centerQWidgetGroupBox1Layout->addWidget(btnConsoleClear);
 
+
+    importTabTabWidgetGroupBoxLayout3->addWidget(btnWindowPrint);
 
     //    centerQWidgetGroupBox2Layout->addWidget(tb_resource_rva,         3, 2);
     //    centerQWidgetGroupBox2Layout->addWidget(tb_base_relocation_rva,  4, 2);
@@ -316,6 +319,75 @@ BOOL  CALLBACK enum_child_windows_callback(HWND hwndChild, LPARAM lParam)
 
 void Itemview10Inject::initConnect()
 {
+    // 截图
+    connect(btnWindowPrint, &QPushButton::clicked, [this]() {
+        auto rowIndex = processTableView->currentIndex().row();
+
+        if (rowIndex < 0) {
+            return;
+        }
+
+        auto isWindow =  processGridModel->item(rowIndex, 0)->text();
+
+        if (isWindow.isEmpty()) {
+            return;
+        }
+
+        auto pid =  processGridModel->item(rowIndex, 2)->text().toInt();
+
+
+        const auto clientRectWidth = 200;
+        const auto clientRectHeight = 200;
+
+        // 位图信息
+        BITMAPINFO bitmapInfo;
+        bitmapInfo.bmiHeader.biSize = sizeof(bitmapInfo);
+        bitmapInfo.bmiHeader.biWidth = clientRectWidth;
+        bitmapInfo.bmiHeader.biHeight = clientRectHeight;
+        bitmapInfo.bmiHeader.biPlanes = 1;
+        bitmapInfo.bmiHeader.biBitCount = 32;
+        bitmapInfo.bmiHeader.biSizeImage = clientRectWidth * clientRectHeight;
+        bitmapInfo.bmiHeader.biCompression = BI_RGB;
+
+        HWND hwnd_ = (HWND)0x2084A;
+        HDC scrDc_;
+        HDC memDc_;
+        HBITMAP bitmap_;
+        HBITMAP oldBitmap_;
+        void *bitsPtr_;
+
+
+        scrDc_ = ::GetWindowDC(hwnd_);         // 获取窗口DC
+        memDc_ = ::CreateCompatibleDC(scrDc_); // 缓冲内存DC
+        bitmap_ = ::CreateDIBSection(memDc_, &bitmapInfo, DIB_RGB_COLORS, &bitsPtr_, nullptr, 0);
+
+        if (bitmap_ == nullptr)
+        {
+            ::DeleteDC(memDc_);
+            ::ReleaseDC(hwnd_, scrDc_);
+            return;
+        }
+        oldBitmap_ = static_cast<HBITMAP>(::SelectObject(memDc_, bitmap_));
+
+        POINT bitbltStartPoint_ { 0, 0 };
+
+        const auto ret = ::BitBlt(
+            memDc_, 0, 0, clientRectWidth, clientRectHeight,
+            scrDc_, bitbltStartPoint_.x, bitbltStartPoint_.y,
+            SRCCOPY);
+
+        if (ret == 0) {
+            return;
+        }
+
+        //删除用过的对象
+        ::SelectObject(memDc_, oldBitmap_);
+        ::DeleteObject(bitmap_);
+        ::DeleteDC(memDc_);
+        ::ReleaseDC(hwnd_, scrDc_);
+    });
+
+
     connect(btnConsoleClear, &QPushButton::clicked, [this]() {
         clearMessage();
     });
@@ -528,15 +600,14 @@ void Itemview10Inject::initConnect()
                 appendMessage(tr("OpenProcess[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
                 platform = tr("-");
             }
-            else {
+            else
+            {
                 IsWow64Process(hProcess, &is32);
-
                 platform = is32 ? tr("x86") : tr("x64");
 
 // 64-bit process on 64-bit Windows : FALSE
 // 32-bit process on 64-bit Windows : TRUE
 // 32-bit process on 32-bit Windows : FALSE
-
 // 必须相同系统
                 if (is32 != (sizeof(intptr_t) == 4)) {
                     bMore = Process32Next(hProcessSnap, &pe32);
@@ -745,6 +816,12 @@ void Itemview10Inject::initConnect()
             if (removeCount > 0) {
                 WindowsGridModel->removeRows(childWindows.size() + 1, removeCount);
             }
+        } else {
+            tb_window_size->setText("无窗口");
+            tb_window_position->setText("");
+            tb_window2_size->setText("无窗口");
+            tb_window2_position->setText("");
+            WindowsGridModel->clear();
         }
 
 

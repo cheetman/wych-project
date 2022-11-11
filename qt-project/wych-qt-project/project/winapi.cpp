@@ -282,3 +282,218 @@ void show_all_pattern(handle process, struct module_information& module, const c
     }
 }
 }
+
+namespace WinAPI {
+//// 从NTDLL里定义原型
+typedef DWORD (WINAPI *PNtQuerySystemInformation)(UINT systemInformation, PVOID SystemInformation, ULONG SystemInformationLength, PULONG ReturnLength);
+
+#ifdef _M_IX86
+typedef struct _CLIENT_ID
+{
+    DWORD UniqueProcess;
+    DWORD UniqueThread;
+} CLIENT_ID, *PCLIENT_ID;
+#endif // x86模式下
+#ifdef _M_X64
+typedef struct _CLIENT_ID
+{
+    ULONG64 UniqueProcess;
+    ULONG64 UniqueThread;
+} CLIENT_ID, *PCLIENT_ID;
+#endif // x64模式下
+
+#define SystemProcessInformation    5 // 功能号
+
+typedef LONG KPRIORITY;
+
+typedef struct _UNICODE_STRING {
+    USHORT Length;
+    USHORT MaximumLength;
+    PWSTR  Buffer;
+} UNICODE_STRING, *PUNICODE_STRING;
+
+// 进程结构体，从官网copy
+typedef struct _SYSTEM_PROCESS_INFORMATION {
+    ULONG          NextEntryOffset;
+    ULONG          NumberOfThreads;
+    BYTE           Reserved1[48];
+    UNICODE_STRING ImageName;
+    KPRIORITY      BasePriority;
+    HANDLE         UniqueProcessId;
+    PVOID          Reserved2;
+    ULONG          HandleCount;
+    ULONG          SessionId;
+    PVOID          Reserved3;
+    SIZE_T         PeakVirtualSize;
+    SIZE_T         VirtualSize;
+    ULONG          Reserved4;
+    SIZE_T         PeakWorkingSetSize;
+    SIZE_T         WorkingSetSize;
+    PVOID          Reserved5;
+    SIZE_T         QuotaPagedPoolUsage;
+    PVOID          Reserved6;
+    SIZE_T         QuotaNonPagedPoolUsage;
+    SIZE_T         PagefileUsage;
+    SIZE_T         PeakPagefileUsage;
+    SIZE_T         PrivatePageCount;
+    LARGE_INTEGER  Reserved7[6];
+} SYSTEM_PROCESS_INFORMATION, *PSYSTEM_PROCESS_INFORMATION;
+
+// 线程结构体，从官网copy
+typedef struct _SYSTEM_THREAD_INFORMATION {
+    LARGE_INTEGER Reserved1[3];
+    ULONG         Reserved2;
+    PVOID         StartAddress;
+    CLIENT_ID     ClientId;
+    KPRIORITY     Priority;
+    LONG          BasePriority;
+    ULONG         Reserved3;
+    ULONG         ThreadState;
+    ULONG         WaitReason;
+} SYSTEM_THREAD_INFORMATION, *PSYSTEM_THREAD_INFORMATION;
+
+
+BOOL get_process_info(DWORD pid, PWIN32_PROCESS_INFO result) {
+    BOOL success = FALSE;
+    PNtQuerySystemInformation NtQuerySystemInformation = NULL;
+
+    NtQuerySystemInformation = (PNtQuerySystemInformation)GetProcAddress(LoadLibrary(_T("ntdll.dll")), "NtQuerySystemInformation");
+
+    if (NtQuerySystemInformation == NULL) {
+        return success;
+    }
+    PSYSTEM_PROCESS_INFORMATION sysProInfo = NULL, old = NULL;
+    ULONG cbSize = sizeof(SYSTEM_PROCESS_INFORMATION);
+    LONG  status = 0;
+
+    do {
+        old = sysProInfo = (PSYSTEM_PROCESS_INFORMATION)malloc(cbSize);
+        status = NtQuerySystemInformation(SystemProcessInformation, sysProInfo, cbSize, &cbSize);
+
+        if (status) free(sysProInfo);
+    } while (status);
+
+    // 遍历进程
+    do {
+        if (sysProInfo->ImageName.Buffer != NULL)
+        {
+            _tprintf(L"进程名:\t%s \t进程ID:%u \t句柄总数:%u \t线程总数:%u \n", sysProInfo->ImageName.Buffer, sysProInfo->UniqueProcessId,
+                     sysProInfo->HandleCount, sysProInfo->NumberOfThreads);
+
+            // 找到进程
+            if (pid == (DWORD)sysProInfo->UniqueProcessId) {
+                wcsncpy_s(result->PName, ARRAYSIZE(result->PName), sysProInfo->ImageName.Buffer, ARRAYSIZE(result->PName) - 1);
+                result->PID = pid;
+                result->NumberOfThreads = sysProInfo->NumberOfThreads;
+                result->HandleCount = sysProInfo->HandleCount;
+                success = TRUE;
+                break;
+            }
+
+            // 打印线程信息
+
+            /*PSYSTEM_THREAD_INFORMATION threadInfo = NULL;
+               threadInfo = (PSYSTEM_THREAD_INFORMATION)((ULONG64)sysProInfo + sizeof(SYSTEM_PROCESS_INFORMATION));
+               DWORD curThreadIndex = 1;
+
+               do {
+                    _tprintf(L"\t线程ID:%u\t起始地址:%x \t线程的状态码:%u\n", threadInfo->ClientId.UniqueThread, threadInfo->StartAddress, threadInfo->ThreadState);
+                    threadInfo += 1;
+               } while (curThreadIndex++ < sysProInfo->NumberOfThreads);
+               _tprintf(L"\n");*/
+        }
+
+        // 指针的加减运算的单位是根据所指向数据类型大小的。字节指针就是1，所以加减运算没问题。这里是结构体指针，所以必须转成数字类型再运算。
+        sysProInfo = (PSYSTEM_PROCESS_INFORMATION)((ULONG64)sysProInfo + sysProInfo->NextEntryOffset);
+    } while (sysProInfo->NextEntryOffset != 0);
+    free(old);
+
+    return success;
+}
+
+BOOL  CALLBACK callback_enum_window_main(HWND handle, LPARAM lParam)
+{
+    PWIN32_WINDOW_INFO info = (PWIN32_WINDOW_INFO)lParam;
+    unsigned long process_id = 0;
+
+    GetWindowThreadProcessId(handle, &process_id);
+
+
+    BOOL is_main_window = GetWindow(handle, GW_OWNER) == (HWND)0 && IsWindowVisible(handle);
+
+    if ((info->PID != process_id) || !is_main_window) return TRUE;
+
+    info->HandleWindow = handle;
+    return FALSE;
+}
+
+BOOL get_window_main(DWORD pid, PWIN32_WINDOW_INFO result) {
+    result->PID = pid;
+    EnumWindows(callback_enum_window_main, (LPARAM)result);
+
+    if (!result->HandleWindow) {
+        return FALSE;
+    }
+
+    GetWindowRect(result->HandleWindow, &result->WindowRect);
+    GetClientRect(result->HandleWindow, &result->ClientRect);
+    ClientToScreen(result->HandleWindow, &result->ClientToScreen);
+    GetClassName(result->HandleWindow, result->ClassName, MAXBYTE);  // 获得指定窗⼝所属的类的类名
+    GetWindowText(result->HandleWindow, result->TitleName, MAXBYTE); // 查找标题
+    result->IsMaximized = IsZoomed(result->HandleWindow);
+    result->IsMinimized = IsIconic(result->HandleWindow);
+
+
+    return TRUE;
+}
+
+// 获取进程信息(ntdll - NtQuerySystemInformation)
+void get_process_info(int pid) {
+    BOOL ret = FALSE;
+    PNtQuerySystemInformation NtQuerySystemInformation = NULL;
+
+    NtQuerySystemInformation = (PNtQuerySystemInformation)GetProcAddress(LoadLibrary(_T("ntdll.dll")), "NtQuerySystemInformation");
+
+    if (NtQuerySystemInformation != NULL) {
+        PSYSTEM_PROCESS_INFORMATION sysProInfo = NULL, old = NULL;
+        ULONG cbSize = sizeof(SYSTEM_PROCESS_INFORMATION);
+
+        // 查询
+        LONG status = 0;
+
+        do {
+            old = sysProInfo = (PSYSTEM_PROCESS_INFORMATION)malloc(cbSize);
+            status = NtQuerySystemInformation(SystemProcessInformation, sysProInfo, cbSize, &cbSize);
+
+            if (status) free(sysProInfo);
+        } while (status);
+
+
+        ret = TRUE;
+
+        // 遍历进程
+        do {
+            if (sysProInfo->ImageName.Buffer != NULL)
+            {
+                _tprintf(L"进程名:\t%s \t进程ID:%u \t句柄总数:%u \t线程总数:%u \n", sysProInfo->ImageName.Buffer, sysProInfo->UniqueProcessId,
+                         sysProInfo->HandleCount, sysProInfo->NumberOfThreads);
+
+                // 打印线程信息
+                PSYSTEM_THREAD_INFORMATION threadInfo = NULL;
+                threadInfo = (PSYSTEM_THREAD_INFORMATION)((ULONG64)sysProInfo + sizeof(SYSTEM_PROCESS_INFORMATION));
+                DWORD curThreadIndex = 1;
+
+                do {
+                    _tprintf(L"\t线程ID:%u\t起始地址:%x \t线程的状态码:%u\n", threadInfo->ClientId.UniqueThread, threadInfo->StartAddress, threadInfo->ThreadState);
+                    threadInfo += 1;
+                } while (curThreadIndex++ < sysProInfo->NumberOfThreads);
+                _tprintf(L"\n");
+            }
+
+            // 指针的加减运算的单位是根据所指向数据类型大小的。字节指针就是1，所以加减运算没问题。这里是结构体指针，所以必须转成数字类型再运算。
+            sysProInfo = (PSYSTEM_PROCESS_INFORMATION)((ULONG64)sysProInfo + sysProInfo->NextEntryOffset);
+        } while (sysProInfo->NextEntryOffset != 0);
+        free(old);
+    }
+}
+}

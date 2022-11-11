@@ -1,13 +1,16 @@
-#include "Itemview10Inject.h"
 
-#include "utils.h"
 
-#include <QTextCodec>
-#include <tchar.h>
 #include <Windows.h>
+#include <tchar.h>
+#include <QTextCodec>
 #include <TlHelp32.h>
 #include <QDateTime>
 #include <vector>
+#include <QMenu>
+#include "utils.h"
+#include "itemview10Inject.h"
+#include "itemview10Script.h"
+#include "itemview10.h"
 
 
 std::vector<HWND> childWindows;
@@ -16,6 +19,7 @@ std::vector<HWND> childWindows;
 Itemview10Inject::Itemview10Inject(QWidget *parent)
     : QWidget{parent}
 {
+    this->parent = (ItemView10 *)parent;
     initUI();
     initConnect();
 }
@@ -61,6 +65,7 @@ void Itemview10Inject::initUI()
     processTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     processTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
     processTableView->setModel(processGridModel);
+    processTableView->setContextMenuPolicy(Qt::CustomContextMenu); // 右键功能
     leftQWidgetGroup1Layout2->addWidget(processTableView);
 
 
@@ -283,6 +288,10 @@ void Itemview10Inject::initUI()
     layout->addWidget(leftQWidget);
     layout->addWidget(centerQWidget);
     layout->addWidget(rightQWidget);
+
+    action_toScript = new QAction(tr("跳转到脚本"), this);
+    menu_rightClick = new QMenu(this);
+    menu_rightClick->addAction(action_toScript);
 }
 
 BOOL  CALLBACK enum_windows_callback(HWND handle, LPARAM lParam)
@@ -744,6 +753,17 @@ void Itemview10Inject::initConnect()
     });
 
 
+    // 事件 - 表格右键
+    connect(processTableView, &QTableView::customContextMenuRequested, [this](const QPoint& pos) {
+        QModelIndex index = processTableView->indexAt(pos); // 找到tableview当前位置信息
+
+        if (index.isValid())                                // 如果行数有效，则显示菜单
+        {
+            menu_rightClick->exec(QCursor::pos());
+        }
+    });
+
+    // 事件 - 表格双击
     connect(processTableView, &QTableView::doubleClicked, [this](const QModelIndex& current) {
         auto rowIndex = current.row();
         auto pid =  processGridModel->item(rowIndex, 2)->text().toInt();
@@ -867,6 +887,31 @@ void Itemview10Inject::initConnect()
 
         CloseHandle(hModuleSnap);
         appendMessage(tr("刷新进程模块成功"));
+    });
+
+
+    connect(action_toScript, &QAction::triggered, [this]() {
+        auto rowIndex = processTableView->currentIndex().row();
+
+        if (rowIndex < 0) {
+            return;
+        }
+
+        auto isWindow =  processGridModel->item(rowIndex, 0)->text();
+
+        if (isWindow.isEmpty()) {
+            appendMessage(tr("该进程没有窗口！"));
+            return;
+        }
+
+
+        auto pid =  processGridModel->item(rowIndex, 2)->text().toInt();
+
+        auto success = parent->itemview10Script->buildProcess((DWORD)pid);
+
+        if (success) {
+            parent->SetTabIndex(2);
+        }
     });
 }
 

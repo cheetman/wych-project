@@ -14,6 +14,37 @@ using dword = DWORD;
 using hmodule = HMODULE;
 using hresult = HRESULT;
 
+typedef struct _WIN32_PROCESS_INFO {
+    // PWCHAR Buffer;
+    DWORD PID;
+    WCHAR PName[30];
+    ULONG HandleCount;
+    ULONG NumberOfThreads;
+    LONG  BasePriority;
+} WIN32_PROCESS_INFO, *PWIN32_PROCESS_INFO;
+
+
+typedef struct _WIN32_WINDOW_INFO {
+    // PWCHAR Buffer;
+    DWORD PID;
+    HWND  HandleWindow;
+    TCHAR ClassName[MAXBYTE];
+    TCHAR TitleName[MAXBYTE];
+    RECT  WindowRect{ 0, 0, 0, 0 };
+    RECT  ClientRect{ 0, 0, 0, 0 };
+    POINT ClientToScreen{ 0, 0 };
+    BOOL  IsMaximized;
+    BOOL  IsMinimized;
+} WIN32_WINDOW_INFO, *PWIN32_WINDOW_INFO;
+
+namespace WinAPI {
+void get_process_info(int pid);
+BOOL get_process_info(DWORD               pid,
+                      PWIN32_PROCESS_INFO result);
+
+BOOL get_window_main(DWORD              pid,
+                     PWIN32_WINDOW_INFO result);
+}
 
 namespace WychUtils_WinAPI {
 /// <summary>
@@ -22,6 +53,7 @@ namespace WychUtils_WinAPI {
 /// <param name="process_name">进程名称</param>
 /// <returns>进程PID</returns>
 dword get_process_id(LPCTSTR process_name);
+
 
 /// <summary>
 /// 获取进程句柄
@@ -57,8 +89,14 @@ dword read_memory(handle process,
                   void  *recv,
                   int    size);
 
-dword read_memory(handle process, unsigned int address, void *recv, int size);
-dword write_memory(handle process, unsigned int address, void *data, int size);
+dword read_memory(handle       process,
+                  unsigned int address,
+                  void        *recv,
+                  int          size);
+dword write_memory(handle       process,
+                   unsigned int address,
+                   void        *data,
+                   int          size);
 
 /// <summary>
 /// 写入内存数据
@@ -123,8 +161,15 @@ struct module_information
     }
 };
 
-int find_pattern(handle process, struct module_information& module, const char *pattern, int index      = 0, int offset= 0);
-void show_all_pattern(handle process, struct module_information& module, const char *pattern, int offset = 0);
+int find_pattern(handle                     process,
+                 struct module_information& module,
+                 const char                *pattern,
+                 int                        index = 0,
+                 int                        offset = 0);
+void show_all_pattern(handle                     process,
+                      struct module_information& module,
+                      const char                *pattern,
+                      int                        offset = 0);
 }
 
 #endif // WINAPI_H

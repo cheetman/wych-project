@@ -36,11 +36,17 @@ class ItemView10 : public QWidget {
 public:
 
     explicit ItemView10(QWidget *parent = nullptr);
+    class ItemView10PE *itemView10PE;
+    class Itemview10Inject *itemview10Inject;
+    class Itemview10Script *itemview10Script;
+
+    void SetTabIndex(int index);
 
 public slots:
 
 private:
 
+    QTabWidget *tabWidget;
     HANDLE hThread;
 
 signals:

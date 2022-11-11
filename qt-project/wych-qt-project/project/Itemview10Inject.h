@@ -53,6 +53,8 @@ protected:
 
 private:
 
+    class ItemView10 *parent;
+
     QLineEdit *dos_e_magic;
     QLineEdit *dos_e_lfanew;
 
@@ -144,6 +146,9 @@ private:
     QTableView *relocationTableView;
     QStandardItemModel *relocation2GridModel;
     QTableView *relocation2TableView;
+
+    class QMenu *menu_rightClick;
+    class QAction *action_toScript;
 
     //    wchar_t *FilePath = new wchar_t[260];
     //    LPVOID pFileBuffer = NULL;

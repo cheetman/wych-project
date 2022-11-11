@@ -17,6 +17,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <Windows.h>
+#include "winapi.h"
 
 #include <components/pixmapwidget.h>
 
@@ -32,6 +33,9 @@ public:
     bool start(int         port,
                const char *host = "0.0.0.0");
 
+    // 读入进程
+    bool buildProcess(DWORD pid);
+
 protected:
 
     void initUI();
@@ -44,6 +48,8 @@ protected:
 
 private:
 
+    WIN32_PROCESS_INFO processInfo;
+    WIN32_WINDOW_INFO windowInfo;
     PixmapWidget *pixmapWidget;
 
     QLineEdit *dos_e_magic;
@@ -106,6 +112,10 @@ private:
     QLineEdit *tb_resource_foa;
     QLineEdit *tb_base_relocation_foa;
 
+    class QRadioButton *rb_printWindow;
+    class QRadioButton *rb_printClient;
+    class QButtonGroup *bg_printConfig;
+
     QLineEdit *export_Name;
     QLineEdit *export_Base;
     QLineEdit *export_NumberOfFunctions;
@@ -122,8 +132,8 @@ private:
     QPushButton *btnRemoteInject;
     QPushButton *btnReflectiveInject;
     QPushButton *btnConsoleClear;
-    QCheckBox *ckConsoleEnable;
     QPushButton *btnWindowPrint;
+    QCheckBox *ckConsoleEnable;
 
     QPlainTextEdit *edtMsg;
 

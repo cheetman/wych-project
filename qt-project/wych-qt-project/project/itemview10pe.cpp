@@ -28,7 +28,7 @@ void ItemView10PE::initUI()
     auto leftQWidget = new QWidget(this);
     auto leftQWidgetLayout = new QVBoxLayout(leftQWidget);
 
-    leftQWidget->setFixedWidth(300);
+    //    leftQWidget->setFixedWidth(300);
 
     // 第二层
     auto leftQWidgetGroupBox1 = new QGroupBox("DOS头", this);
@@ -36,21 +36,21 @@ void ItemView10PE::initUI()
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox1);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout = new QGridLayout(leftQWidgetGroupBox1);
-    leftQWidgetGroupBox1->setFixedHeight(100);
+    leftQWidgetGroupBox1->setFixedHeight(120);
 
 
     auto leftQWidgetGroupBox2 = new QGroupBox("PE头", this);
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox2);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout2 = new QGridLayout(leftQWidgetGroupBox2);
-    leftQWidgetGroupBox2->setFixedHeight(130);
+    leftQWidgetGroupBox2->setFixedHeight(150);
 
 
     auto leftQWidgetGroupBox3 = new QGroupBox("可选PE头", this);
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox3);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout3 = new QGridLayout(leftQWidgetGroupBox3);
-    leftQWidgetGroupBox3->setFixedHeight(400);
+    leftQWidgetGroupBox3->setFixedHeight(500);
 
 
     // 第一层(中间列)
@@ -103,7 +103,7 @@ void ItemView10PE::initUI()
     auto importTabTabWidgetLayout = new QVBoxLayout(tab2);
     auto tab3 = new QWidget(tabTabWidget);
     auto relocationTabTabWidgetLayout = new QVBoxLayout(tab3);
-    tabTabWidget->addTab( tab, tr("导出表"));
+    tabTabWidget->addTab(tab,  tr("导出表"));
     tabTabWidget->addTab(tab2, tr("导入表"));
     tabTabWidget->addTab(tab3, tr("重定位表"));
     rightQWidgetGroupBox1Layout->addWidget(tabTabWidget);
@@ -283,10 +283,10 @@ void ItemView10PE::initUI()
     auto lb_e_lfanew = new QLabel("e_lfanew:");
     lb_e_magic->setPalette(pe);
     lb_e_lfanew->setPalette(pe);
-    leftQWidgetGroup1Layout->addWidget(  lb_e_magic, 0, 0);
-    leftQWidgetGroup1Layout->addWidget( lb_e_lfanew, 1, 0);
-    leftQWidgetGroup1Layout->addWidget(    btnStart, 2, 0);
-    leftQWidgetGroup1Layout->addWidget( dos_e_magic, 0, 1);
+    leftQWidgetGroup1Layout->addWidget(lb_e_magic,   0, 0);
+    leftQWidgetGroup1Layout->addWidget(lb_e_lfanew,  1, 0);
+    leftQWidgetGroup1Layout->addWidget(btnStart,     2, 0);
+    leftQWidgetGroup1Layout->addWidget(dos_e_magic,  0, 1);
     leftQWidgetGroup1Layout->addWidget(dos_e_lfanew, 1, 1);
 
 
@@ -296,16 +296,16 @@ void ItemView10PE::initUI()
     lb_Machine->setPalette(pe);
     lb_NumberOfSections->setPalette(pe);
     lb_SizeOfOptionHeader->setPalette(pe);
-    leftQWidgetGroup1Layout2->addWidget(           lb_Machine,                            0, 0);
-    leftQWidgetGroup1Layout2->addWidget(  lb_NumberOfSections,                            1, 0);
-    leftQWidgetGroup1Layout2->addWidget(                  new QLabel("TimeDateStamp:"),   2, 0);
-    leftQWidgetGroup1Layout2->addWidget(lb_SizeOfOptionHeader,                            3, 0);
-    leftQWidgetGroup1Layout2->addWidget(                  new QLabel("Characteristics:"), 4, 0);
-    leftQWidgetGroup1Layout2->addWidget(           pe_Machine,                            0, 1);
-    leftQWidgetGroup1Layout2->addWidget(  pe_NumberOfSections,                            1, 1);
-    leftQWidgetGroup1Layout2->addWidget(     pe_TimeDateStamp,                            2, 1);
-    leftQWidgetGroup1Layout2->addWidget(pe_SizeOfOptionHeader,                            3, 1);
-    leftQWidgetGroup1Layout2->addWidget(   pe_Characteristics,                            4, 1);
+    leftQWidgetGroup1Layout2->addWidget(lb_Machine,                     0, 0);
+    leftQWidgetGroup1Layout2->addWidget(lb_NumberOfSections,            1, 0);
+    leftQWidgetGroup1Layout2->addWidget(new QLabel("TimeDateStamp:"),   2, 0);
+    leftQWidgetGroup1Layout2->addWidget(lb_SizeOfOptionHeader,          3, 0);
+    leftQWidgetGroup1Layout2->addWidget(new QLabel("Characteristics:"), 4, 0);
+    leftQWidgetGroup1Layout2->addWidget(pe_Machine,                     0, 1);
+    leftQWidgetGroup1Layout2->addWidget(pe_NumberOfSections,            1, 1);
+    leftQWidgetGroup1Layout2->addWidget(pe_TimeDateStamp,               2, 1);
+    leftQWidgetGroup1Layout2->addWidget(pe_SizeOfOptionHeader,          3, 1);
+    leftQWidgetGroup1Layout2->addWidget(pe_Characteristics,             4, 1);
 
 
     auto lb_Magic = new QLabel("Magic:");
@@ -322,63 +322,63 @@ void ItemView10PE::initUI()
     lb_FileAlignment->setPalette(pe);
     lb_SizeOfImage->setPalette(pe);
     lb_SizeOfHeaders->setPalette(pe);
-    leftQWidgetGroup1Layout3->addWidget(                   lb_Magic,                                    0,  0); // 10B 32位，20B 64位文件
-    leftQWidgetGroup1Layout3->addWidget(                        new QLabel("SizeOfCode:"),              1,  0); // 没用 FileAlignment 整数倍
-    leftQWidgetGroup1Layout3->addWidget(                        new QLabel("SizeOfInitializedData:"),   2,  0); // 没用 FileAlignment 整数倍
-    leftQWidgetGroup1Layout3->addWidget(                        new QLabel("SizeOfUninitializedData:"), 3,  0); // 没用 FileAlignment 整数倍
-    leftQWidgetGroup1Layout3->addWidget( lb_AddressOfEntryPoint_RVA,                                    4,  0); // 入口
-    leftQWidgetGroup1Layout3->addWidget(                        new QLabel("BaseOfCode:"),              5,  0); // 没用 代码开始的基址
-    leftQWidgetGroup1Layout3->addWidget(                        new QLabel("BaseOfData:"),              6,  0); // 没用 数据开始的基址
-    leftQWidgetGroup1Layout3->addWidget(               lb_ImageBase,                                    7,  0); // 内存镜像基址
-    leftQWidgetGroup1Layout3->addWidget(        lb_SectionAlignment,                                    8,  0); // 内存对齐
-    leftQWidgetGroup1Layout3->addWidget(           lb_FileAlignment,                                    9,  0); // 文件对齐
-    leftQWidgetGroup1Layout3->addWidget(             lb_SizeOfImage,                                    10, 0); // 内存中整个PE文件的映射尺寸，SectionAlignment整数倍
-    leftQWidgetGroup1Layout3->addWidget(           lb_SizeOfHeaders,                                    11, 0); // 所有头+节表按照文件对齐后的大小，按照FileAlignment对齐
-    leftQWidgetGroup1Layout3->addWidget(                        new QLabel("CheckSum:"),                12, 0); // 有些有校验
-    leftQWidgetGroup1Layout3->addWidget(                        new QLabel("SizeOfStackReserve:"),      13, 0); // 初始化保留的堆栈大小
-    leftQWidgetGroup1Layout3->addWidget(                        new QLabel("SizeOfStackCommit:"),       14, 0); // 初始化实际提交的大小
-    leftQWidgetGroup1Layout3->addWidget(                        new QLabel("SizeOfHeapReserve:"),       15, 0); // 初始化保留的堆大小
-    leftQWidgetGroup1Layout3->addWidget(                        new QLabel("SizeOfHeapCommit:"),        16, 0); // 初始化实际提交的大小
-    leftQWidgetGroup1Layout3->addWidget(                        new QLabel("NumberOfRvaAndSizes:"),     17, 0); //
+    leftQWidgetGroup1Layout3->addWidget(lb_Magic,                               0,  0); // 10B 32位，20B 64位文件
+    leftQWidgetGroup1Layout3->addWidget(new QLabel("SizeOfCode:"),              1,  0); // 没用 FileAlignment 整数倍
+    leftQWidgetGroup1Layout3->addWidget(new QLabel("SizeOfInitializedData:"),   2,  0); // 没用 FileAlignment 整数倍
+    leftQWidgetGroup1Layout3->addWidget(new QLabel("SizeOfUninitializedData:"), 3,  0); // 没用 FileAlignment 整数倍
+    leftQWidgetGroup1Layout3->addWidget(lb_AddressOfEntryPoint_RVA,             4,  0); // 入口
+    leftQWidgetGroup1Layout3->addWidget(new QLabel("BaseOfCode:"),              5,  0); // 没用 代码开始的基址
+    leftQWidgetGroup1Layout3->addWidget(new QLabel("BaseOfData:"),              6,  0); // 没用 数据开始的基址
+    leftQWidgetGroup1Layout3->addWidget(lb_ImageBase,                           7,  0); // 内存镜像基址
+    leftQWidgetGroup1Layout3->addWidget(lb_SectionAlignment,                    8,  0); // 内存对齐
+    leftQWidgetGroup1Layout3->addWidget(lb_FileAlignment,                       9,  0); // 文件对齐
+    leftQWidgetGroup1Layout3->addWidget(lb_SizeOfImage,                         10, 0); // 内存中整个PE文件的映射尺寸，SectionAlignment整数倍
+    leftQWidgetGroup1Layout3->addWidget(lb_SizeOfHeaders,                       11, 0); // 所有头+节表按照文件对齐后的大小，按照FileAlignment对齐
+    leftQWidgetGroup1Layout3->addWidget(new QLabel("CheckSum:"),                12, 0); // 有些有校验
+    leftQWidgetGroup1Layout3->addWidget(new QLabel("SizeOfStackReserve:"),      13, 0); // 初始化保留的堆栈大小
+    leftQWidgetGroup1Layout3->addWidget(new QLabel("SizeOfStackCommit:"),       14, 0); // 初始化实际提交的大小
+    leftQWidgetGroup1Layout3->addWidget(new QLabel("SizeOfHeapReserve:"),       15, 0); // 初始化保留的堆大小
+    leftQWidgetGroup1Layout3->addWidget(new QLabel("SizeOfHeapCommit:"),        16, 0); // 初始化实际提交的大小
+    leftQWidgetGroup1Layout3->addWidget(new QLabel("NumberOfRvaAndSizes:"),     17, 0); //
 
-    leftQWidgetGroup1Layout3->addWidget(                  ope_Magic,                                    0,  1);
-    leftQWidgetGroup1Layout3->addWidget(             ope_SizeOfCode,                                    1,  1);
-    leftQWidgetGroup1Layout3->addWidget(  ope_SizeOfInitializedData,                                    2,  1);
-    leftQWidgetGroup1Layout3->addWidget(ope_SizeOfUninitializedData,                                    3,  1);
-    leftQWidgetGroup1Layout3->addWidget(ope_AddressOfEntryPoint_RVA,                                    4,  1);
-    leftQWidgetGroup1Layout3->addWidget(             ope_BaseOfCode,                                    5,  1);
-    leftQWidgetGroup1Layout3->addWidget(             ope_BaseOfData,                                    6,  1);
-    leftQWidgetGroup1Layout3->addWidget(              ope_ImageBase,                                    7,  1);
-    leftQWidgetGroup1Layout3->addWidget(       ope_SectionAlignment,                                    8,  1);
-    leftQWidgetGroup1Layout3->addWidget(          ope_FileAlignment,                                    9,  1);
-    leftQWidgetGroup1Layout3->addWidget(            ope_SizeOfImage,                                    10, 1);
-    leftQWidgetGroup1Layout3->addWidget(          ope_SizeOfHeaders,                                    11, 1);
-    leftQWidgetGroup1Layout3->addWidget(               ope_CheckSum,                                    12, 1);
-    leftQWidgetGroup1Layout3->addWidget(     ope_SizeOfStackReserve,                                    13, 1);
-    leftQWidgetGroup1Layout3->addWidget(      ope_SizeOfStackCommit,                                    14, 1);
-    leftQWidgetGroup1Layout3->addWidget(      ope_SizeOfHeapReserve,                                    15, 1);
-    leftQWidgetGroup1Layout3->addWidget(       ope_SizeOfHeapCommit,                                    16, 1);
-    leftQWidgetGroup1Layout3->addWidget(    ope_NumberOfRvaAndSizes,                                    17, 1);
+    leftQWidgetGroup1Layout3->addWidget(ope_Magic,                              0,  1);
+    leftQWidgetGroup1Layout3->addWidget(ope_SizeOfCode,                         1,  1);
+    leftQWidgetGroup1Layout3->addWidget(ope_SizeOfInitializedData,              2,  1);
+    leftQWidgetGroup1Layout3->addWidget(ope_SizeOfUninitializedData,            3,  1);
+    leftQWidgetGroup1Layout3->addWidget(ope_AddressOfEntryPoint_RVA,            4,  1);
+    leftQWidgetGroup1Layout3->addWidget(ope_BaseOfCode,                         5,  1);
+    leftQWidgetGroup1Layout3->addWidget(ope_BaseOfData,                         6,  1);
+    leftQWidgetGroup1Layout3->addWidget(ope_ImageBase,                          7,  1);
+    leftQWidgetGroup1Layout3->addWidget(ope_SectionAlignment,                   8,  1);
+    leftQWidgetGroup1Layout3->addWidget(ope_FileAlignment,                      9,  1);
+    leftQWidgetGroup1Layout3->addWidget(ope_SizeOfImage,                        10, 1);
+    leftQWidgetGroup1Layout3->addWidget(ope_SizeOfHeaders,                      11, 1);
+    leftQWidgetGroup1Layout3->addWidget(ope_CheckSum,                           12, 1);
+    leftQWidgetGroup1Layout3->addWidget(ope_SizeOfStackReserve,                 13, 1);
+    leftQWidgetGroup1Layout3->addWidget(ope_SizeOfStackCommit,                  14, 1);
+    leftQWidgetGroup1Layout3->addWidget(ope_SizeOfHeapReserve,                  15, 1);
+    leftQWidgetGroup1Layout3->addWidget(ope_SizeOfHeapCommit,                   16, 1);
+    leftQWidgetGroup1Layout3->addWidget(ope_NumberOfRvaAndSizes,                17, 1);
 
-    centerQWidgetGroupBox2Layout->addWidget(                    new QLabel("导出表:"),  1, 0);
-    centerQWidgetGroupBox2Layout->addWidget(                    new QLabel("导入表:"),  2, 0);
-    centerQWidgetGroupBox2Layout->addWidget(                    new QLabel("资源表:"),  3, 0);
-    centerQWidgetGroupBox2Layout->addWidget(                    new QLabel("重定位表:"), 4, 0);
-    centerQWidgetGroupBox2Layout->addWidget(                    new QLabel("大小:"),   0, 1);
-    centerQWidgetGroupBox2Layout->addWidget(                    new QLabel("RVA:"),  0, 2);
-    centerQWidgetGroupBox2Layout->addWidget(                    new QLabel("FOA:"),  0, 3);
-    centerQWidgetGroupBox2Layout->addWidget(         tb_export_size,                 1, 1);
-    centerQWidgetGroupBox2Layout->addWidget(         tb_import_size,                 2, 1);
-    centerQWidgetGroupBox2Layout->addWidget(       tb_resource_size,                 3, 1);
-    centerQWidgetGroupBox2Layout->addWidget(tb_base_relocation_size,                 4, 1);
-    centerQWidgetGroupBox2Layout->addWidget(          tb_export_rva,                 1, 2);
-    centerQWidgetGroupBox2Layout->addWidget(          tb_import_rva,                 2, 2);
-    centerQWidgetGroupBox2Layout->addWidget(        tb_resource_rva,                 3, 2);
-    centerQWidgetGroupBox2Layout->addWidget( tb_base_relocation_rva,                 4, 2);
-    centerQWidgetGroupBox2Layout->addWidget(          tb_export_foa,                 1, 3);
-    centerQWidgetGroupBox2Layout->addWidget(          tb_import_foa,                 2, 3);
-    centerQWidgetGroupBox2Layout->addWidget(        tb_resource_foa,                 3, 3);
-    centerQWidgetGroupBox2Layout->addWidget( tb_base_relocation_foa,                 4, 3);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("导出表:"),      1, 0);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("导入表:"),      2, 0);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("资源表:"),      3, 0);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("重定位表:"),     4, 0);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("大小:"),       0, 1);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("RVA:"),      0, 2);
+    centerQWidgetGroupBox2Layout->addWidget(new QLabel("FOA:"),      0, 3);
+    centerQWidgetGroupBox2Layout->addWidget(tb_export_size,          1, 1);
+    centerQWidgetGroupBox2Layout->addWidget(tb_import_size,          2, 1);
+    centerQWidgetGroupBox2Layout->addWidget(tb_resource_size,        3, 1);
+    centerQWidgetGroupBox2Layout->addWidget(tb_base_relocation_size, 4, 1);
+    centerQWidgetGroupBox2Layout->addWidget(tb_export_rva,           1, 2);
+    centerQWidgetGroupBox2Layout->addWidget(tb_import_rva,           2, 2);
+    centerQWidgetGroupBox2Layout->addWidget(tb_resource_rva,         3, 2);
+    centerQWidgetGroupBox2Layout->addWidget(tb_base_relocation_rva,  4, 2);
+    centerQWidgetGroupBox2Layout->addWidget(tb_export_foa,           1, 3);
+    centerQWidgetGroupBox2Layout->addWidget(tb_import_foa,           2, 3);
+    centerQWidgetGroupBox2Layout->addWidget(tb_resource_foa,         3, 3);
+    centerQWidgetGroupBox2Layout->addWidget(tb_base_relocation_foa,  4, 3);
 
     centerQWidgetGroupBox1Layout->addWidget(ckConsoleEnable);
     centerQWidgetGroupBox1Layout->addWidget(btnConsoleClear);
@@ -387,31 +387,31 @@ void ItemView10PE::initUI()
     //    rightQWidgetGroupBox1Layout->addWidget(      btnClients);
     //    rightQWidgetLayout->addWidget(infoTableView);
 
-    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("名称:"),                    1, 0);
-    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("Base:"),                  2, 0);
-    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("NumberOfFunctions:"),     3, 0);
-    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("NumberOfNames:"),         4, 0);
-    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("AddressOfFunctions:"),    5, 0);
-    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("AddressOfNameOrdinals:"), 6, 0);
-    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("AddressOfNames:"),        7, 0);
-    exportTabTabWidgetGroupBox1Layout->addWidget(                     export_Name,                                  1, 1);
-    exportTabTabWidgetGroupBox1Layout->addWidget(                     export_Base,                                  2, 1);
-    exportTabTabWidgetGroupBox1Layout->addWidget(        export_NumberOfFunctions,                                  3, 1);
-    exportTabTabWidgetGroupBox1Layout->addWidget(            export_NumberOfNames,                                  4, 1);
-    exportTabTabWidgetGroupBox1Layout->addWidget(       export_AddressOfFunctions,                                  5, 1);
-    exportTabTabWidgetGroupBox1Layout->addWidget(           export_AddressOfNames,                                  6, 1);
-    exportTabTabWidgetGroupBox1Layout->addWidget(    export_AddressOfNameOrdinals,                                  7, 1);
-    exportTabTabWidgetGroupBox1Layout->addWidget(   export_AddressOfFunctions_foa,                                  5, 3);
-    exportTabTabWidgetGroupBox1Layout->addWidget(export_AddressOfNameOrdinals_foa,                                  6, 3);
-    exportTabTabWidgetGroupBox1Layout->addWidget(       export_AddressOfNames_foa,                                  7, 3);
-    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("FOA:"),                   5, 2);
-    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("FOA:"),                   6, 2);
-    exportTabTabWidgetGroupBox1Layout->addWidget(                             new QLabel("FOA:"),                   7, 2);
+    exportTabTabWidgetGroupBox1Layout->addWidget(new QLabel("名称:"),                    1, 0);
+    exportTabTabWidgetGroupBox1Layout->addWidget(new QLabel("Base:"),                  2, 0);
+    exportTabTabWidgetGroupBox1Layout->addWidget(new QLabel("NumberOfFunctions:"),     3, 0);
+    exportTabTabWidgetGroupBox1Layout->addWidget(new QLabel("NumberOfNames:"),         4, 0);
+    exportTabTabWidgetGroupBox1Layout->addWidget(new QLabel("AddressOfFunctions:"),    5, 0);
+    exportTabTabWidgetGroupBox1Layout->addWidget(new QLabel("AddressOfNameOrdinals:"), 6, 0);
+    exportTabTabWidgetGroupBox1Layout->addWidget(new QLabel("AddressOfNames:"),        7, 0);
+    exportTabTabWidgetGroupBox1Layout->addWidget(export_Name,                          1, 1);
+    exportTabTabWidgetGroupBox1Layout->addWidget(export_Base,                          2, 1);
+    exportTabTabWidgetGroupBox1Layout->addWidget(export_NumberOfFunctions,             3, 1);
+    exportTabTabWidgetGroupBox1Layout->addWidget(export_NumberOfNames,                 4, 1);
+    exportTabTabWidgetGroupBox1Layout->addWidget(export_AddressOfFunctions,            5, 1);
+    exportTabTabWidgetGroupBox1Layout->addWidget(export_AddressOfNames,                6, 1);
+    exportTabTabWidgetGroupBox1Layout->addWidget(export_AddressOfNameOrdinals,         7, 1);
+    exportTabTabWidgetGroupBox1Layout->addWidget(export_AddressOfFunctions_foa,        5, 3);
+    exportTabTabWidgetGroupBox1Layout->addWidget(export_AddressOfNameOrdinals_foa,     6, 3);
+    exportTabTabWidgetGroupBox1Layout->addWidget(export_AddressOfNames_foa,            7, 3);
+    exportTabTabWidgetGroupBox1Layout->addWidget(new QLabel("FOA:"),                   5, 2);
+    exportTabTabWidgetGroupBox1Layout->addWidget(new QLabel("FOA:"),                   6, 2);
+    exportTabTabWidgetGroupBox1Layout->addWidget(new QLabel("FOA:"),                   7, 2);
 
 
-    layout->addWidget(  leftQWidget);
+    layout->addWidget(leftQWidget);
     layout->addWidget(centerQWidget);
-    layout->addWidget( rightQWidget);
+    layout->addWidget(rightQWidget);
 }
 
 void ItemView10PE::initConnect()

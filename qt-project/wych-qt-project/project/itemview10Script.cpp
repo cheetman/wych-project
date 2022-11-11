@@ -1,6 +1,3 @@
-#include "Itemview10Script.h"
-
-#include "utils.h"
 
 #include <QTextCodec>
 #include <tchar.h>
@@ -11,8 +8,12 @@
 #include <QScrollArea>
 #include <QImage>
 #include <QtWin>
-
-#include <components/pixmapwidget.h>
+#include <QRadioButton>
+#include <QButtonGroup>
+#include "utils.h"
+#include "winapi.h"
+#include "itemview10Script.h"
+#include "components/pixmapwidget.h"
 
 
 Itemview10Script::Itemview10Script(QWidget *parent)
@@ -222,6 +223,13 @@ void Itemview10Script::initUI()
     tb_window_handle = new QLineEdit("");
 
 
+    rb_printWindow = new QRadioButton("窗口截图");
+    rb_printClient = new QRadioButton("内容截图");
+
+    bg_printConfig = new QButtonGroup(this);
+    bg_printConfig->addButton(rb_printWindow, 0);
+    bg_printConfig->addButton(rb_printClient, 1);
+
     QPalette pe;
     pe.setColor(QPalette::WindowText, Qt::red);
     auto lb_e_magic = new QLabel("e_magic:");
@@ -236,25 +244,28 @@ void Itemview10Script::initUI()
     //    leftQWidgetGroup1Layout->addWidget(btnReflectiveInject, 1, 1);
 
 
-    leftQWidgetGroup1Layout->addWidget(new QLabel("进程名称:"), 0, 0);
-    leftQWidgetGroup1Layout->addWidget(new QLabel("窗口名称:"), 1, 0);
+    leftQWidgetGroup1Layout->addWidget(new QLabel("进程名称:"), 0,  0);
+    leftQWidgetGroup1Layout->addWidget(new QLabel("窗口名称:"), 1,  0);
 
-    leftQWidgetGroup1Layout->addWidget(tb_process_name,     0, 1);
-    leftQWidgetGroup1Layout->addWidget(tb_process_handle,   0, 2);
-    leftQWidgetGroup1Layout->addWidget(tb_window_name,      1, 1);
-    leftQWidgetGroup1Layout->addWidget(tb_window_handle,    1, 2);
+    leftQWidgetGroup1Layout->addWidget(tb_process_name,     0,  1);
+    leftQWidgetGroup1Layout->addWidget(tb_process_handle,   0,  2);
+    leftQWidgetGroup1Layout->addWidget(tb_window_name,      1,  1);
+    leftQWidgetGroup1Layout->addWidget(tb_window_handle,    1,  2);
 
 
-    leftQWidgetGroup1Layout->addWidget(new QLabel("窗口大小:"), 5, 0);
-    leftQWidgetGroup1Layout->addWidget(new QLabel("内部大小:"), 6, 0);
+    leftQWidgetGroup1Layout->addWidget(new QLabel("窗口大小:"), 5,  0);
+    leftQWidgetGroup1Layout->addWidget(new QLabel("内部大小:"), 6,  0);
 
-    leftQWidgetGroup1Layout->addWidget(new QLabel("大小:"),   4, 1);
-    leftQWidgetGroup1Layout->addWidget(new QLabel("坐标:"),   4, 2);
+    leftQWidgetGroup1Layout->addWidget(new QLabel("大小:"),   4,  1);
+    leftQWidgetGroup1Layout->addWidget(new QLabel("坐标:"),   4,  2);
 
-    leftQWidgetGroup1Layout->addWidget(tb_window_size,      5, 1);
-    leftQWidgetGroup1Layout->addWidget(tb_window2_size,     6, 1);
-    leftQWidgetGroup1Layout->addWidget(tb_window_position,  5, 2);
-    leftQWidgetGroup1Layout->addWidget(tb_window2_position, 6, 2);
+    leftQWidgetGroup1Layout->addWidget(tb_window_size,      5,  1);
+    leftQWidgetGroup1Layout->addWidget(tb_window2_size,     6,  1);
+    leftQWidgetGroup1Layout->addWidget(tb_window_position,  5,  2);
+    leftQWidgetGroup1Layout->addWidget(tb_window2_position, 6,  2);
+
+    leftQWidgetGroup1Layout->addWidget(rb_printWindow,      10, 0);
+    leftQWidgetGroup1Layout->addWidget(rb_printClient,      10, 1);
 
 
     centerQWidgetGroupBox1Layout->addWidget(ckConsoleEnable);
@@ -287,10 +298,11 @@ void Itemview10Script::initConnect()
         //        return;
 
 
-        HWND hwnd_ = (HWND)0x2048c;
+        HWND hwnd_ = windowInfo.HandleWindow;
         HDC displayDC;
         HDC bitmapDC;
 
+        if (rb_printWindow->isChecked()) {}
 
         displayDC = ::GetWindowDC(hwnd_);           // 获取窗口DC
         bitmapDC = ::CreateCompatibleDC(displayDC); // 缓冲内存DC
@@ -303,6 +315,10 @@ void Itemview10Script::initConnect()
         if (w < 0) w = r.right - r.left;
 
         if (h < 0) h = r.bottom - r.top;
+
+        w = 300;
+        h = 300;
+
         bitmap = CreateCompatibleBitmap(displayDC, w, h);
 
         HGDIOBJ null_bitmap = SelectObject(bitmapDC, bitmap);
@@ -564,6 +580,29 @@ void Itemview10Script::initConnect()
 
         //        QMessageBox::warning(this, "警告", QString::number(GetLastError()));
     });
+}
+
+bool Itemview10Script::buildProcess(DWORD pid) {
+    BOOL success = WinAPI::get_process_info(pid, &processInfo);
+
+    if (success) {
+        success = WinAPI::get_window_main(pid, &windowInfo);
+
+        if (success) {
+            tb_process_name->setText(QString::fromWCharArray(processInfo.PName));
+            tb_window_name->setText(QString::fromWCharArray(windowInfo.TitleName));
+            tb_window_handle->setText(QString::number((intptr_t)(windowInfo.HandleWindow), 16));
+            tb_window_size->setText(tr("[ %1 x %2 ]").arg(windowInfo.WindowRect.right - windowInfo.WindowRect.left).arg(windowInfo.WindowRect.bottom - windowInfo.WindowRect.top));
+            tb_window_position->setText(tr("(%1,%2),(%3,%4)").arg(windowInfo.WindowRect.left).arg(windowInfo.WindowRect.top).arg(windowInfo.WindowRect.right).arg(windowInfo.WindowRect.bottom));
+            tb_window2_size->setText(tr("[ %1 x %2 ]").arg(windowInfo.ClientRect.right - windowInfo.ClientRect.left).arg(windowInfo.ClientRect.bottom - windowInfo.ClientRect.top));
+            tb_window2_position->setText(tr("(%1,%2),(%3,%4)").arg(windowInfo.ClientToScreen.x).arg(windowInfo.ClientToScreen.y).arg(windowInfo.ClientToScreen.x + windowInfo.ClientRect.right).arg(windowInfo.ClientToScreen.y + windowInfo.ClientRect.bottom));
+
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void Itemview10Script::appendMessage(const QString& msg)

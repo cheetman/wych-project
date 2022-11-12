@@ -13,15 +13,26 @@ public:
 
 protected:
 
-    void paintEvent(QPaintEvent *event); // 绘制事件
+    void paintEvent(QPaintEvent *event);      // 绘制事件
+    void mousePressEvent(QMouseEvent *event); //鼠标点击事件
+    void mouseMoveEvent(QMouseEvent *event);  //鼠标移动事件
+    void enterEvent(QEvent *event);           //鼠标进入窗口事件
+    void leaveEvent(QEvent *event);           //鼠标离开窗口事件
 
 private:
 
     QPixmap m_pixmap;
     QBrush m_brush;    //
     QColor m_penColor; // 坐标，追踪十字的颜色
+    int mouseX, mouseY;
+    int m_scale = 1;
+    typedef enum { Border, Tracking } PaintMode;
+    PaintMode m_paintMode;
 
 signals:
+
+    void mousePositionEvent(int x,
+                            int y);
 };
 
 #endif // PIXMAPWIDGET_H

@@ -48,8 +48,8 @@ protected:
 
 private:
 
-    WIN32_PROCESS_INFO processInfo;
-    WIN32_WINDOW_INFO windowInfo;
+    WIN32_PROCESS_INFO processInfo = { 0 };
+    WIN32_WINDOW_INFO windowInfo = { 0 };
     PixmapWidget *pixmapWidget;
 
     QLineEdit *dos_e_magic;
@@ -107,6 +107,9 @@ private:
     QLineEdit *tb_window2_size;
     QLineEdit *tb_window_position;
     QLineEdit *tb_window2_position;
+    QLineEdit *tb_mouse_position;
+
+
     QLineEdit *tb_export_foa;
     QLineEdit *tb_import_foa;
     QLineEdit *tb_resource_foa;
@@ -115,6 +118,10 @@ private:
     class QRadioButton *rb_printWindow;
     class QRadioButton *rb_printClient;
     class QButtonGroup *bg_printConfig;
+
+    class QRadioButton *rb_printWin32;
+    class QRadioButton *rb_printAdb;
+    class QButtonGroup *bg_printType;
 
     QLineEdit *export_Name;
     QLineEdit *export_Base;

@@ -10,6 +10,7 @@
 #include <QtWin>
 #include <QRadioButton>
 #include <QButtonGroup>
+#include <QDebug>
 #include "utils.h"
 #include "winapi.h"
 #include "itemview10Script.h"
@@ -41,8 +42,20 @@ void Itemview10Script::initUI()
 
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox1);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
-    auto leftQWidgetGroup1Layout = new QGridLayout(leftQWidgetGroupBox1);
-    leftQWidgetGroupBox1->setFixedHeight(200);
+    leftQWidgetGroupBox1->setFixedHeight(250);
+    auto layout_l_1_m = new QVBoxLayout(this);
+    auto leftQWidgetGroup1Layout = new QGridLayout(this);
+    auto leftQWidgetGroup1bLayout = new QHBoxLayout(this);
+    auto leftQWidgetGroup1cLayout = new QHBoxLayout(this);
+    auto leftQWidgetGroup1dLayout = new QHBoxLayout(this);
+    leftQWidgetGroup1bLayout->setAlignment(Qt::AlignLeft);
+    leftQWidgetGroup1cLayout->setAlignment(Qt::AlignLeft);
+    leftQWidgetGroup1dLayout->setAlignment(Qt::AlignLeft);
+    leftQWidgetGroupBox1->setLayout(layout_l_1_m);
+    layout_l_1_m->addLayout(leftQWidgetGroup1Layout);
+    layout_l_1_m->addLayout(leftQWidgetGroup1bLayout);
+    layout_l_1_m->addLayout(leftQWidgetGroup1cLayout);
+    layout_l_1_m->addLayout(leftQWidgetGroup1dLayout);
 
 
     auto leftQWidgetGroupBox2 = new QGroupBox("截图", this);
@@ -87,43 +100,13 @@ void Itemview10Script::initUI()
 
     // 第三层(右边列)
     auto tabTabWidget = new QTabWidget(rightQWidgetGroupBox1);
-    auto tab = new QWidget(tabTabWidget);
-    auto exportTabTabWidgetLayout = new QVBoxLayout(tab);
     auto tab2 = new QWidget(tabTabWidget);
     auto importTabTabWidgetLayout = new QVBoxLayout(tab2);
     auto tab3 = new QWidget(tabTabWidget);
     auto relocationTabTabWidgetLayout = new QVBoxLayout(tab3);
-    tabTabWidget->addTab(tab,  tr("模块"));
     tabTabWidget->addTab(tab2, tr("窗口"));
     tabTabWidget->addTab(tab3, tr("重定位表"));
     rightQWidgetGroupBox1Layout->addWidget(tabTabWidget);
-
-
-    // 第四层(导出)(右边列)
-    auto exportTabTabWidgetGroupBox1 = new QGroupBox("头部", tab);
-    exportTabTabWidgetLayout->addWidget(exportTabTabWidgetGroupBox1);
-
-    exportTabTabWidgetLayout->setAlignment(Qt::AlignTop);
-    auto exportTabTabWidgetGroupBox1Layout = new QGridLayout(exportTabTabWidgetGroupBox1);
-
-    //    exportTabTabWidgetGroupBox1->setFixedHeight(100);
-
-
-    auto exportTabTabWidgetGroupBox2 = new QGroupBox("明细", tab);
-    exportTabTabWidgetLayout->addWidget(exportTabTabWidgetGroupBox2);
-    exportTabTabWidgetLayout->setAlignment(Qt::AlignTop);
-    auto exportTabTabWidgetGroupBox2Layout = new QGridLayout(exportTabTabWidgetGroupBox2);
-
-    moduleTableView = new QTableView(this);
-    moduleGridModel = new QStandardItemModel();
-    moduleGridModel->setHorizontalHeaderLabels({  "模块名称", "模块基址",  "模块大小" });
-    moduleTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    moduleTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    moduleTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    moduleTableView->setModel(moduleGridModel);
-
-    //    exportTableView->setColumnHidden(0, true);
-    exportTabTabWidgetGroupBox2Layout->addWidget(moduleTableView);
 
 
     // 第四层(重定位)
@@ -221,14 +204,25 @@ void Itemview10Script::initUI()
     tb_process_handle = new QLineEdit("");
     tb_window_name = new QLineEdit("");
     tb_window_handle = new QLineEdit("");
+    tb_mouse_position = new QLineEdit("");
 
 
     rb_printWindow = new QRadioButton("窗口截图");
     rb_printClient = new QRadioButton("内容截图");
+    rb_printClient->setChecked(true);
 
     bg_printConfig = new QButtonGroup(this);
     bg_printConfig->addButton(rb_printWindow, 0);
     bg_printConfig->addButton(rb_printClient, 1);
+
+
+    rb_printWin32 = new QRadioButton("Win截图");
+    rb_printWin32->setChecked(true);
+    rb_printAdb = new QRadioButton("Android截图");
+    bg_printType = new QButtonGroup(this);
+    bg_printType->addButton(rb_printWin32, 0);
+    bg_printType->addButton(rb_printAdb,   1);
+
 
     QPalette pe;
     pe.setColor(QPalette::WindowText, Qt::red);
@@ -238,48 +232,48 @@ void Itemview10Script::initUI()
     lb_e_lfanew->setPalette(pe);
 
 
-    //    leftQWidgetGroup1Layout->addWidget(btnStart,            0, 0);
-    //    leftQWidgetGroup1Layout->addWidget(btnDebugPrivilege,   0, 1);
-    //    leftQWidgetGroup1Layout->addWidget(btnRemoteInject,     1, 0);
-    //    leftQWidgetGroup1Layout->addWidget(btnReflectiveInject, 1, 1);
+    leftQWidgetGroup1Layout->addWidget(new QLabel("进程名称:"),       0, 0);
+    leftQWidgetGroup1Layout->addWidget(new QLabel("窗口名称:"),       1, 0);
+
+    leftQWidgetGroup1Layout->addWidget(tb_process_name,           0, 1);
+
+    //    leftQWidgetGroup1Layout->addWidget(tb_process_handle,        0, 2);
+    leftQWidgetGroup1Layout->addWidget(tb_window_name,            1, 1);
+    leftQWidgetGroup1Layout->addWidget(tb_window_handle,          1, 2);
 
 
-    leftQWidgetGroup1Layout->addWidget(new QLabel("进程名称:"), 0,  0);
-    leftQWidgetGroup1Layout->addWidget(new QLabel("窗口名称:"), 1,  0);
+    leftQWidgetGroup1Layout->addWidget(new QLabel("窗口大小:", this), 5, 0);
+    leftQWidgetGroup1Layout->addWidget(new QLabel("内部大小:", this), 6, 0);
 
-    leftQWidgetGroup1Layout->addWidget(tb_process_name,     0,  1);
-    leftQWidgetGroup1Layout->addWidget(tb_process_handle,   0,  2);
-    leftQWidgetGroup1Layout->addWidget(tb_window_name,      1,  1);
-    leftQWidgetGroup1Layout->addWidget(tb_window_handle,    1,  2);
+    leftQWidgetGroup1Layout->addWidget(new QLabel("大小:", this),   4, 1);
+    leftQWidgetGroup1Layout->addWidget(new QLabel("坐标:", this),   4, 2);
+
+    leftQWidgetGroup1Layout->addWidget(tb_window_size,            5, 1);
+    leftQWidgetGroup1Layout->addWidget(tb_window2_size,           6, 1);
+    leftQWidgetGroup1Layout->addWidget(tb_window_position,        5, 2);
+    leftQWidgetGroup1Layout->addWidget(tb_window2_position,       6, 2);
+
+    leftQWidgetGroup1bLayout->addWidget(new QLabel("截图方式:", this));
+    leftQWidgetGroup1bLayout->addWidget(rb_printWin32);
+    leftQWidgetGroup1bLayout->addWidget(rb_printAdb);
+    leftQWidgetGroup1bLayout->addWidget(btnWindowPrint);
 
 
-    leftQWidgetGroup1Layout->addWidget(new QLabel("窗口大小:"), 5,  0);
-    leftQWidgetGroup1Layout->addWidget(new QLabel("内部大小:"), 6,  0);
+    leftQWidgetGroup1cLayout->addWidget(new QLabel("截图区域:", this));
+    leftQWidgetGroup1cLayout->addWidget(rb_printWindow);
+    leftQWidgetGroup1cLayout->addWidget(rb_printClient);
 
-    leftQWidgetGroup1Layout->addWidget(new QLabel("大小:"),   4,  1);
-    leftQWidgetGroup1Layout->addWidget(new QLabel("坐标:"),   4,  2);
 
-    leftQWidgetGroup1Layout->addWidget(tb_window_size,      5,  1);
-    leftQWidgetGroup1Layout->addWidget(tb_window2_size,     6,  1);
-    leftQWidgetGroup1Layout->addWidget(tb_window_position,  5,  2);
-    leftQWidgetGroup1Layout->addWidget(tb_window2_position, 6,  2);
-
-    leftQWidgetGroup1Layout->addWidget(rb_printWindow,      10, 0);
-    leftQWidgetGroup1Layout->addWidget(rb_printClient,      10, 1);
+    leftQWidgetGroup1dLayout->addWidget(new QLabel("鼠标坐标:", this));
+    leftQWidgetGroup1dLayout->addWidget(tb_mouse_position);
 
 
     centerQWidgetGroupBox1Layout->addWidget(ckConsoleEnable);
     centerQWidgetGroupBox1Layout->addWidget(btnConsoleClear);
 
 
-    importTabTabWidgetGroupBoxLayout3->addWidget(btnWindowPrint);
+    // importTabTabWidgetGroupBoxLayout3->addWidget(btnWindowPrint);
 
-    //    centerQWidgetGroupBox2Layout->addWidget(tb_resource_rva,         3, 2);
-    //    centerQWidgetGroupBox2Layout->addWidget(tb_base_relocation_rva,  4, 2);
-    //    centerQWidgetGroupBox2Layout->addWidget(tb_export_foa,           1, 3);
-    //    centerQWidgetGroupBox2Layout->addWidget(tb_import_foa,           2, 3);
-    //    centerQWidgetGroupBox2Layout->addWidget(tb_resource_foa,         3, 3);
-    //    centerQWidgetGroupBox2Layout->addWidget(tb_base_relocation_foa,  4, 3);
 
     layout->addWidget(leftQWidget);
 
@@ -289,6 +283,13 @@ void Itemview10Script::initUI()
 
 void Itemview10Script::initConnect()
 {
+    // 事件 - 图片框的鼠标事件
+    connect(pixmapWidget, &PixmapWidget::mousePositionEvent, [this](int mouseX, int mouseY) {
+        qDebug() << mouseX;
+        tb_mouse_position->setText(tr("[x:%1, y:%2]").arg(mouseX).arg(mouseY));
+    });
+
+
     // 截图
     connect(btnWindowPrint, &QPushButton::clicked, [this]() {
         //        QPixmap  m_pixmap = QPixmap("C:\\Users\\汪意超\\Pictures\\Saved Pictures\\001OdAkagy1gyybblipk3j60h00fvajh02.jpg");
@@ -299,6 +300,10 @@ void Itemview10Script::initConnect()
 
 
         HWND hwnd_ = windowInfo.HandleWindow;
+
+        if (!hwnd_) {
+            return;
+        }
         HDC displayDC;
         HDC bitmapDC;
 
@@ -316,8 +321,29 @@ void Itemview10Script::initConnect()
 
         if (h < 0) h = r.bottom - r.top;
 
-        w = 300;
-        h = 300;
+
+        if (rb_printClient->isChecked()) {
+            RECT cr = { 0, 0, 0, 0 };
+
+            // 算内部坐标
+            GetClientRect(hwnd_, &cr);
+
+
+            POINT point = { 0, 0 };
+            ClientToScreen(hwnd_, &point);
+
+
+            w = cr.right;
+            h = cr.bottom;
+
+            x = point.x - r.left;
+            y = point.y - r.top;
+
+
+            //            x = 20;
+            //            y = 20;
+        }
+
 
         bitmap = CreateCompatibleBitmap(displayDC, w, h);
 
@@ -341,6 +367,7 @@ void Itemview10Script::initConnect()
         DeleteObject(bitmap);
 
 
+        // this->update();
         return;
 
         //        auto rowIndex = processTableView->currentIndex().row();
@@ -589,9 +616,9 @@ bool Itemview10Script::buildProcess(DWORD pid) {
         success = WinAPI::get_window_main(pid, &windowInfo);
 
         if (success) {
-            tb_process_name->setText(QString::fromWCharArray(processInfo.PName));
+            tb_process_name->setText(tr("[%1] %2 ").arg(pid).arg(QString::fromWCharArray(processInfo.PName)));
             tb_window_name->setText(QString::fromWCharArray(windowInfo.TitleName));
-            tb_window_handle->setText(QString::number((intptr_t)(windowInfo.HandleWindow), 16));
+            tb_window_handle->setText(QString::number((intptr_t)(windowInfo.HandleWindow), 16).toUpper());
             tb_window_size->setText(tr("[ %1 x %2 ]").arg(windowInfo.WindowRect.right - windowInfo.WindowRect.left).arg(windowInfo.WindowRect.bottom - windowInfo.WindowRect.top));
             tb_window_position->setText(tr("(%1,%2),(%3,%4)").arg(windowInfo.WindowRect.left).arg(windowInfo.WindowRect.top).arg(windowInfo.WindowRect.right).arg(windowInfo.WindowRect.bottom));
             tb_window2_size->setText(tr("[ %1 x %2 ]").arg(windowInfo.ClientRect.right - windowInfo.ClientRect.left).arg(windowInfo.ClientRect.bottom - windowInfo.ClientRect.top));

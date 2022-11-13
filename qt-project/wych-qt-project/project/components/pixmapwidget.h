@@ -22,6 +22,7 @@ protected:
 private:
 
     QPixmap m_pixmap;
+    QImage m_image;
     QBrush m_brush;    //
     QColor m_penColor; // 坐标，追踪十字的颜色
     int mouseX, mouseY;
@@ -31,8 +32,11 @@ private:
 
 signals:
 
-    void mousePositionEvent(int x,
-                            int y);
+    void mousePositionEvent(int     x,
+                            int     y,
+                            QColor& rgb,
+                            float   xr,
+                            float   yr);
 };
 
 #endif // PIXMAPWIDGET_H

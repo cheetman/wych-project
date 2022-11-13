@@ -3,6 +3,7 @@
 #define DEBUG_STRING
 #ifdef DEBUG_STRING
 # include <stdio.h>
+# include <vector>
 #endif // ifdef DEBUG_STRING
 
 
@@ -411,6 +412,14 @@ BOOL get_process_info(DWORD pid, PWIN32_PROCESS_INFO result) {
     return success;
 }
 
+BOOL  CALLBACK callback_enum_window_child(HWND hwndChild, LPARAM lParam)
+{
+    std::vector<HWND> *data = (std::vector<HWND> *)lParam;
+
+    data->push_back(hwndChild);
+    return TRUE;
+}
+
 BOOL  CALLBACK callback_enum_window_main(HWND handle, LPARAM lParam)
 {
     PWIN32_WINDOW_INFO info = (PWIN32_WINDOW_INFO)lParam;
@@ -425,6 +434,24 @@ BOOL  CALLBACK callback_enum_window_main(HWND handle, LPARAM lParam)
 
     info->HandleWindow = handle;
     return FALSE;
+}
+
+BOOL get_window_info(HWND handle, PWIN32_WINDOW_INFO result) {
+    if (!handle) {
+        return FALSE;
+    }
+
+    result->HandleWindow = handle;
+    GetWindowRect(result->HandleWindow, &result->WindowRect);
+    GetClientRect(result->HandleWindow, &result->ClientRect);
+    result->ClientToScreen = { 0, 0 };
+    ClientToScreen(result->HandleWindow, &result->ClientToScreen);
+    GetClassName(result->HandleWindow, result->ClassName, MAXBYTE);  // 获得指定窗⼝所属的类的类名
+    GetWindowText(result->HandleWindow, result->TitleName, MAXBYTE); // 查找标题
+    result->IsMaximized = IsZoomed(result->HandleWindow);
+    result->IsMinimized = IsIconic(result->HandleWindow);
+
+    return TRUE;
 }
 
 BOOL get_window_main(DWORD pid, PWIN32_WINDOW_INFO result) {
@@ -442,6 +469,36 @@ BOOL get_window_main(DWORD pid, PWIN32_WINDOW_INFO result) {
     GetWindowText(result->HandleWindow, result->TitleName, MAXBYTE); // 查找标题
     result->IsMaximized = IsZoomed(result->HandleWindow);
     result->IsMinimized = IsIconic(result->HandleWindow);
+
+
+    return TRUE;
+}
+
+BOOL get_window_child(HWND handleWindow, std::vector<WIN32_WINDOW_INFO>& list) {
+    std::vector<HWND> childWindows;
+
+    EnumChildWindows(handleWindow, callback_enum_window_child, (LPARAM)&childWindows);
+
+    list.clear();
+
+    for (std::vector<HWND>::iterator iter = childWindows.begin(); iter != childWindows.end(); ++iter) {
+        //        int index = std::distance(childWindows.begin(), iter) + 1;
+
+
+        WIN32_WINDOW_INFO result;
+        result.HandleWindow = (*iter);
+        result.HandleParentWindow = GetParent((*iter));
+
+        GetWindowRect((*iter), &result.WindowRect);
+        GetClientRect((*iter), &result.ClientRect);
+        ClientToScreen((*iter), &result.ClientToScreen);
+        GetClassName((*iter), result.ClassName, MAXBYTE);  // 获得指定窗⼝所属的类的类名
+        GetWindowText((*iter), result.TitleName, MAXBYTE); // 查找标题
+        result.IsMaximized = IsZoomed((*iter));
+        result.IsMinimized = IsIconic((*iter));
+
+        list.push_back(result);
+    }
 
 
     return TRUE;

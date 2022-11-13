@@ -1,6 +1,7 @@
 #include "pixmapwidget.h"
 #include <QMouseEvent>
 #include <QPainter>
+#include <QDebug>
 
 PixmapWidget::PixmapWidget(QWidget *parent)
     : QWidget{parent}
@@ -30,14 +31,14 @@ PixmapWidget::PixmapWidget(QWidget *parent)
 }
 
 void PixmapWidget::setPixmap(QPixmap& newPixmap) {
-    QSize size = newPixmap.size();
+    QSize  size = newPixmap.size();
+    QImage image = newPixmap.toImage();
 
+    m_image.swap(image);
     m_pixmap.swap(newPixmap);
     this->setFixedSize(size);
 
     //    this->resize(size); // 没用，估计是调用了resize事件
-
-    //    m_pixmap = newPixmap;
     //    this->update(); setFixedSize后就不需要了 还是需要
     this->update();
 }
@@ -154,5 +155,22 @@ void PixmapWidget::mouseMoveEvent(QMouseEvent *event) {
     m_paintMode = Tracking;
     this->update();
 
-    emit mousePositionEvent(mouseX / m_scale, mouseY / m_scale); // send position
+    if (!m_image.valid(mouseX, mouseY)) {
+        qDebug() << "invalid:" << mouseX  << ":" << mouseY;
+    }
+    QColor color = m_image.pixel(mouseX, mouseY);
+
+    QSize size = m_pixmap.size();
+
+    // m_pixmap.copy()
+
+    // m_image.copy()
+
+    // m_pixmap.save()
+
+    // QTransform trans;
+    // trans.
+    // m_pixmap.transformed()
+
+    emit mousePositionEvent(mouseX / m_scale, mouseY / m_scale, color,    (float)mouseX / (float)size.width() * 100, (float)mouseY / (float)size.height() * 100);
 }

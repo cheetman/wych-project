@@ -9,4 +9,4 @@ SUBDIRS += \
 
 RC_ICONS = ./favicon.ico
 
-QMAKE_LFLAGS += /MANIFESTUAC:"level='requireAdministrator'uiAccess='false'"
+#QMAKE_LFLAGS += /MANIFESTUAC:"level='requireAdministrator'uiAccess='false'"

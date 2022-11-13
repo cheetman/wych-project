@@ -36,6 +36,9 @@ public:
     // 读入进程
     bool buildProcess(DWORD pid);
 
+    // 窗口更新
+    bool updateWindowInfo(HWND handleWindow);
+
 protected:
 
     void initUI();
@@ -45,6 +48,8 @@ protected:
 
     void appendMessage(const QString& msg);
     void showMessage(const QString& msg);
+
+    bool print();
 
 private:
 
@@ -108,6 +113,9 @@ private:
     QLineEdit *tb_window_position;
     QLineEdit *tb_window2_position;
     QLineEdit *tb_mouse_position;
+    QLineEdit *tb_mouse_ratio;
+    QLineEdit *tb_mouse_ratio_position;
+    QLineEdit *tb_mouse_rgb;
 
 
     QLineEdit *tb_export_foa;
@@ -123,6 +131,18 @@ private:
     class QRadioButton *rb_printAdb;
     class QButtonGroup *bg_printType;
 
+    class QButtonGroup *bg_scriptType;
+    class QRadioButton *rb_scriptTypeCondition;
+    class QRadioButton *rb_scriptTypeDeal;
+    class QRadioButton *rb_scriptTypeConditionAndDeal;
+
+
+    class QButtonGroup *bg_scriptConditionType;
+    class QRadioButton *rb_scriptConditionTypePixel;
+    class QRadioButton *rb_scriptConditionTypeEdgeDetect;
+    class QRadioButton *rb_scriptConditionTypeOCR;
+
+
     QLineEdit *export_Name;
     QLineEdit *export_Base;
     QLineEdit *export_NumberOfFunctions;
@@ -134,13 +154,17 @@ private:
     QLineEdit *export_AddressOfNames_foa;
     QLineEdit *export_AddressOfNameOrdinals_foa;
 
+
+    QPushButton *btnScriptDetailSave;
     QPushButton *btnStart;
-    QPushButton *btnDebugPrivilege;
-    QPushButton *btnRemoteInject;
-    QPushButton *btnReflectiveInject;
     QPushButton *btnConsoleClear;
     QPushButton *btnWindowPrint;
+    QPushButton *btnScriptAdd;
+    QPushButton *btnScriptSave;
+    QPushButton *btnRefreshWindow;
+
     QCheckBox *ckConsoleEnable;
+    QCheckBox *ckScriptDetailSleep;
 
     QPlainTextEdit *edtMsg;
 
@@ -151,13 +175,18 @@ private:
     QStandardItemModel *exportGridModel;
     QTableView *exportTableView;
     QStandardItemModel *WindowsGridModel;
-    QTableView *WindowsTableView;
+    QTreeView *WindowsTableView;
     QStandardItemModel *import2GridModel;
     QTableView *import2TableView;
     QStandardItemModel *relocationGridModel;
     QTableView *relocationTableView;
-    QStandardItemModel *relocation2GridModel;
-    QTableView *relocation2TableView;
+    QStandardItemModel *scriptGridModel;
+    QTreeView *scriptTableView;
+
+
+    class QMenu *menu_rightClick;
+    class QAction *action_addScript;
+    class QAction *action_removeScript;
 
 signals:
 };

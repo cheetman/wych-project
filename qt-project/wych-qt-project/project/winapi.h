@@ -6,6 +6,7 @@
 #include <TlHelp32.h>
 #include <cstdint>
 #include <tchar.h>
+#include <vector>
 
 
 using handle = HANDLE;
@@ -28,6 +29,7 @@ typedef struct _WIN32_WINDOW_INFO {
     // PWCHAR Buffer;
     DWORD PID;
     HWND  HandleWindow;
+    HWND  HandleParentWindow;
     TCHAR ClassName[MAXBYTE];
     TCHAR TitleName[MAXBYTE];
     RECT  WindowRect{ 0, 0, 0, 0 };
@@ -43,6 +45,12 @@ BOOL get_process_info(DWORD               pid,
                       PWIN32_PROCESS_INFO result);
 
 BOOL get_window_main(DWORD              pid,
+                     PWIN32_WINDOW_INFO result);
+
+BOOL get_window_child(HWND                            handleWindow,
+                      std::vector<WIN32_WINDOW_INFO>& list);
+
+BOOL get_window_info(HWND               handle,
                      PWIN32_WINDOW_INFO result);
 }
 

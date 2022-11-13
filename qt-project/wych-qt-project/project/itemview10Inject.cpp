@@ -314,15 +314,6 @@ BOOL  CALLBACK enum_child_windows_callback(HWND hwndChild, LPARAM lParam)
 {
     childWindows.push_back(hwndChild);
 
-    // int idChild = GetWindowLong(hwndChild, GWL_ID);
-
-    //    TCHAR m_Name[MAXBYTE];
-    //    TCHAR m_Title[MAXBYTE];
-    //    GetClassName(hwndChild, m_Name, MAXBYTE);   // 获得指定窗⼝所属的类的类名
-    //    GetWindowText(hwndChild, m_Title, MAXBYTE); // 查找标题
-
-    //    HWND p = GetParent(hwndChild);
-
     return TRUE;
 }
 

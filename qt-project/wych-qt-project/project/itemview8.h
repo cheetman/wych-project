@@ -2,7 +2,7 @@
 #define ITEMVIEW8_H
 
 #include "itemview7vlcplayer.h"
-#include "selectdialog.h"
+#include "components/selectdialog.h"
 
 #include <QDir>
 #include <QLabel>

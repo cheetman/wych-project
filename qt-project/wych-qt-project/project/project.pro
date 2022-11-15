@@ -35,6 +35,8 @@ MAKE_LFLAGS += "/STACK:65536,4096"
 SOURCES += \
 #    itemview7.cpp \
     components/pixmapwidget.cpp \
+    components/scripttypedialog.cpp \
+    components/selectdialog.cpp \
     itemview10.cpp \
     itemview10Inject.cpp \
     itemview10Script.cpp \
@@ -55,7 +57,6 @@ SOURCES += \
 #    qftp.cpp \
     structs/pe.cpp \
     qurlinfo.cpp \
-    selectdialog.cpp \
     tcpserver.cpp \
     utils.cpp \
     vlclib.cpp \
@@ -65,6 +66,8 @@ SOURCES += \
 HEADERS += \
 #    itemview7.h \
     components/pixmapwidget.h \
+    components/scripttypedialog.h \
+    components/selectdialog.h \
     itemview10Inject.h \
     itemview10.h \
     itemview10Script.h \
@@ -84,7 +87,6 @@ HEADERS += \
 #    qftp.h \
     structs/pe.h \
     qurlinfo.h \
-    selectdialog.h \
     tcpserver.h \
     test2.h \
     utils.h \

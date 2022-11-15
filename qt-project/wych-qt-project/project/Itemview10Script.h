@@ -160,6 +160,8 @@ private:
     QPushButton *btnConsoleClear;
     QPushButton *btnWindowPrint;
     QPushButton *btnScriptAdd;
+    QPushButton *btnScriptAddRoot;
+
     QPushButton *btnScriptSave;
     QPushButton *btnRefreshWindow;
 
@@ -183,10 +185,22 @@ private:
     QStandardItemModel *scriptGridModel;
     QTreeView *scriptTableView;
 
+    QStandardItemModel *scriptDetailGridModel;
+    QTreeView *scriptDetailTableView;
 
-    class QMenu *menu_rightClick;
+    //    QGroupBox *script3GroupBox;
+
+
+    class QMenu *menu_script;
+    class QMenu *menu_scriptContent;
+    class QMenu *menu_scriptDetail;
+    class QMenu *menu_scriptDetailContent;
     class QAction *action_addScript;
+    class QAction *action_addRootScript;
     class QAction *action_removeScript;
+    class QAction *action_addScriptDetail;
+    class QAction *action_addRootScriptDetail;
+    class QAction *action_removeScriptDetail;
 
 signals:
 };

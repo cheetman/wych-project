@@ -18,6 +18,7 @@
 #include "winapi.h"
 #include "itemview10Script.h"
 #include "components/pixmapwidget.h"
+#include "components/scripttypedialog.h"
 
 
 Itemview10Script::Itemview10Script(QWidget *parent)
@@ -164,7 +165,7 @@ void Itemview10Script::initUI()
     auto relocationTabTabWidgetGroupBox = new QGroupBox("操作", tab3);
     scriptLayout->addWidget(relocationTabTabWidgetGroupBox);
     scriptLayout->setAlignment(Qt::AlignTop);
-    relocationTabTabWidgetGroupBox->setFixedHeight(100);
+    relocationTabTabWidgetGroupBox->setFixedHeight(60);
 
     auto layout_r_1_m = new QVBoxLayout();
     auto rightQWidgetGroup1aLayout = new QHBoxLayout();
@@ -186,8 +187,9 @@ void Itemview10Script::initUI()
 
 
     scriptTableView = new QTreeView(this);
+    scriptTableView->setTreePosition(2);
     scriptGridModel = new QStandardItemModel();
-    scriptGridModel->setHorizontalHeaderLabels({  "编号",  "状态", "类型", "信息",  "名称", "颜色" });
+    scriptGridModel->setHorizontalHeaderLabels({ "状态",  "名称",  "编号",  "类型", "信息",  "备注", "颜色" });
 
     scriptTableView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     scriptTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -198,9 +200,43 @@ void Itemview10Script::initUI()
     script2Layout->addWidget(scriptTableView);
 
 
-    auto script3GroupBox = new QGroupBox("脚本明细", tab3);
-    scriptLayout->addWidget(script3GroupBox);
-    auto script3Layout = new QVBoxLayout(script3GroupBox);
+    //    script3GroupBox = new QGroupBox("脚本明细", tab3);
+    //    scriptLayout->addWidget(script3GroupBox);
+
+
+    auto tabScriptWidget = new QTabWidget(tab3);
+    tabScriptWidget->setFixedHeight(500);
+    scriptLayout->addWidget(tabScriptWidget);
+    auto scriptDetailWidget = new QWidget(tabScriptWidget);
+    auto scriptEditWidget = new QWidget(tabScriptWidget);
+    tabScriptWidget->addTab(scriptDetailWidget, "脚本明细列表");
+    tabScriptWidget->addTab(scriptEditWidget,   "脚本明细编辑");
+
+    auto script4Layout = new QVBoxLayout(scriptDetailWidget);
+
+    scriptDetailTableView = new QTreeView(this);
+    scriptDetailGridModel = new QStandardItemModel();
+    scriptDetailGridModel->setHorizontalHeaderLabels({  "编号",  "类型", "信息",  "备注", "颜色" });
+
+    scriptDetailTableView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    scriptDetailTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    scriptDetailTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    scriptDetailTableView->setContextMenuPolicy(Qt::CustomContextMenu);
+    scriptDetailTableView->setModel(scriptDetailGridModel);
+
+    script4Layout->addWidget(scriptDetailTableView);
+
+
+    auto script5Layout = new QVBoxLayout();
+    scriptEditWidget->setLayout(script5Layout);
+    auto saScriptEdit = new QScrollArea(tab3);
+    script5Layout->addWidget(saScriptEdit);
+    auto saContentWidget = new QWidget();
+
+    //    saContentWidget->setFixedHeight(500);
+    auto script3Layout = new QVBoxLayout();
+
+    saContentWidget->setLayout(script3Layout);
 
     auto script3Layouta = new QHBoxLayout();
     auto script3Layoutb = new QHBoxLayout();
@@ -262,6 +298,7 @@ void Itemview10Script::initUI()
     rb_printWindow = new QRadioButton("窗口截图");
     rb_printClient = new QRadioButton("内容截图");
     btnScriptAdd = new QPushButton("新增脚本");
+    btnScriptAddRoot = new QPushButton("新增根节点");
     btnScriptSave = new QPushButton("保存脚本");
     btnRefreshWindow = new QPushButton("刷新");
     btnRefreshWindow->setFixedWidth(60);
@@ -302,12 +339,20 @@ void Itemview10Script::initUI()
     bg_scriptConditionType->addButton(rb_scriptConditionTypeOCR,        2);
 
 
-    action_addScript = new QAction(tr("新增脚本"), this);
-    action_removeScript = new QAction(tr("删除脚本"), this);
-    menu_rightClick = new QMenu(this);
-    menu_rightClick->addAction(action_addScript);
-    menu_rightClick->addAction(action_removeScript);
-
+    action_addScript = new QAction(tr("新增子节点"), this);
+    action_removeScript = new QAction(tr("删除节点"), this);
+    menu_scriptContent = new QMenu(this);
+    menu_scriptContent->addAction(action_addScript);
+    menu_scriptContent->addAction(action_removeScript);
+    action_addRootScript = new QAction(tr("新增根节点"), this);
+    menu_script = new QMenu(this);
+    menu_script->addAction(action_addRootScript);
+    action_removeScriptDetail = new QAction(tr("删除"), this);
+    menu_scriptDetailContent = new QMenu(this);
+    menu_scriptDetailContent->addAction(action_removeScriptDetail);
+    action_addRootScriptDetail = new QAction(tr("新增"), this);
+    menu_scriptDetail = new QMenu(this);
+    menu_scriptDetail->addAction(action_addRootScriptDetail);
 
     QPalette pe;
     pe.setColor(QPalette::WindowText, Qt::red);
@@ -361,7 +406,9 @@ void Itemview10Script::initUI()
     leftQWidgetGroup1Layout3->addWidget(btnConsoleClear);
 
 
-    rightQWidgetGroup1aLayout->addWidget(btnScriptAdd);
+    //    rightQWidgetGroup1aLayout->addWidget(btnScriptAdd);
+    //    rightQWidgetGroup1aLayout->addWidget(btnScriptAddRoot);
+
     rightQWidgetGroup1aLayout->addWidget(btnScriptSave);
 
     script3Layouta->addWidget(new QLabel("脚本类型:", this),     0, Qt::AlignLeft);
@@ -383,6 +430,10 @@ void Itemview10Script::initUI()
     layout->addWidget(leftQWidget);
 
     layout->addWidget(rightQWidget);
+
+
+    // 这行必须放下面
+    saScriptEdit->setWidget(saContentWidget);
 }
 
 void Itemview10Script::initConnect()
@@ -417,6 +468,7 @@ void Itemview10Script::initConnect()
     });
 
 
+    // 事件 -新增子脚本
     connect(action_addScript, &QAction::triggered, [this]() {
         QModelIndex index = scriptTableView->currentIndex();
 
@@ -430,6 +482,9 @@ void Itemview10Script::initConnect()
                 parentItem = scriptGridModel->itemFromIndex(index);
             }
 
+
+            QModelIndex idIndex = index.siblingAtColumn(2);
+
             //            QModelIndex parentIndex = index.parent();
             //            QStandardItem *parentItem = scriptGridModel->itemFromIndex(parentIndex);
 
@@ -438,25 +493,54 @@ void Itemview10Script::initConnect()
             int j = 1;
 
             for (int i = 0; i < rowCount; i++) {
-                QModelIndex childIndex2 = index.child(i, 2);
+                QModelIndex childIndex2 = index.child(i, 3);
 
                 if (childIndex2.data().toString() == tr("判断")) {
                     j++;
                 }
             }
 
-            QStandardItem *newItem = new QStandardItem(tr("%1-A%2").arg(index.data().toString()).arg(j));
+            QStandardItem *newItem = new QStandardItem(tr("%1-A%2").arg(idIndex.data().toString()).arg(j));
             newItem->setCheckable(true);
-            newItem->setCheckState(Qt::PartiallyChecked);
+            newItem->setCheckState(Qt::Unchecked);
 
             // newItem->setData();
 
-            parentItem->setChild(rowCount, 0, newItem);
-            parentItem->setChild(rowCount, 2, new QStandardItem("判断"));
-
-
-            //           scriptGridModel->index()
+            parentItem->setChild(rowCount, 0, new QStandardItem("未设置"));
+            parentItem->setChild(rowCount, 1, new QStandardItem("333"));
+            parentItem->setChild(rowCount, 2, newItem);
+            parentItem->setChild(rowCount, 3, new QStandardItem("判断"));
         }
+    });
+
+    // 事件 -新增根脚本
+    connect(action_addRootScript, &QAction::triggered, [this]() {
+        QString name;
+        int type;
+        ScriptTypeDialog scriptTypeDialog(this);
+        int ret = scriptTypeDialog.exec(); // 以模态方式显示对话框
+
+        if (ret == QDialog::Accepted)      // OK键被按下
+        {
+            name = scriptTypeDialog.le_name->text();
+            type = scriptTypeDialog.rb_scriptTypeCondition->isChecked() ? 1 : 2;
+        } else {
+            return;
+        }
+
+
+        int count =  scriptGridModel->rowCount();
+
+        scriptGridModel->setItem(count, 0, new QStandardItem("未设置"));
+        scriptGridModel->setItem(count, 1, new QStandardItem(name));
+
+        auto keyItem = new QStandardItem("A1");
+        keyItem->setCheckable(true);
+        keyItem->setCheckState(Qt::Unchecked);
+        keyItem->setData(type);
+
+        scriptGridModel->setItem(count, 2, keyItem);
+        scriptGridModel->setItem(count, 3, new QStandardItem(type == 1 ? "判断" : "判断+操作"));
     });
 
 
@@ -464,59 +548,25 @@ void Itemview10Script::initConnect()
     connect(scriptTableView, &QTreeView::customContextMenuRequested, [this](const QPoint& pos) {
         QModelIndex index = scriptTableView->indexAt(pos);
 
-        //        QModelIndex index2 = scriptTableView->mapToGlobal(pos);
-        if (index.isValid()) // 如果行数有效，则显示菜单
+        if (index.isValid())
         {
-            menu_rightClick->exec(QCursor::pos());
+            menu_scriptContent->exec(QCursor::pos());
+        } else {
+            menu_script->exec(QCursor::pos());
         }
     });
 
-    // 事件 - 刷新
-    connect(btnScriptAdd, &QPushButton::clicked, [this]() {
-        //        scriptGridModel->clear();
+
+    // 事件 - 表格右键
+    connect(scriptDetailTableView, &QTreeView::customContextMenuRequested, [this](const QPoint& pos) {
+        QModelIndex index = scriptDetailTableView->indexAt(pos);
+
+        if (index.isValid())
         {
-            scriptGridModel->setItem(0, 0, new QStandardItem("A01"));
-            scriptGridModel->setItem(0, 2, new QStandardItem("判断"));
-
-
-            QList<QStandardItem *>parents =  scriptGridModel->findItems("A01", Qt::MatchExactly  | Qt::MatchRecursive, 0);
-
-            QStandardItem *rowItem = parents.first();
-            int rowCount = rowItem->rowCount();
-
-            // rowItem.ch
-
-            rowItem->setCheckable(true);
-            rowItem->setCheckState(Qt::PartiallyChecked);
-            rowItem->setChild(rowCount, 0, new QStandardItem("A01-A01"));
-            rowItem->setChild(rowCount, 2, new QStandardItem("判断"));
-
-            rowCount = rowItem->rowCount();
-
-
-            rowItem->setChild(rowCount, 0, new QStandardItem("A01-A02"));
-            rowItem->setChild(rowCount, 2, new QStandardItem("操作"));
+            menu_scriptDetailContent->exec(QCursor::pos());
+        } else {
+            menu_scriptDetail->exec(QCursor::pos());
         }
-
-        {
-            scriptGridModel->setItem(1, 0, new QStandardItem("A02"));
-            scriptGridModel->setItem(1, 2, new QStandardItem("判断+操作"));
-
-            QList<QStandardItem *>parents =  scriptGridModel->findItems("A02", Qt::MatchExactly  | Qt::MatchRecursive, 0);
-
-            QStandardItem *rowItem = parents.first();
-            int rowCount = rowItem->rowCount();
-
-            rowItem->setChild(rowCount, 0, new QStandardItem("A02-A01"));
-            rowItem->setChild(rowCount, 2, new QStandardItem("判断"));
-
-            rowCount = rowItem->rowCount();
-
-            rowItem->setChild(rowCount, 0, new QStandardItem("A02-A02"));
-            rowItem->setChild(rowCount, 2, new QStandardItem("操作"));
-        }
-
-        scriptTableView->expandAll();
     });
 
 

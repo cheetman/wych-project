@@ -9,7 +9,8 @@ class PixmapWidget : public QWidget {
 public:
 
     explicit PixmapWidget(QWidget *parent = nullptr);
-    void setPixmap(QPixmap& newPixmap);
+    void  setPixmap(QPixmap& newPixmap);
+    QSize getPixmapSize();
 
 protected:
 
@@ -22,6 +23,7 @@ protected:
 private:
 
     QPixmap m_pixmap;
+    QSize m_pixmapSize;
     QImage m_image;
     QBrush m_brush;    //
     QColor m_penColor; // 坐标，追踪十字的颜色
@@ -32,6 +34,11 @@ private:
 
 signals:
 
+    void mouseClicked(int     x,
+                      int     y,
+                      QColor& rgb,
+                      float   xr,
+                      float   yr);
     void mousePositionEvent(int     x,
                             int     y,
                             QColor& rgb,

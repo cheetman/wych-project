@@ -16,6 +16,8 @@ PixmapWidget::PixmapWidget(QWidget *parent)
     m_pixmap = QPixmap(700, 700);
     m_pixmap.fill(Qt::red);
 
+
+    m_pixmapSize = m_pixmap.size();
     this->setFixedWidth(800);
     this->setFixedHeight(800);
 
@@ -30,6 +32,10 @@ PixmapWidget::PixmapWidget(QWidget *parent)
     //    this->update();
 }
 
+QSize PixmapWidget::getPixmapSize() {
+    return m_pixmapSize;
+}
+
 void PixmapWidget::setPixmap(QPixmap& newPixmap) {
     QSize  size = newPixmap.size();
     QImage image = newPixmap.toImage();
@@ -37,6 +43,7 @@ void PixmapWidget::setPixmap(QPixmap& newPixmap) {
     m_image.swap(image);
     m_pixmap.swap(newPixmap);
     this->setFixedSize(size);
+    m_pixmapSize = size;
 
     //    this->resize(size); // 没用，估计是调用了resize事件
     //    this->update(); setFixedSize后就不需要了 还是需要
@@ -112,12 +119,14 @@ void PixmapWidget::leaveEvent(QEvent *event)
 }
 
 void PixmapWidget::mousePressEvent(QMouseEvent *event) {
-    //    if(m_pixmap.isNull()){
-    //        return;
-    //    }
-    //    this->setMouseTracking(false); //关闭鼠标追踪
-    //    x = event->x();
-    //    y = event->y();
+    if (m_pixmap.isNull()) {
+        return;
+    }
+    this->setMouseTracking(false); // 关闭鼠标追踪
+    mouseX = event->x();
+    mouseY = event->y();
+    QColor color = m_image.pixel(mouseX, mouseY);
+
     //    if(event->button() == Qt::LeftButton){ //鼠标左键被点击
     //        //存储当被点击的点
     //        m_points.append(QPoint(x/m_scale,y/m_scale));
@@ -139,9 +148,10 @@ void PixmapWidget::mousePressEvent(QMouseEvent *event) {
     //    else if(event->button() ==Qt::MiddleButton){
     //        this->activateWindow(); //中键激活窗口
     //    }
-    //    this->setMouseTracking(true);
+    this->setMouseTracking(true);
+
     //    emit clicked(m_points); //发送被点击的信号
-    //    emit clicked(x/m_scale,y/m_scale);
+    emit mouseClicked(mouseX / m_scale, mouseY / m_scale, color,    (float)mouseX / (float)m_pixmapSize.width(), (float)mouseY / (float)m_pixmapSize.height());
 }
 
 void PixmapWidget::mouseMoveEvent(QMouseEvent *event) {
@@ -160,7 +170,6 @@ void PixmapWidget::mouseMoveEvent(QMouseEvent *event) {
     }
     QColor color = m_image.pixel(mouseX, mouseY);
 
-    QSize size = m_pixmap.size();
 
     // m_pixmap.copy()
 
@@ -172,5 +181,5 @@ void PixmapWidget::mouseMoveEvent(QMouseEvent *event) {
     // trans.
     // m_pixmap.transformed()
 
-    emit mousePositionEvent(mouseX / m_scale, mouseY / m_scale, color,    (float)mouseX / (float)size.width() * 100, (float)mouseY / (float)size.height() * 100);
+    emit mousePositionEvent(mouseX / m_scale, mouseY / m_scale, color,    (float)mouseX / (float)m_pixmapSize.width(), (float)mouseY / (float)m_pixmapSize.height());
 }

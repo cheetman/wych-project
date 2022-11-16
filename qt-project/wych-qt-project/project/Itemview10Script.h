@@ -53,6 +53,8 @@ protected:
 
 private:
 
+    void buildScriptDetailEdit();
+
     WIN32_PROCESS_INFO processInfo = { 0 };
     WIN32_WINDOW_INFO windowInfo = { 0 };
     PixmapWidget *pixmapWidget;
@@ -117,6 +119,37 @@ private:
     QLineEdit *tb_mouse_ratio_position;
     QLineEdit *tb_mouse_rgb;
 
+    QLineEdit *tb_check_position_x;
+    QLineEdit *tb_check_position_y;
+    QLineEdit *tb_check_position_x_radio;
+    QLineEdit *tb_check_position_y_radio;
+    QLineEdit *tb_check_position_x_radio_v;
+    QLineEdit *tb_check_position_y_radio_v;
+    QLineEdit *tb_check_position_r;
+    QLineEdit *tb_check_position_g;
+    QLineEdit *tb_check_position_b;
+    QLineEdit *tb_check_position_a;
+    QLabel *tb_check_color;
+    QLabel *tb_check_print_size;
+    int check_print_width;
+    int check_print_height;
+
+    QCheckBox *ck_check_rgb_up;
+    QCheckBox *ck_check_rgb_down;
+    QCheckBox *ck_check_color_get;
+
+    class QRadioButton *rb_check_position;
+    class QRadioButton *rb_check_position_radio;
+    class QButtonGroup *bg_check_position_type;
+
+    QLineEdit *tb_check_position_r_up;
+    QLineEdit *tb_check_position_g_up;
+    QLineEdit *tb_check_position_b_up;
+    QLineEdit *tb_check_position_a_up;
+    QLineEdit *tb_check_position_r_down;
+    QLineEdit *tb_check_position_g_down;
+    QLineEdit *tb_check_position_b_down;
+    QLineEdit *tb_check_position_a_down;
 
     QLineEdit *tb_export_foa;
     QLineEdit *tb_import_foa;
@@ -188,8 +221,11 @@ private:
     QStandardItemModel *scriptDetailGridModel;
     QTreeView *scriptDetailTableView;
 
+    QTabWidget *tabScriptWidget;
+
     //    QGroupBox *script3GroupBox;
 
+    QSize pixmapSize;
 
     class QMenu *menu_script;
     class QMenu *menu_scriptContent;
@@ -201,6 +237,20 @@ private:
     class QAction *action_addScriptDetail;
     class QAction *action_addRootScriptDetail;
     class QAction *action_removeScriptDetail;
+
+
+    QModelIndex selectedIdIndex;
+    QString activeScriptTypeNo;
+
+    int activeScriptType;
+
+    int activeScriptTypeStatus;
+
+    // -1 新建未配置 1 已配置 2 正在运行
+    int activeScriptDetailStatus;
+    int activeScriptDetailType;
+    int activeScriptDetailNo = -1;
+    QString activeScriptDetailRemark;
 
 signals:
 };

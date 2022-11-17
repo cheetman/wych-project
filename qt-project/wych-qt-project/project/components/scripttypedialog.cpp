@@ -44,6 +44,8 @@ ScriptTypeDialog::ScriptTypeDialog(QWidget *parent) :
     connect(btn_ok, &QPushButton::clicked, [this]() {
         this->accept();
     });
+
+    le_name->setFocus();
 }
 
 ScriptTypeDialog::~ScriptTypeDialog()

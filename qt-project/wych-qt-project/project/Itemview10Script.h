@@ -54,7 +54,7 @@ protected:
 private:
 
     void buildScriptDetailEdit();
-
+    void clearScriptDetailEdit();
     WIN32_PROCESS_INFO processInfo = { 0 };
     WIN32_WINDOW_INFO windowInfo = { 0 };
     PixmapWidget *pixmapWidget;
@@ -129,19 +129,6 @@ private:
     QLineEdit *tb_check_position_g;
     QLineEdit *tb_check_position_b;
     QLineEdit *tb_check_position_a;
-    QLabel *tb_check_color;
-    QLabel *tb_check_print_size;
-    int check_print_width;
-    int check_print_height;
-
-    QCheckBox *ck_check_rgb_up;
-    QCheckBox *ck_check_rgb_down;
-    QCheckBox *ck_check_color_get;
-
-    class QRadioButton *rb_check_position;
-    class QRadioButton *rb_check_position_radio;
-    class QButtonGroup *bg_check_position_type;
-
     QLineEdit *tb_check_position_r_up;
     QLineEdit *tb_check_position_g_up;
     QLineEdit *tb_check_position_b_up;
@@ -150,6 +137,33 @@ private:
     QLineEdit *tb_check_position_g_down;
     QLineEdit *tb_check_position_b_down;
     QLineEdit *tb_check_position_a_down;
+    QLineEdit *tb_check_remark;
+    QCheckBox *ck_check_rgb_up;
+    QCheckBox *ck_check_rgb_down;
+    QCheckBox *ck_check_color_get;
+    QLabel *tb_check_color;
+    QLabel *tb_check_print_size;
+    int check_print_width;
+    int check_print_height;
+    class QRadioButton *rb_check_position;
+    class QRadioButton *rb_check_position_radio;
+    class QButtonGroup *bg_check_position_type;
+
+
+    QLineEdit *tb_click_position_x;
+    QLineEdit *tb_click_position_y;
+    QLineEdit *tb_click_position_x_radio;
+    QLineEdit *tb_click_position_y_radio;
+    QLineEdit *tb_click_position_x_radio_v;
+    QLineEdit *tb_click_position_y_radio_v;
+    QCheckBox *ck_click_position_get;
+    QLabel *tb_click_print_size;
+    int click_print_width;
+    int click_print_height;
+    class QRadioButton *rb_click_position;
+    class QRadioButton *rb_click_position_radio;
+    class QButtonGroup *bg_click_position_type;
+
 
     QLineEdit *tb_export_foa;
     QLineEdit *tb_import_foa;
@@ -175,6 +189,9 @@ private:
     class QRadioButton *rb_scriptConditionTypeEdgeDetect;
     class QRadioButton *rb_scriptConditionTypeOCR;
 
+    class QButtonGroup *bg_scriptOperateType;
+    class QRadioButton *rb_scriptOperateTypeClick;
+    class QRadioButton *rb_scriptOperateTypeMove;
 
     QLineEdit *export_Name;
     QLineEdit *export_Base;
@@ -188,6 +205,7 @@ private:
     QLineEdit *export_AddressOfNameOrdinals_foa;
 
 
+    QPushButton *btnScriptDetailEditSave;
     QPushButton *btnScriptDetailSave;
     QPushButton *btnStart;
     QPushButton *btnConsoleClear;
@@ -197,6 +215,7 @@ private:
 
     QPushButton *btnScriptSave;
     QPushButton *btnRefreshWindow;
+
 
     QCheckBox *ckConsoleEnable;
     QCheckBox *ckScriptDetailSleep;
@@ -229,6 +248,7 @@ private:
 
     class QMenu *menu_script;
     class QMenu *menu_scriptContent;
+    class QMenu *menu_scriptContent2;
     class QMenu *menu_scriptDetail;
     class QMenu *menu_scriptDetailContent;
     class QAction *action_addScript;
@@ -239,7 +259,7 @@ private:
     class QAction *action_removeScriptDetail;
 
 
-    QModelIndex selectedIdIndex;
+    //    QModelIndex selectedIdIndex;
     QString activeScriptTypeNo;
 
     int activeScriptType;
@@ -249,7 +269,7 @@ private:
     // -1 新建未配置 1 已配置 2 正在运行
     int activeScriptDetailStatus;
     int activeScriptDetailType;
-    int activeScriptDetailNo = -1;
+    QString activeScriptDetailNo;
     QString activeScriptDetailRemark;
 
 signals:

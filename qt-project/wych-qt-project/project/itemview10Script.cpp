@@ -18,6 +18,7 @@
 #include <QJsonParseError>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QJsonArray>
 #include "utils.h"
 #include "winapi.h"
 #include "itemview10Script.h"
@@ -117,7 +118,7 @@ void Itemview10Script::initUI()
     rightQWidgetGroupBox1Layout->addWidget(tabTabWidget);
 
 
-    // 第四层(窗口)
+    // 第四层(窗口状态)
 
     auto importTabTabWidgetGroupBox3 = new QGroupBox("窗口状态", tab2);
     importTabTabWidgetLayout->addWidget(importTabTabWidgetGroupBox3);
@@ -145,6 +146,7 @@ void Itemview10Script::initUI()
     //    importTabTabWidgetGroupBox3->setFixedHeight(60);
     //    importTabTabWidgetGroupBoxLayout3->addWidget(btnImportAdd);
 
+    // 第四层(窗口明细)
 
     auto importTabTabWidgetGroupBox = new QGroupBox("窗口明细", tab2);
     importTabTabWidgetLayout->addWidget(importTabTabWidgetGroupBox);
@@ -184,6 +186,7 @@ void Itemview10Script::initUI()
     layout_r_1_m->addLayout(rightQWidgetGroup1cLayout);
 
 
+    // 第五层(脚本-脚本列表)
     auto script2tGroupBox = new QGroupBox("脚本列表", tab3);
     scriptLayout->addWidget(script2tGroupBox);
     scriptLayout->setAlignment(Qt::AlignTop);
@@ -204,20 +207,23 @@ void Itemview10Script::initUI()
     script2Layout->addWidget(scriptTableView);
 
 
-    //    script3GroupBox = new QGroupBox("脚本明细", tab3);
-    //    scriptLayout->addWidget(script3GroupBox);
-
-
+    // 第五层(脚本-脚本明细)
     tabScriptWidget = new QTabWidget(tab3);
-    tabScriptWidget->setFixedHeight(500);
+    tabScriptWidget->setFixedHeight(350);
     scriptLayout->addWidget(tabScriptWidget);
     auto scriptDetailWidget = new QWidget(tabScriptWidget);
     auto scriptEditWidget = new QWidget(tabScriptWidget);
     tabScriptWidget->addTab(scriptDetailWidget, "脚本明细列表");
     tabScriptWidget->addTab(scriptEditWidget,   "脚本明细编辑");
 
-    auto script4Layout = new QVBoxLayout(scriptDetailWidget);
 
+    // 第六层(脚本-脚本明细列表)
+    auto script4Layout = new QVBoxLayout(scriptDetailWidget);
+    auto script4Layout1 = new QHBoxLayout();
+    auto script4Layout2 = new QVBoxLayout();
+    script4Layout->addLayout(script4Layout1);
+    script4Layout->addLayout(script4Layout2);
+    btnScriptDetailSave = new QPushButton("脚本明细保存");
     scriptDetailTableView = new QTreeView(this);
     scriptDetailGridModel = new QStandardItemModel();
     scriptDetailTableView->setTreePosition(1);
@@ -229,9 +235,12 @@ void Itemview10Script::initUI()
     scriptDetailTableView->setContextMenuPolicy(Qt::CustomContextMenu);
     scriptDetailTableView->setModel(scriptDetailGridModel);
 
-    script4Layout->addWidget(scriptDetailTableView);
+
+    script4Layout1->addWidget(btnScriptDetailSave, 0, Qt::AlignLeft);
+    script4Layout2->addWidget(scriptDetailTableView);
 
 
+    // 第六层(脚本-脚本明细编辑)
     auto script5Layout = new QVBoxLayout();
     scriptEditWidget->setLayout(script5Layout);
     auto saScriptEdit = new QScrollArea(tab3);
@@ -243,43 +252,90 @@ void Itemview10Script::initUI()
 
     saContentWidget->setLayout(script3Layout);
 
+
     auto script3Layouta = new QHBoxLayout();
     auto script3Layoutb = new QHBoxLayout();
+    auto script3Layoutb1 = new QHBoxLayout();
+    auto script3Layoutb2 = new QHBoxLayout();
+    auto script3Layouti = new QHBoxLayout();
+    script3Layouta->setAlignment(Qt::AlignLeft);
+    script3Layoutb->setAlignment(Qt::AlignLeft);
+    script3Layoutb1->setAlignment(Qt::AlignLeft);
+    script3Layoutb2->setAlignment(Qt::AlignLeft);
+    script3Layouti->setAlignment(Qt::AlignLeft);
+    script3Layout->addLayout(script3Layouta);
+    script3Layout->addLayout(script3Layoutb);
+    script3Layout->addLayout(script3Layoutb1);
+    script3Layout->addLayout(script3Layoutb2);
+
+
+    auto script3LayoutGroupBox1 = new QGroupBox("像素点检测", this);
+    auto script3LayoutGroupBox1Layout = new QVBoxLayout();
+    script3LayoutGroupBox1->setLayout(script3LayoutGroupBox1Layout);
+    script3Layout->addWidget(script3LayoutGroupBox1);
     auto script3Layoutc = new QHBoxLayout();
     auto script3Layoutd = new QHBoxLayout();
     auto script3Layoute = new QHBoxLayout();
     auto script3Layoutf = new QHBoxLayout();
     auto script3Layoutg = new QHBoxLayout();
     auto script3Layouth = new QHBoxLayout();
-    auto script3Layouti = new QHBoxLayout();
     auto script3Layoutj = new QHBoxLayout();
     auto script3Layoutk = new QHBoxLayout();
     auto script3Layoutl = new QHBoxLayout();
-    script3Layouta->setAlignment(Qt::AlignLeft);
-    script3Layoutb->setAlignment(Qt::AlignLeft);
     script3Layoutc->setAlignment(Qt::AlignLeft);
     script3Layoutd->setAlignment(Qt::AlignLeft);
     script3Layoute->setAlignment(Qt::AlignLeft);
     script3Layoutf->setAlignment(Qt::AlignLeft);
     script3Layoutg->setAlignment(Qt::AlignLeft);
     script3Layouth->setAlignment(Qt::AlignLeft);
-    script3Layouti->setAlignment(Qt::AlignLeft);
     script3Layoutj->setAlignment(Qt::AlignLeft);
     script3Layoutk->setAlignment(Qt::AlignLeft);
     script3Layoutl->setAlignment(Qt::AlignLeft);
-    script3Layout->addLayout(script3Layouta);
-    script3Layout->addLayout(script3Layoutb);
-    script3Layout->addLayout(script3Layoutc);
-    script3Layout->addLayout(script3Layoutd);
-    script3Layout->addLayout(script3Layoute);
-    script3Layout->addLayout(script3Layoutf);
-    script3Layout->addLayout(script3Layoutg);
-    script3Layout->addLayout(script3Layouth);
-    script3Layout->addLayout(script3Layouti);
-    script3Layout->addLayout(script3Layoutj);
-    script3Layout->addLayout(script3Layoutk);
-    script3Layout->addLayout(script3Layoutl);
+    script3LayoutGroupBox1Layout->addLayout(script3Layoutc);
+    script3LayoutGroupBox1Layout->addLayout(script3Layoutd);
+    script3LayoutGroupBox1Layout->addLayout(script3Layoute);
+    script3LayoutGroupBox1Layout->addLayout(script3Layoutf);
+    script3LayoutGroupBox1Layout->addLayout(script3Layoutg);
+    script3LayoutGroupBox1Layout->addLayout(script3Layouth);
+    script3LayoutGroupBox1Layout->addLayout(script3Layoutk);
+    script3LayoutGroupBox1Layout->addLayout(script3Layoutl);
+    script3LayoutGroupBox1Layout->addLayout(script3Layoutj);
 
+
+    auto script3LayoutGroupBox2 = new QGroupBox("点击操作", this);
+    auto script3LayoutGroupBox2Layout = new QVBoxLayout();
+    script3LayoutGroupBox2->setLayout(script3LayoutGroupBox2Layout);
+    script3Layout->addWidget(script3LayoutGroupBox2);
+    auto script3LayoutGroupBox2Layout1 = new QHBoxLayout();
+    auto script3LayoutGroupBox2Layout2 = new QHBoxLayout();
+    auto script3LayoutGroupBox2Layout3 = new QHBoxLayout();
+    auto script3LayoutGroupBox2Layout4 = new QHBoxLayout();
+    auto script3LayoutGroupBox2Layout5 = new QHBoxLayout();
+    auto script3LayoutGroupBox2Layout6 = new QHBoxLayout();
+    auto script3LayoutGroupBox2Layout7 = new QHBoxLayout();
+    auto script3LayoutGroupBox2Layout8 = new QHBoxLayout();
+    auto script3LayoutGroupBox2Layout9 = new QHBoxLayout();
+    script3LayoutGroupBox2Layout1->setAlignment(Qt::AlignLeft);
+    script3LayoutGroupBox2Layout2->setAlignment(Qt::AlignLeft);
+    script3LayoutGroupBox2Layout3->setAlignment(Qt::AlignLeft);
+    script3LayoutGroupBox2Layout4->setAlignment(Qt::AlignLeft);
+    script3LayoutGroupBox2Layout5->setAlignment(Qt::AlignLeft);
+    script3LayoutGroupBox2Layout6->setAlignment(Qt::AlignLeft);
+    script3LayoutGroupBox2Layout7->setAlignment(Qt::AlignLeft);
+    script3LayoutGroupBox2Layout8->setAlignment(Qt::AlignLeft);
+    script3LayoutGroupBox2Layout9->setAlignment(Qt::AlignLeft);
+    script3LayoutGroupBox2Layout->addLayout(script3LayoutGroupBox2Layout1);
+    script3LayoutGroupBox2Layout->addLayout(script3LayoutGroupBox2Layout2);
+    script3LayoutGroupBox2Layout->addLayout(script3LayoutGroupBox2Layout3);
+    script3LayoutGroupBox2Layout->addLayout(script3LayoutGroupBox2Layout4);
+    script3LayoutGroupBox2Layout->addLayout(script3LayoutGroupBox2Layout5);
+    script3LayoutGroupBox2Layout->addLayout(script3LayoutGroupBox2Layout6);
+    script3LayoutGroupBox2Layout->addLayout(script3LayoutGroupBox2Layout7);
+    script3LayoutGroupBox2Layout->addLayout(script3LayoutGroupBox2Layout8);
+    script3LayoutGroupBox2Layout->addLayout(script3LayoutGroupBox2Layout9);
+
+
+    script3Layout->addLayout(script3Layouti);
 
     // 控件
 
@@ -326,6 +382,18 @@ void Itemview10Script::initUI()
     tb_check_position_x_radio_v->setFixedWidth(40);
     tb_check_position_y_radio_v = new QLineEdit("");
     tb_check_position_y_radio_v->setFixedWidth(40);
+    tb_click_position_x = new QLineEdit("");
+    tb_click_position_x->setFixedWidth(40);
+    tb_click_position_y = new QLineEdit("");
+    tb_click_position_y->setFixedWidth(40);
+    tb_click_position_x_radio = new QLineEdit("");
+    tb_click_position_x_radio->setFixedWidth(54);
+    tb_click_position_y_radio = new QLineEdit("");
+    tb_click_position_y_radio->setFixedWidth(54);
+    tb_click_position_x_radio_v = new QLineEdit("");
+    tb_click_position_x_radio_v->setFixedWidth(40);
+    tb_click_position_y_radio_v = new QLineEdit("");
+    tb_click_position_y_radio_v->setFixedWidth(40);
     tb_check_position_r = new QLineEdit("");
     tb_check_position_r->setFixedWidth(30);
     tb_check_position_g = new QLineEdit("");
@@ -382,7 +450,7 @@ void Itemview10Script::initUI()
     bg_printType->addButton(rb_printAdb,   1);
 
 
-    btnScriptDetailSave = new QPushButton("脚本明细保存");
+    btnScriptDetailEditSave = new QPushButton("脚本明细保存");
 
     rb_scriptTypeCondition = new QRadioButton("条件判断");
     rb_scriptTypeDeal = new QRadioButton("操作");
@@ -400,12 +468,19 @@ void Itemview10Script::initUI()
     bg_scriptConditionType->addButton(rb_scriptConditionTypeEdgeDetect, 2);
     bg_scriptConditionType->addButton(rb_scriptConditionTypeOCR,        3);
 
+    rb_scriptOperateTypeClick = new QRadioButton("点击");
+    bg_scriptOperateType = new QButtonGroup(this);
+    bg_scriptOperateType->addButton(rb_scriptOperateTypeClick, 1);
 
     action_addScript = new QAction(tr("新增子节点"), this);
     action_removeScript = new QAction(tr("删除节点"), this);
     menu_scriptContent = new QMenu(this);
     menu_scriptContent->addAction(action_addScript);
     menu_scriptContent->addAction(action_removeScript);
+
+    menu_scriptContent2 = new QMenu(this);
+    menu_scriptContent2->addAction(action_removeScript);
+
     action_addRootScript = new QAction(tr("新增根节点"), this);
     menu_script = new QMenu(this);
     menu_script->addAction(action_addRootScript);
@@ -484,6 +559,14 @@ void Itemview10Script::initUI()
     script3Layoutb->addWidget(rb_scriptConditionTypeEdgeDetect, 0, Qt::AlignLeft);
     script3Layoutb->addWidget(rb_scriptConditionTypeOCR,        0, Qt::AlignLeft);
 
+    script3Layoutb1->addWidget(new QLabel("操作类型:", this), 0, Qt::AlignLeft);
+    script3Layoutb1->addWidget(rb_scriptOperateTypeClick, 0, Qt::AlignLeft);
+
+
+    tb_check_remark = new QLineEdit(this);
+    tb_check_remark->setFixedWidth(300);
+    script3Layoutb2->addWidget(new QLabel("备注说明:", this), 0, Qt::AlignLeft);
+    script3Layoutb2->addWidget(tb_check_remark,           0, Qt::AlignLeft);
 
     rb_check_position = new QRadioButton("像素坐标:", this);
     rb_check_position->setChecked(true);
@@ -491,9 +574,6 @@ void Itemview10Script::initUI()
     bg_check_position_type = new QButtonGroup(this);
     bg_check_position_type->addButton(rb_check_position,       1);
     bg_check_position_type->addButton(rb_check_position_radio, 2);
-
-
-    ck_check_color_get = new QCheckBox("允许从截图框选取像素和颜色", this);
 
 
     script3Layoutc->addWidget(rb_check_position,     0, Qt::AlignLeft);
@@ -553,12 +633,44 @@ void Itemview10Script::initUI()
     script3Layoutg->addWidget(tb_check_position_a_down, 0, Qt::AlignLeft);
 
 
+    ck_check_color_get = new QCheckBox("允许从截图框选取像素和颜色", this);
     tb_check_print_size = new QLabel("[截图框图片尺寸参考：]", this);
     script3Layouth->addWidget(ck_check_color_get,  0, Qt::AlignLeft);
     script3Layouth->addWidget(tb_check_print_size, 0, Qt::AlignLeft);
 
 
-    script3Layouti->addWidget(btnScriptDetailSave, 0, Qt::AlignLeft);
+    rb_click_position = new QRadioButton("像素坐标:", this);
+    rb_click_position->setChecked(true);
+    rb_click_position_radio = new QRadioButton("像素占比:", this);
+    bg_click_position_type = new QButtonGroup(this);
+    bg_click_position_type->addButton(rb_check_position,       1);
+    bg_click_position_type->addButton(rb_check_position_radio, 2);
+
+    script3LayoutGroupBox2Layout1->addWidget(rb_click_position,     0, Qt::AlignLeft);
+    script3LayoutGroupBox2Layout1->addWidget(new QLabel("X", this), 0, Qt::AlignLeft);
+    script3LayoutGroupBox2Layout1->addWidget(tb_click_position_x,   0, Qt::AlignLeft);
+    script3LayoutGroupBox2Layout1->addWidget(new QLabel("Y", this), 0, Qt::AlignLeft);
+    script3LayoutGroupBox2Layout1->addWidget(tb_click_position_y,   0, Qt::AlignLeft);
+
+    script3LayoutGroupBox2Layout2->addWidget(rb_click_position_radio,     0, Qt::AlignLeft);
+    script3LayoutGroupBox2Layout2->addWidget(new QLabel("X(%)", this),    0, Qt::AlignLeft);
+    script3LayoutGroupBox2Layout2->addWidget(tb_click_position_x_radio,   0, Qt::AlignLeft);
+    script3LayoutGroupBox2Layout2->addWidget(new QLabel("Y(%)", this),    0, Qt::AlignLeft);
+    script3LayoutGroupBox2Layout2->addWidget(tb_click_position_y_radio,   0, Qt::AlignLeft);
+    script3LayoutGroupBox2Layout2->addWidget(new QLabel(" -> ", this),    0, Qt::AlignLeft);
+    script3LayoutGroupBox2Layout2->addWidget(new QLabel("X", this),       0, Qt::AlignLeft);
+    script3LayoutGroupBox2Layout2->addWidget(tb_click_position_x_radio_v, 0, Qt::AlignLeft);
+    script3LayoutGroupBox2Layout2->addWidget(new QLabel("Y", this),       0, Qt::AlignLeft);
+    script3LayoutGroupBox2Layout2->addWidget(tb_click_position_y_radio_v, 0, Qt::AlignLeft);
+
+
+    ck_click_position_get = new QCheckBox("允许从截图框选取像素", this);
+    tb_click_print_size = new QLabel("[截图框图片尺寸参考：]", this);
+    script3LayoutGroupBox2Layout3->addWidget(ck_click_position_get, 0, Qt::AlignLeft);
+    script3LayoutGroupBox2Layout3->addWidget(tb_click_print_size,   0, Qt::AlignLeft);
+
+
+    script3Layouti->addWidget(btnScriptDetailEditSave, 0, Qt::AlignLeft);
 
     //    script3Layoutd->addWidget(ckScriptDetailSleep, 0, Qt::AlignLeft);
 
@@ -575,60 +687,142 @@ void Itemview10Script::initUI()
 void Itemview10Script::initConnect()
 {
     // 事件 - 保存
+
     connect(btnScriptDetailSave, &QPushButton::clicked, [this]() {
-        if (activeScriptDetailNo > 0) {
-            QList<QStandardItem *>items =  scriptDetailGridModel->findItems(QString::number(activeScriptDetailNo), Qt::MatchExactly, 1);
+        if (activeScriptTypeNo.isEmpty()) {
+            appendMessage("保存失败！请先选中一条脚本！");
+            return;
+        }
 
-            if (items.count() == 1) {
-                QJsonObject json;
-                json.insert("scriptType",             bg_scriptType->checkedId());
-                json.insert("scriptConditionType",    bg_scriptConditionType->checkedId());
-                json.insert("check_position_x",       tb_check_position_x->text().toInt());
-                json.insert("check_position_y",       tb_check_position_y->text().toInt());
-                json.insert("check_position_x_radio", tb_check_position_x_radio->text().toFloat());
-                json.insert("check_position_y_radio", tb_check_position_y_radio->text().toFloat());
-                json.insert("bg_check_position_type", bg_check_position_type->checkedId());
-                json.insert("check_position_r",       tb_check_position_r->text().toInt());
-                json.insert("check_position_g",       tb_check_position_g->text().toInt());
-                json.insert("check_position_b",       tb_check_position_b->text().toInt());
-                json.insert("check_position_a",       tb_check_position_a->text().toInt());
-                json.insert("check_position_r_up",    tb_check_position_r_up->text().toInt());
-                json.insert("check_position_g_up",    tb_check_position_g_up->text().toInt());
-                json.insert("check_position_b_up",    tb_check_position_b_up->text().toInt());
-                json.insert("check_position_a_up",    tb_check_position_a_up->text().toInt());
-                json.insert("check_position_r_down",  tb_check_position_r_down->text().toInt());
-                json.insert("check_position_g_down",  tb_check_position_g_down->text().toInt());
-                json.insert("check_position_b_down",  tb_check_position_b_down->text().toInt());
-                json.insert("check_position_a_down",  tb_check_position_a_down->text().toInt());
-                json.insert("check_position_down",    ck_check_rgb_down->isChecked());
-                json.insert("check_position_up",      ck_check_rgb_up->isChecked());
+        // 检查都已配置
+        int count = scriptDetailGridModel->rowCount();
 
-                json.insert("check_print_width",      check_print_width);
-                json.insert("check_print_height",     check_print_height);
-                QJsonDocument document;
-                document.setObject(json);
-                QByteArray jsonStr = document.toJson(QJsonDocument::Compact);
+        if (count == 0) {
+            appendMessage(tr("保存失败！请至少创建一条脚本明细"));
+            return;
+        }
 
-
-                QStandardItem *item = items.first();
-
-                item->setData(1,       Qt::UserRole + 1); // 设置状态
-                item->setData(jsonStr, Qt::UserRole + 2); // 设置配置
-
-                QStandardItem *item0 = scriptDetailGridModel->item(item->row(), 0);
-                item0->setData(tr("已配置"), Qt::DisplayRole);
-
-                QStandardItem *item2 = scriptDetailGridModel->item(item->row(), 2);
-
-                if (bg_scriptConditionType->checkedId() == 1) {
-                    item2->setData(tr("像素点检测"), Qt::DisplayRole);
-                } else if (bg_scriptConditionType->checkedId() == 2) {
-                    item2->setData(tr("图形边缘检测"), Qt::DisplayRole);
-                }
-                activeScriptDetailNo = -1;
-                tabScriptWidget->setCurrentIndex(0);
+        for (int i = 0; i < count; i++)
+        {
+            if (scriptDetailGridModel->index(i, 1).data(Qt::UserRole + 1).toInt() != 1) {
+                appendMessage(tr("保存失败！第%1条明细未配置！").arg(i + 1));
+                return;
             }
         }
+
+        QList<QStandardItem *>items =  scriptGridModel->findItems(activeScriptTypeNo, Qt::MatchExactly | Qt::MatchRecursive, 2);
+
+        if (items.count() != 1) {
+            appendMessage(tr("保存失败！未找到脚本明细[编号:%1]！").arg(activeScriptTypeNo));
+        }
+        QStandardItem *item = items.first();
+        item->setData(1, Qt::UserRole + 1); // 设置状态(已配置)
+
+        // 设置配置
+        QJsonParseError parseError;
+        QJsonArray arr;
+
+        for (int i = 0; i < count; i++)
+        {
+            auto jsonObj = scriptDetailGridModel->index(i, 1).data(Qt::UserRole + 2).toByteArray();
+
+            QJsonDocument document = QJsonDocument::fromJson(jsonObj, &parseError);
+
+            if (parseError.error != QJsonParseError::NoError) {
+                appendMessage(tr("保存失败！Json处理失败[行:%1]！").arg(i + 1));
+                return;
+            }
+            QJsonObject obj = document.object();
+            arr.append(obj);
+        }
+        QJsonDocument document;
+        document.setArray(arr);
+        QByteArray jsonStr = document.toJson(QJsonDocument::Compact);
+
+        item->setData(jsonStr, Qt::UserRole + 2); // 设置配置
+
+        QStandardItem *item0 = scriptGridModel->item(item->row(), 0);
+        item0->setData(tr("已配置"), Qt::DisplayRole);
+    });
+
+
+    // 事件 - 保存
+    connect(btnScriptDetailEditSave, &QPushButton::clicked, [this]() {
+        if (activeScriptDetailNo.isEmpty()) {
+            appendMessage("保存失败！请先选中一条脚本明细再编辑！");
+            return;
+        }
+        QList<QStandardItem *>items =  scriptDetailGridModel->findItems(activeScriptDetailNo, Qt::MatchExactly, 1);
+
+        if (items.count() != 1) {
+            appendMessage(tr("保存失败！未找到脚本明细[编号:%1]！").arg(activeScriptDetailNo));
+            return;
+        }
+        QJsonObject json;
+
+        json.insert("no",                     activeScriptDetailNo);
+        json.insert("scriptType",             bg_scriptType->checkedId());
+        json.insert("scriptConditionType",    bg_scriptConditionType->checkedId());
+        json.insert("check_position_x",       tb_check_position_x->text().toInt());
+        json.insert("check_position_y",       tb_check_position_y->text().toInt());
+        json.insert("check_position_x_radio", tb_check_position_x_radio->text());
+        json.insert("check_position_y_radio", tb_check_position_y_radio->text());
+        json.insert("check_position_type",    bg_check_position_type->checkedId());
+        json.insert("check_position_r",       tb_check_position_r->text().toInt());
+        json.insert("check_position_g",       tb_check_position_g->text().toInt());
+        json.insert("check_position_b",       tb_check_position_b->text().toInt());
+        json.insert("check_position_a",       tb_check_position_a->text().toInt());
+        json.insert("check_position_r_up",    tb_check_position_r_up->text().toInt());
+        json.insert("check_position_g_up",    tb_check_position_g_up->text().toInt());
+        json.insert("check_position_b_up",    tb_check_position_b_up->text().toInt());
+        json.insert("check_position_a_up",    tb_check_position_a_up->text().toInt());
+        json.insert("check_position_r_down",  tb_check_position_r_down->text().toInt());
+        json.insert("check_position_g_down",  tb_check_position_g_down->text().toInt());
+        json.insert("check_position_b_down",  tb_check_position_b_down->text().toInt());
+        json.insert("check_position_a_down",  tb_check_position_a_down->text().toInt());
+        json.insert("check_position_down",    ck_check_rgb_down->isChecked());
+        json.insert("check_position_up",      ck_check_rgb_up->isChecked());
+        json.insert("check_print_width",      check_print_width);
+        json.insert("check_print_height",     check_print_height);
+        json.insert("check_remark",           tb_check_remark->text());
+
+
+        json.insert("click_position_x",       tb_click_position_x->text().toInt());
+        json.insert("click_position_y",       tb_click_position_y->text().toInt());
+        json.insert("click_position_x_radio", tb_click_position_x_radio->text());
+        json.insert("click_position_y_radio", tb_click_position_y_radio->text());
+        json.insert("click_position_type",    bg_click_position_type->checkedId());
+        json.insert("click_print_width",      click_print_width);
+        json.insert("click_print_height",     click_print_height);
+
+
+        QJsonDocument document;
+        document.setObject(json);
+        QByteArray jsonStr = document.toJson(QJsonDocument::Compact);
+
+
+        QStandardItem *item = items.first();
+
+        item->setData(1,       Qt::UserRole + 1); // 设置状态
+        item->setData(jsonStr, Qt::UserRole + 2); // 设置配置
+
+        QStandardItem *item0 = scriptDetailGridModel->item(item->row(), 0);
+        item0->setData(tr("已配置"), Qt::DisplayRole);
+
+        QStandardItem *item2 = scriptDetailGridModel->item(item->row(), 2);
+
+        if (bg_scriptConditionType->checkedId() == 1) {
+            item2->setData(tr("像素点检测"), Qt::DisplayRole);
+        } else if (bg_scriptConditionType->checkedId() == 2) {
+            item2->setData(tr("图形边缘检测"), Qt::DisplayRole);
+        }
+
+        QStandardItem *item4 = scriptDetailGridModel->item(item->row(), 4);
+        item4->setData(tb_check_remark->text(), Qt::DisplayRole);
+
+        activeScriptDetailNo = "";
+        tabScriptWidget->setCurrentIndex(0);
+        clearScriptDetailEdit(); // 清除编辑信息
     });
 
 
@@ -672,6 +866,20 @@ void Itemview10Script::initConnect()
         QModelIndex index = scriptTableView->currentIndex();
 
         if (index.isValid()) {
+            QString name;
+            int type;
+            ScriptTypeDialog scriptTypeDialog(this);
+            int ret = scriptTypeDialog.exec(); // 以模态方式显示对话框
+
+            if (ret == QDialog::Accepted)      // OK键被按下
+            {
+                name = scriptTypeDialog.le_name->text();
+                type = scriptTypeDialog.rb_scriptTypeCondition->isChecked() ? 1 : 3;
+            } else {
+                return;
+            }
+
+
             QStandardItem *parentItem = scriptGridModel->itemFromIndex(index);
 
             if (index.column() != 0) {
@@ -692,23 +900,26 @@ void Itemview10Script::initConnect()
             int j = 1;
 
             for (int i = 0; i < rowCount; i++) {
-                QModelIndex childIndex2 = index.child(i, 3);
+                QModelIndex childIndex2 = index.child(i, 2);
 
-                if (childIndex2.data().toString() == tr("判断")) {
+                if (childIndex2.data(Qt::UserRole + 3).toInt() == type) {
                     j++;
                 }
             }
 
-            QStandardItem *newItem = new QStandardItem(tr("%1-A%2").arg(idIndex.data().toString()).arg(j));
-            newItem->setCheckable(true);
-            newItem->setCheckState(Qt::Unchecked);
+            QStandardItem *keyItem = new QStandardItem(tr("%1-%2%3").arg(idIndex.data().toString()).arg(char(64 + type)).arg(j));
+            keyItem->setCheckable(true);
+            keyItem->setCheckState(Qt::Unchecked);
+            keyItem->setData(type,     Qt::UserRole + 3); // 设置类型
+            keyItem->setData(-1,       Qt::UserRole + 1); // 设置未配置
+            keyItem->setData(tr("[]"), Qt::UserRole + 2);
 
             // newItem->setData();
 
             parentItem->setChild(rowCount, 0, new QStandardItem("未设置"));
-            parentItem->setChild(rowCount, 1, new QStandardItem("333"));
-            parentItem->setChild(rowCount, 2, newItem);
-            parentItem->setChild(rowCount, 3, new QStandardItem("判断"));
+            parentItem->setChild(rowCount, 1, new QStandardItem(name));
+            parentItem->setChild(rowCount, 2, keyItem);
+            parentItem->setChild(rowCount, 3, new QStandardItem(type == 1 ? "判断" : "判断+操作"));
         }
     });
 
@@ -733,13 +944,46 @@ void Itemview10Script::initConnect()
         scriptGridModel->setItem(count, 0, new QStandardItem("未设置"));
         scriptGridModel->setItem(count, 1, new QStandardItem(name));
 
-        auto keyItem = new QStandardItem("A1");
+
+        // 循环找最大id
+
+        int id = 1;
+
+        for (int i = 0; i < count; i++) {
+            auto item = scriptGridModel->index(i, 2);
+
+            if (item.data(Qt::UserRole + 3).toInt() == type) {
+                int id2 = item.data().toString().mid(1).toInt();
+
+                if (id2 >= id) {
+                    id = id2 + 1;
+                }
+            }
+        }
+
+        QString no = tr("%1%2").arg(char(64 + type)).arg(id);
+        auto keyItem = new QStandardItem(no);
         keyItem->setCheckable(true);
         keyItem->setCheckState(Qt::Unchecked);
-        keyItem->setData(type);
+        keyItem->setData(type,     Qt::UserRole + 3); // 设置类型
+        keyItem->setData(-1,       Qt::UserRole + 1); // 设置未配置
+        keyItem->setData(tr("[]"), Qt::UserRole + 2);
+
 
         scriptGridModel->setItem(count, 2, keyItem);
         scriptGridModel->setItem(count, 3, new QStandardItem(type == 1 ? "判断" : "判断+操作"));
+
+        // 明细表也更新
+        activeScriptType = type;
+        activeScriptTypeNo = no;
+        tabScriptWidget->setTabText(0, tr("脚本明细列表 [%1]").arg(activeScriptTypeNo));
+
+        // 删除
+        int index = scriptDetailGridModel->rowCount() - 1;
+
+        for (int i = index; i >= 0; i--) {
+            scriptDetailGridModel->removeRow(i);
+        }
     });
 
 
@@ -749,22 +993,179 @@ void Itemview10Script::initConnect()
 
         if (index.isValid())
         {
-            menu_scriptContent->exec(QCursor::pos());
+            int type =  index.siblingAtColumn(2).data(Qt::UserRole + 3).toInt();
+
+            if (type == 1) {
+                menu_scriptContent->exec(QCursor::pos());
+            } else {
+                menu_scriptContent2->exec(QCursor::pos());
+            }
         } else {
             menu_script->exec(QCursor::pos());
         }
     });
 
 
-    // 事件 - 双击
+    // 事件 - 脚本表格单击
     connect(scriptTableView, &QTreeView::clicked, [this](const QModelIndex& current) {
-        selectedIdIndex = current.siblingAtColumn(2);
+        auto selectedIdIndex = current.siblingAtColumn(2);
+        QString typeNo =  selectedIdIndex.data().toString();
+
+        if (activeScriptTypeNo != typeNo) {
+            activeScriptType = selectedIdIndex.data(Qt::UserRole + 1).toInt();
+            activeScriptTypeNo = selectedIdIndex.data().toString();
+            tabScriptWidget->setTabText(0, tr("脚本明细列表 [%1]").arg(activeScriptTypeNo));
+            tabScriptWidget->setTabText(1, tr("脚本明细编辑"));
 
 
-        activeScriptType = selectedIdIndex.data(Qt::UserRole + 1).toInt();
-        tabScriptWidget->setTabText(0, tr("脚本明细列表 [%1]").arg(selectedIdIndex.data().toString()));
+            auto item = scriptGridModel->itemFromIndex(selectedIdIndex);
+
+
+            QJsonParseError parseError;
+            QJsonDocument document = QJsonDocument::fromJson(item->data(Qt::UserRole + 2).toByteArray(), &parseError);
+
+            if (parseError.error != QJsonParseError::NoError) {
+                appendMessage(tr("发生异常！Json处理失败！"));
+                return;
+            }
+
+            QJsonArray jsonArray = document.array();
+
+
+            // 清除明细
+            int index = scriptDetailGridModel->rowCount() - 1;
+
+            for (int i = index; i >= 0; i--) {
+                scriptDetailGridModel->removeRow(i);
+            }
+
+
+            for (int i = 0; i < jsonArray.size(); i++) {
+                QJsonObject jsonObj = jsonArray.at(i).toObject();
+                QJsonDocument document(jsonObj);
+
+                auto keyItem = new QStandardItem(jsonObj["no"].toString());
+                keyItem->setData(1,                 Qt::UserRole + 1); // 设置状态
+                keyItem->setData(document.toJson(), Qt::UserRole + 2); // 设置配置
+
+                scriptDetailGridModel->setItem(i, 0, new QStandardItem());
+                scriptDetailGridModel->setItem(i, 1, keyItem);
+                scriptDetailGridModel->setItem(i, 3, new QStandardItem("无"));
+                scriptDetailGridModel->setItem(i, 4, new QStandardItem(jsonObj["check_remark"].toString()));
+
+                int scriptConditionType = jsonObj["scriptConditionType"].toInt();
+
+                switch (scriptConditionType) {
+                case 1:
+                    scriptDetailGridModel->setItem(i, 2, new QStandardItem("像素点检测"));
+                    break;
+
+                case 2:
+                    scriptDetailGridModel->setItem(i, 2, new QStandardItem("图形边缘检测"));
+                    break;
+                }
+            }
+        }
+        tabScriptWidget->setCurrentIndex(0);
     });
 
+
+    // 事件 - 双击脚本表格
+    connect(scriptDetailTableView, &QTreeView::doubleClicked, [this](const QModelIndex& current) {
+        auto selectedIdIndex = current.siblingAtColumn(1);
+        QString no =  selectedIdIndex.data().toString();
+
+        if (no != activeScriptDetailNo) {
+            // 判断下是否配置过
+            auto status = selectedIdIndex.data(Qt::UserRole + 1).toInt();
+
+            if (status == -1) {
+                tabScriptWidget->setTabText(1, tr("脚本明细编辑 [编号：%1]").arg(no));
+                activeScriptDetailType = -1;
+                activeScriptDetailStatus = -1;
+                activeScriptDetailNo = no;
+                buildScriptDetailEdit();
+            }
+
+            if (status == 1) {
+                clearScriptDetailEdit(); // 先清掉
+
+                QJsonParseError parseError;
+                QJsonDocument document = QJsonDocument::fromJson(selectedIdIndex.data(Qt::UserRole + 2).toByteArray(), &parseError);
+
+                if (parseError.error != QJsonParseError::NoError) {
+                    appendMessage(tr("发生异常！Json处理失败！"));
+                    return;
+                }
+                auto jsonObj = document.object();
+
+
+                tb_check_remark->setText(jsonObj["check_remark"].toString());
+
+                if ((activeScriptTypeNo == 1) || (activeScriptTypeNo == 3)) {
+                    tb_check_position_x->setText(QString::number(jsonObj["check_position_x"].toInt()));
+                    tb_check_position_y->setText(QString::number(jsonObj["check_position_y"].toInt()));
+                    tb_check_position_x_radio->setText(jsonObj["check_position_x_radio"].toString());
+                    tb_check_position_y_radio->setText(jsonObj["check_position_y_radio"].toString());
+
+                    int r = jsonObj["check_position_r"].toInt();
+                    int g = jsonObj["check_position_g"].toInt();
+                    int b = jsonObj["check_position_b"].toInt();
+                    int a = jsonObj["check_position_a"].toInt();
+                    tb_check_position_r->setText(QString::number(r));
+                    tb_check_position_g->setText(QString::number(g));
+                    tb_check_position_b->setText(QString::number(b));
+                    tb_check_position_a->setText(QString::number(a));
+                    tb_check_color->setStyleSheet(tr("background-color:rgba(%1,%2,%3,%4)").arg(r).arg(g).arg(b).arg(a));
+
+                    if (jsonObj["check_position_up"].toBool()) {
+                        tb_check_position_r_up->setText(QString::number(jsonObj["check_position_r_up"].toInt()));
+                        tb_check_position_g_up->setText(QString::number(jsonObj["check_position_g_up"].toInt()));
+                        tb_check_position_b_up->setText(QString::number(jsonObj["check_position_b_up"].toInt()));
+                        tb_check_position_a_up->setText(QString::number(jsonObj["check_position_a_up"].toInt()));
+                        ck_check_rgb_up->setChecked(true);
+                    } else {
+                        ck_check_rgb_up->setChecked(false);
+                    }
+
+                    if (jsonObj["check_position_down"].toBool()) {
+                        tb_check_position_r_down->setText(QString::number(jsonObj["check_position_r_down"].toInt()));
+                        tb_check_position_g_down->setText(QString::number(jsonObj["check_position_g_down"].toInt()));
+                        tb_check_position_b_down->setText(QString::number(jsonObj["check_position_b_down"].toInt()));
+                        tb_check_position_a_down->setText(QString::number(jsonObj["check_position_a_down"].toInt()));
+                        ck_check_rgb_down->setChecked(true);
+                    } else {
+                        ck_check_rgb_down->setChecked(false);
+                    }
+
+                    check_print_width = jsonObj["check_print_width"].toInt();
+                    check_print_height = jsonObj["check_print_height"].toInt();
+                    tb_check_print_size->setText(tr("[截图框图片尺寸参考：%1 x %2]").arg(check_print_width).arg(check_print_height));
+                }
+
+
+                if ((activeScriptTypeNo == 2) || (activeScriptTypeNo == 3)) {
+                    tb_click_position_x->setText(QString::number(jsonObj["click_position_x"].toInt()));
+                    tb_click_position_y->setText(QString::number(jsonObj["click_position_y"].toInt()));
+                    tb_click_position_x_radio->setText(jsonObj["click_position_x_radio"].toString());
+                    tb_click_position_y_radio->setText(jsonObj["click_position_y_radio"].toString());
+
+
+                    click_print_width = jsonObj["click_print_width"].toInt();
+                    click_print_height = jsonObj["click_print_height"].toInt();
+                    tb_click_print_size->setText(tr("[截图框图片尺寸参考：%1 x %2]").arg(click_print_width).arg(click_print_height));
+                }
+
+
+                tabScriptWidget->setTabText(1, tr("脚本明细编辑 [编号：%1]").arg(no));
+                activeScriptDetailType =    jsonObj["scriptConditionType"].toInt();
+                activeScriptDetailStatus = 1;
+                activeScriptDetailNo = no;
+                buildScriptDetailEdit();
+            }
+        }
+        tabScriptWidget->setCurrentIndex(1);
+    });
 
     // 事件 - 表格右键
     connect(scriptDetailTableView, &QTreeView::customContextMenuRequested, [this](const QPoint& pos) {
@@ -779,26 +1180,29 @@ void Itemview10Script::initConnect()
     });
 
 
-    // 事件 -新增根脚本
+    // 事件 - 明细新增根脚本
     connect(action_addRootScriptDetail, &QAction::triggered, [this]() {
-        if (selectedIdIndex.isValid()) {
-            int count =  scriptDetailGridModel->rowCount();
-
-            scriptDetailGridModel->setItem(count, 0, new QStandardItem("未设置"));
-            auto key = new QStandardItem(tr("%1").arg(count + 1));
-            key->setData(-1, Qt::UserRole + 1); // 设置状态
-            scriptDetailGridModel->setItem(count, 1, key);
-            scriptDetailGridModel->setItem(count, 2, new QStandardItem("待设置"));
-            scriptDetailGridModel->setItem(count, 3, new QStandardItem("无"));
-            tabScriptWidget->setCurrentIndex(1);
-            tabScriptWidget->setTabText(1, tr("脚本明细编辑 [%1]").arg(count + 1));
-            activeScriptDetailType = -1;
-            activeScriptDetailStatus = -1;
-            activeScriptDetailNo = count + 1;
-            buildScriptDetailEdit();
-        } else {
+        if (activeScriptTypeNo.isEmpty()) {
             QMessageBox::warning(this, "警告", "请先选中一条脚本再编辑");
+            return;
         }
+
+
+        int count =  scriptDetailGridModel->rowCount();
+
+        scriptDetailGridModel->setItem(count, 0, new QStandardItem("未设置"));
+        auto key = new QStandardItem(tr("%1").arg(count + 1));
+        key->setData(-1, Qt::UserRole + 1); // 设置状态
+        scriptDetailGridModel->setItem(count, 1, key);
+        scriptDetailGridModel->setItem(count, 2, new QStandardItem("待设置"));
+        scriptDetailGridModel->setItem(count, 3, new QStandardItem("无"));
+        scriptDetailGridModel->setItem(count, 4, new QStandardItem("无"));
+        tabScriptWidget->setCurrentIndex(1);
+        tabScriptWidget->setTabText(1, tr("脚本明细编辑 [编号：%1]").arg(count + 1));
+        activeScriptDetailType = -1;
+        activeScriptDetailStatus = -1;
+        activeScriptDetailNo = QString::number(count + 1);
+        buildScriptDetailEdit();
     });
 
 
@@ -848,24 +1252,41 @@ void Itemview10Script::initConnect()
 
     // 事件 - 图片框的鼠标点击
     connect(pixmapWidget, &PixmapWidget::mouseClicked, [this](int mouseX, int mouseY, QColor& color, float   xr, float   yr) {
-        if (ck_check_color_get->isChecked()) {
-            tb_check_position_x->setText(tr("%1").arg(mouseX));
-            tb_check_position_y->setText(tr("%1").arg(mouseY));
-            tb_check_position_x_radio->setText(tr("%1").arg(QString::number(xr * 100, 'f', 2)));
-            tb_check_position_y_radio->setText(tr("%1").arg(QString::number(yr * 100, 'f', 2)));
+        if (tabScriptWidget->currentIndex() == 1) {
+            if (ck_check_color_get->isChecked()) {
+                tb_check_position_x->setText(tr("%1").arg(mouseX));
+                tb_check_position_y->setText(tr("%1").arg(mouseY));
+                tb_check_position_x_radio->setText(tr("%1").arg(QString::number(xr * 100, 'f', 2)));
+                tb_check_position_y_radio->setText(tr("%1").arg(QString::number(yr * 100, 'f', 2)));
 
-            xr = xr * pixmapSize.width();
-            yr = yr * pixmapSize.height();
-            tb_check_position_x_radio_v->setText(tr("%1").arg(round(xr)));
-            tb_check_position_y_radio_v->setText(tr("%1").arg(round(yr)));
-            tb_check_position_r->setText(tr("%1").arg(color.red()));
-            tb_check_position_g->setText(tr("%1").arg(color.green()));
-            tb_check_position_b->setText(tr("%1").arg(color.blue()));
-            tb_check_position_a->setText(tr("%1").arg(color.alpha()));
-            tb_check_color->setStyleSheet(tr("background-color:rgba(%1,%2,%3,%4)").arg(color.red()).arg(color.green()).arg(color.blue()).arg(color.alpha()));
-            check_print_height = pixmapSize.height();
-            check_print_width = pixmapSize.width();
-            tb_check_print_size->setText(tr("[截图框图片尺寸参考：%1 x %2]").arg(pixmapSize.width()).arg(pixmapSize.height()));
+                xr = xr * pixmapSize.width();
+                yr = yr * pixmapSize.height();
+                tb_check_position_x_radio_v->setText(tr("%1").arg(round(xr)));
+                tb_check_position_y_radio_v->setText(tr("%1").arg(round(yr)));
+                tb_check_position_r->setText(tr("%1").arg(color.red()));
+                tb_check_position_g->setText(tr("%1").arg(color.green()));
+                tb_check_position_b->setText(tr("%1").arg(color.blue()));
+                tb_check_position_a->setText(tr("%1").arg(color.alpha()));
+                tb_check_color->setStyleSheet(tr("background-color:rgba(%1,%2,%3,%4)").arg(color.red()).arg(color.green()).arg(color.blue()).arg(color.alpha()));
+                check_print_height = pixmapSize.height();
+                check_print_width = pixmapSize.width();
+                tb_check_print_size->setText(tr("[截图框图片尺寸参考：%1 x %2]").arg(pixmapSize.width()).arg(pixmapSize.height()));
+            }
+
+            if (ck_click_position_get->isChecked()) {
+                tb_click_position_x->setText(tr("%1").arg(mouseX));
+                tb_click_position_y->setText(tr("%1").arg(mouseY));
+                tb_click_position_x_radio->setText(tr("%1").arg(QString::number(xr * 100, 'f', 2)));
+                tb_click_position_y_radio->setText(tr("%1").arg(QString::number(yr * 100, 'f', 2)));
+
+                xr = xr * pixmapSize.width();
+                yr = yr * pixmapSize.height();
+                tb_click_position_x_radio_v->setText(tr("%1").arg(round(xr)));
+                tb_click_position_y_radio_v->setText(tr("%1").arg(round(yr)));
+                click_print_height = pixmapSize.height();
+                click_print_width = pixmapSize.width();
+                tb_click_print_size->setText(tr("[截图框图片尺寸参考：%1 x %2]").arg(pixmapSize.width()).arg(pixmapSize.height()));
+            }
         }
     });
 
@@ -879,6 +1300,32 @@ void Itemview10Script::initConnect()
     connect(btnConsoleClear, &QPushButton::clicked, [this]() {
         clearMessage();
     });
+}
+
+void Itemview10Script::clearScriptDetailEdit() {
+    rb_scriptTypeCondition->setCheckable(false);
+    rb_scriptTypeDeal->setCheckable(false);
+    rb_scriptTypeConditionAndDeal->setCheckable(false);
+    rb_scriptConditionTypeEdgeDetect->setCheckable(false);
+    rb_scriptConditionTypeOCR->setCheckable(false);
+
+    tb_check_position_r->setText("0");
+    tb_check_position_g->setText("0");
+    tb_check_position_b->setText("0");
+    tb_check_position_a->setText("255");
+
+    tb_check_position_x->setText("0");
+    tb_check_position_y->setText("0");
+    tb_check_position_x_radio->setText("0");
+    tb_check_position_y_radio->setText("0");
+    tb_check_position_x_radio_v->setText("0");
+    tb_check_position_y_radio_v->setText("0");
+    tb_check_remark->setText("");
+    tb_check_color->setStyleSheet(tr("background-color:rgba(0,0,0,255)"));
+    check_print_height = -1;
+    check_print_width = -1;
+    tb_check_print_size->setText(tr("[截图框图片尺寸参考：无]"));
+    tabScriptWidget->setTabText(1, tr("脚本明细编辑"));
 }
 
 void Itemview10Script::buildScriptDetailEdit() {
@@ -899,6 +1346,8 @@ void Itemview10Script::buildScriptDetailEdit() {
     rb_scriptConditionTypeEdgeDetect->setCheckable(false);
     rb_scriptConditionTypeOCR->setCheckable(false);
 
+    ck_check_color_get->setChecked(true);
+    ck_click_position_get->setChecked(true);
 
     if (activeScriptDetailStatus == -1) {
         tb_check_position_r_down->setText("0");

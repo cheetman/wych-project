@@ -179,53 +179,6 @@ ItemView8::ItemView8(QWidget *parent) : QWidget(parent)
     leftTabWidget->addTab(leftTabWidget2, tr("信息"));
 
 
-    //         imgLabel2 = new QLabel(this);
-
-    //        auto img=new QImage();
-    //        if(! ( img->load("C:\\Users\\汪意超\\Pictures\\Saved Pictures\\001OdAkagy1gyybblipk3j60h00fvajh02.jpg") ) ) //加载图像
-    //             {
-    //                 QMessageBox::information(this,
-    //                                          tr("打开图像失败"),
-    //                                          tr("打开图像失败!"));
-    //                 delete img;
-    //                 return;
-    //             }
-
-    //        img->scaled(100,
-    //                    100,
-    //                    Qt::KeepAspectRatio);
-    //        imgLabel->setPixmap(QPixmap::fromImage(*img));
-    //        imgLabel->setMinimumWidth(50);
-    //        imgLabel->setScaledContents(true);
-
-
-    //        imgLabel->setScaledContents(true);
-    //        imgLabel->setPixmap(pixmap->scaled(imgLabel->size(),Qt::KeepAspectRatioByExpanding));
-    //        imgLabel->setMinimumWidth(100);
-    //        imgLabel->setMinimumHeight(100);
-    //        imgLabel->setMaximumWidth(500);
-    //        imgLabel->setMaximumHeight(500);
-
-    //         imgLabel->setFixedWidth(300);
-    //          imgLabel->setFixedHeight(300);
-    //        imgLabel->resizeEvent();
-    //        imgLabel->setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
-    //        ->setAlignment(Qt::AlignTop);
-    //        leftTabLayout2->addStretch();
-
-
-    //        pLayout->addWidget(imgLabel2);
-
-    //        auto *pLayout = new QGridLayout(scrollAreaWidgetContents);
-    //        pLayout->addWidget(imgLabel, 0, 0);
-    //        pLayout->addWidget(imgLabel2, 1, 0);
-
-    //            imgLabel->setPixmap(pixmap->scaled(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width(),Qt::KeepAspectRatio));
-    //            imgLabel->setFixedSize(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width());
-    //            imgLabel2->setPixmap(pixmap->scaled(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width(),Qt::KeepAspectRatio));
-    //            imgLabel2->setFixedSize(scrollArea->width(), (float)pixmap->height()/ pixmap->width() * scrollArea->width());
-
-
     // 2.1 文件按钮
 
     auto widgetMainRigth = new QWidget(splitterMain);

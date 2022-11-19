@@ -55,7 +55,20 @@ private:
 
     void buildScriptDetailEdit();
     void clearScriptDetailEdit();
-    WIN32_PROCESS_INFO processInfo = { 0 };
+    void clearScript();
+
+    void recursionScriptSave(QJsonObject      & json,
+                             const QModelIndex& now = QModelIndex());
+    bool recursionScriptSaveCheck(
+        const QModelIndex& now = QModelIndex());
+
+
+    void recursionScriptShow(QJsonObject  & json,
+                             QStandardItem *now = NULL);
+    WIN32_PROCESS_INFO processInfo = {
+        0
+    };
+
     WIN32_WINDOW_INFO windowInfo = { 0 };
     PixmapWidget *pixmapWidget;
 
@@ -143,12 +156,12 @@ private:
     QCheckBox *ck_check_color_get;
     QLabel *tb_check_color;
     QLabel *tb_check_print_size;
+
     int check_print_width;
     int check_print_height;
     class QRadioButton *rb_check_position;
     class QRadioButton *rb_check_position_radio;
     class QButtonGroup *bg_check_position_type;
-
 
     QLineEdit *tb_click_position_x;
     QLineEdit *tb_click_position_y;
@@ -216,7 +229,7 @@ private:
     QPushButton *btnScriptSave;
     QPushButton *btnRefreshWindow;
 
-
+    QCheckBox *ckScriptStart;
     QCheckBox *ckConsoleEnable;
     QCheckBox *ckScriptDetailSleep;
 
@@ -234,23 +247,32 @@ private:
     QTableView *import2TableView;
     QStandardItemModel *relocationGridModel;
     QTableView *relocationTableView;
+
+    QStandardItemModel *fileScriptGridModel;
+    QTreeView *fileScriptTableView;
     QStandardItemModel *scriptGridModel;
     QTreeView *scriptTableView;
-
     QStandardItemModel *scriptDetailGridModel;
     QTreeView *scriptDetailTableView;
 
     QTabWidget *tabScriptWidget;
+    QGroupBox *script2tGroupBox;
 
     //    QGroupBox *script3GroupBox;
 
     QSize pixmapSize;
 
+
+    class QMenu *menu_fileScript;
+    class QMenu *menu_fileScriptContent;
     class QMenu *menu_script;
     class QMenu *menu_scriptContent;
     class QMenu *menu_scriptContent2;
     class QMenu *menu_scriptDetail;
     class QMenu *menu_scriptDetailContent;
+
+    class QAction *action_addFileScript;
+    class QAction *action_removeFileScript;
     class QAction *action_addScript;
     class QAction *action_addRootScript;
     class QAction *action_removeScript;
@@ -260,10 +282,16 @@ private:
 
 
     //    QModelIndex selectedIdIndex;
-    QString activeScriptTypeNo;
+    // QString activeScriptTypeNo;
 
+    QString activeFileNo;
+
+    // -1 新建未配置 1 已配置
+    int activeFileStatus;
+
+
+    QString activeScriptNo;
     int activeScriptType;
-
     int activeScriptTypeStatus;
 
     // -1 新建未配置 1 已配置 2 正在运行

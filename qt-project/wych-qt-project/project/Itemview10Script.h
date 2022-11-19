@@ -38,28 +38,33 @@ public:
 
     // 窗口更新
     bool updateWindowInfo(HWND handleWindow);
+    bool isStart = false;
 
 protected:
 
-    void initUI();
-    void initConnect();
-    void postMessage(const QString& msg);
-    void clearMessage();
+    void                      initUI();
+    void                      initConnect();
+    void                      postMessage(const QString& msg);
+    void                      clearMessage();
 
-    void appendMessage(const QString& msg);
-    void showMessage(const QString& msg);
+    void                      appendMessage(const QString& msg);
+    void                      showMessage(const QString& msg);
 
-    bool print();
+    bool                      print();
+
+    static unsigned __stdcall RefreshScript(void *param);
 
 private:
 
-    void buildScriptDetailEdit();
-    void clearScriptDetailEdit();
-    void clearScript();
+    QString getScriptTypeName(int type);
+    void    buildScriptDetailEdit();
+    void    clearScriptDetailEdit();
+    void    clearScript();
+    bool    recursionScriptStart(const QModelIndex& now = QModelIndex());
 
-    void recursionScriptSave(QJsonObject      & json,
-                             const QModelIndex& now = QModelIndex());
-    bool recursionScriptSaveCheck(
+    void    recursionScriptSave(QJsonObject      & json,
+                                const QModelIndex& now = QModelIndex());
+    bool    recursionScriptSaveCheck(
         const QModelIndex& now = QModelIndex());
 
 
@@ -228,6 +233,7 @@ private:
 
     QPushButton *btnScriptSave;
     QPushButton *btnRefreshWindow;
+    QPushButton *btnScriptStart;
 
     QCheckBox *ckScriptStart;
     QCheckBox *ckConsoleEnable;
@@ -299,6 +305,7 @@ private:
     int activeScriptDetailType;
     QString activeScriptDetailNo;
     QString activeScriptDetailRemark;
+    QStandardItem *lastItem;
 
 signals:
 };

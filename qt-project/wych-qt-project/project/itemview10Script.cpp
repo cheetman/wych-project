@@ -1,8 +1,6 @@
 
 #include <QTextCodec>
 #include <tchar.h>
-#include <Windows.h>
-#include <TlHelp32.h>
 #include <QDateTime>
 #include <vector>
 #include <QScrollArea>
@@ -21,6 +19,9 @@
 #include <QJsonArray>
 #include <QSplitter>
 #include <QInputDialog>
+#include <Windows.h>
+#include <TlHelp32.h>
+#include <process.h>
 #include "utils.h"
 #include "winapi.h"
 #include "itemview10Script.h"
@@ -222,7 +223,7 @@ void Itemview10Script::initUI()
     fileScriptTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
     fileScriptTableView->setContextMenuPolicy(Qt::CustomContextMenu);
     fileScriptTableView->setModel(fileScriptGridModel);
-    fileScriptTableView->setFixedWidth(150);
+    fileScriptTableView->setFixedWidth(120);
 
 
     script2Layout->addWidget(scriptTableView);
@@ -458,7 +459,9 @@ void Itemview10Script::initUI()
     btnScriptAdd = new QPushButton("新增脚本");
     btnScriptAddRoot = new QPushButton("新增根节点");
     btnScriptSave = new QPushButton("保存脚本");
-    ckScriptStart = new QCheckBox("启动脚本");
+
+    //    ckScriptStart = new QCheckBox("启动脚本");
+    btnScriptStart = new QPushButton("启动脚本");
     btnRefreshWindow = new QPushButton("刷新");
     btnRefreshWindow->setFixedWidth(60);
     rb_printClient->setChecked(true);
@@ -586,8 +589,9 @@ void Itemview10Script::initUI()
     //    rightQWidgetGroup1aLayout->addWidget(btnScriptAddRoot);
 
     rightQWidgetGroup1aLayout->addWidget(btnScriptSave);
-    rightQWidgetGroup1aLayout->addWidget(ckScriptStart);
 
+    //    rightQWidgetGroup1aLayout->addWidget(ckScriptStart);
+    rightQWidgetGroup1aLayout->addWidget(btnScriptStart);
 
     script3Layouta->addWidget(new QLabel("脚本类型:", this),     0, Qt::AlignLeft);
     script3Layouta->addWidget(rb_scriptTypeCondition,        0, Qt::AlignLeft);
@@ -751,6 +755,21 @@ void Itemview10Script::initUI()
 
 void Itemview10Script::initConnect()
 {
+    // 事件 - 启动脚本
+    connect(btnScriptStart, &QPushButton::clicked, [this]() {
+        if (!isStart) {
+            isStart = true;
+            unsigned threadid;
+            HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &Itemview10Script::RefreshScript, this, NULL, &threadid);
+            CloseHandle(hThread);
+            btnScriptStart->setText(tr("关闭脚本"));
+        } else {
+            isStart = false;
+            btnScriptStart->setText(tr("启动脚本"));
+        }
+    });
+
+
     // 事件 - 新增文件
     connect(action_addFileScript, &QAction::triggered, [this]() {
         bool ok;
@@ -778,13 +797,13 @@ void Itemview10Script::initConnect()
     connect(action_addRootScript, &QAction::triggered, [this]() {
         QString name;
         int type;
-        ScriptTypeDialog scriptTypeDialog(this);
+        ScriptTypeDialog scriptTypeDialog(ScriptTypeDialog::Check, this);
         int ret = scriptTypeDialog.exec(); // 以模态方式显示对话框
 
         if (ret == QDialog::Accepted)      // OK键被按下
         {
             name = scriptTypeDialog.le_name->text();
-            type = scriptTypeDialog.rb_scriptTypeCondition->isChecked() ? 1 : 3;
+            type = scriptTypeDialog.bg_scriptType->checkedId();
         } else {
             return;
         }
@@ -826,7 +845,7 @@ void Itemview10Script::initConnect()
 
 
         scriptGridModel->setItem(count, 2, keyItem);
-        scriptGridModel->setItem(count, 3, new QStandardItem(type == 1 ? "判断" : "判断+操作"));
+        scriptGridModel->setItem(count, 3, new QStandardItem(getScriptTypeName(type)));
 
         // 明细表也更新
         activeScriptType = type;
@@ -848,13 +867,13 @@ void Itemview10Script::initConnect()
         if (index.isValid()) {
             QString name;
             int type;
-            ScriptTypeDialog scriptTypeDialog(this);
+            ScriptTypeDialog scriptTypeDialog(ScriptTypeDialog::CheckOrDeal, this);
             int ret = scriptTypeDialog.exec(); // 以模态方式显示对话框
 
             if (ret == QDialog::Accepted)      // OK键被按下
             {
                 name = scriptTypeDialog.le_name->text();
-                type = scriptTypeDialog.rb_scriptTypeCondition->isChecked() ? 1 : 3;
+                type = scriptTypeDialog.bg_scriptType->checkedId();
             } else {
                 return;
             }
@@ -902,7 +921,7 @@ void Itemview10Script::initConnect()
             parentItem->setChild(rowCount, 0, item0);
             parentItem->setChild(rowCount, 1, new QStandardItem(name));
             parentItem->setChild(rowCount, 2, keyItem);
-            parentItem->setChild(rowCount, 3, new QStandardItem(type == 1 ? "判断" : "判断+操作"));
+            parentItem->setChild(rowCount, 3, new QStandardItem(getScriptTypeName(type)));
         }
     });
 
@@ -1366,6 +1385,9 @@ void Itemview10Script::initConnect()
 
     // 事件 - 表格右键
     connect(scriptTableView, &QTreeView::customContextMenuRequested, [this](const QPoint& pos) {
+        if (activeFileNo.isEmpty()) {
+            return;
+        }
         QModelIndex index = scriptTableView->indexAt(pos);
 
         if (index.isValid())
@@ -1385,6 +1407,14 @@ void Itemview10Script::initConnect()
 
     // 事件 - 表格右键
     connect(scriptDetailTableView, &QTreeView::customContextMenuRequested, [this](const QPoint& pos) {
+        if (activeFileNo.isEmpty()) {
+            return;
+        }
+
+        if (activeScriptNo.isEmpty()) {
+            return;
+        }
+
         QModelIndex index = scriptDetailTableView->indexAt(pos);
 
         if (index.isValid())
@@ -1564,7 +1594,7 @@ void Itemview10Script::recursionScriptShow(QJsonObject& json, QStandardItem *par
         parentItem->setChild(count, 0, item0);
         parentItem->setChild(count, 1, new QStandardItem(name));
         parentItem->setChild(count, 2, keyItem);
-        parentItem->setChild(count, 3, new QStandardItem(scriptType == 1 ? "判断" : "判断+操作"));
+        parentItem->setChild(count, 3, new QStandardItem(getScriptTypeName(scriptType)));
 
         QJsonArray array = json["children"].toArray();
 
@@ -1632,6 +1662,44 @@ bool Itemview10Script::recursionScriptSaveCheck(const QModelIndex& now) {
         auto index = scriptGridModel->index(rowIndex, 0, now);
 
         if (!recursionScriptSaveCheck(index)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
+    auto index2 = now.siblingAtColumn(2);
+
+    // auto index1 = now.siblingAtColumn(1);
+    if (!index2.isValid()) {
+        // 代表第一次主节点
+    } else {
+        // 上次一次改回
+        lastItem->setData("",                Qt::DisplayRole);
+        lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+
+        // 开始执行
+        lastItem = scriptGridModel->itemFromIndex(now);
+        lastItem->setData("正在执行",            Qt::DisplayRole);
+        lastItem->setData(QColor(Qt::green), Qt::ForegroundRole);
+
+
+        QJsonArray array = index2.data(Qt::UserRole + 2).toJsonArray();
+
+        for (int i = 0; i < array.count(); i++) {
+            QJsonObject obj = array.at(i).toObject();
+
+            // obj[""].toInt();
+        }
+    }
+
+    int count = scriptGridModel->rowCount(now);
+
+    for (int rowIndex = 0; rowIndex < count; rowIndex++) {
+        auto index = scriptGridModel->index(rowIndex, 0, now);
+
+        if (!recursionScriptStart(index)) {
             return false;
         }
     }
@@ -1743,6 +1811,22 @@ void Itemview10Script::buildScriptDetailEdit() {
     }
 
     //    tabScriptWidget->setTabEnabled(1, true);
+}
+
+QString Itemview10Script::getScriptTypeName(int type) {
+    switch (type) {
+    case 1:
+        return "判断";
+
+    case 2:
+        return "操作";
+
+    case 3:
+        return "判断+操作";
+
+    default:
+        return "未定义";
+    }
 }
 
 bool Itemview10Script::updateWindowInfo(HWND handleWindow) {
@@ -1957,6 +2041,28 @@ bool Itemview10Script::print() {
     //        ::DeleteObject(bitmap_);
     //        ::DeleteDC(memDc_);
     //        ::ReleaseDC(hwnd_, scrDc_);
+}
+
+unsigned __stdcall Itemview10Script::RefreshScript(void *param) {
+    auto obj = (Itemview10Script *)param;
+
+    while (true)
+    {
+        if (!obj->isStart) {
+            break;
+        }
+
+        if (obj->recursionScriptSaveCheck()) {
+            break;
+        }
+
+        obj->recursionScriptStart();
+
+
+        Sleep(2000);
+    }
+
+    return 1;
 }
 
 void Itemview10Script::appendMessage(const QString& msg)

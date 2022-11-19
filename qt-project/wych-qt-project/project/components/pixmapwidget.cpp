@@ -10,26 +10,18 @@ PixmapWidget::PixmapWidget(QWidget *parent)
 
 
     m_brush = QBrush(Qt::white);
-
     m_penColor.setRgb(0, 255, 255, 255);
 
     m_pixmap = QPixmap(700, 700);
-    m_pixmap.fill(Qt::red);
+    m_pixmap.fill(Qt::gray);
 
 
     m_pixmapSize = m_pixmap.size();
     this->setFixedWidth(800);
     this->setFixedHeight(800);
 
-    // m_pixmap.load("C:\\Users\\汪意超\\Pictures\\Saved Pictures\\001OdAkagy1gyybblipk3j60h00fvajh02.jpg");
-
-    //    setMinimumSize(QSize(800, 800));
-
-    // m_pixmap = QPixmap("C:\\Users\\汪意超\\Pictures\\Saved Pictures\\001OdAkagy1gyybblipk3j60h00fvajh02.jpg");
-
-    //    m_penColor =
-
-    //    this->update();
+    QImage image = m_pixmap.toImage();
+    m_image.swap(image);
 }
 
 QSize PixmapWidget::getPixmapSize() {
@@ -46,8 +38,7 @@ void PixmapWidget::setPixmap(QPixmap& newPixmap) {
     m_pixmapSize = size;
 
     //    this->resize(size); // 没用，估计是调用了resize事件
-    //    this->update(); setFixedSize后就不需要了 还是需要
-    this->update();
+    this->update(); //   setFixedSize后就不需要了 还是需要,否则可能只有部分刷新。。。
 }
 
 void PixmapWidget::paintEvent(QPaintEvent *event)

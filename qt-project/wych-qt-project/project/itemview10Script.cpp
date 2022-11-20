@@ -1,6 +1,6 @@
 
+
 #include <QTextCodec>
-#include <tchar.h>
 #include <QDateTime>
 #include <vector>
 #include <QScrollArea>
@@ -19,11 +19,13 @@
 #include <QJsonArray>
 #include <QSplitter>
 #include <QInputDialog>
-#include <Windows.h>
 #include <TlHelp32.h>
 #include <process.h>
+#include <winuser.h>
+#include <Windows.h>
 #include "utils.h"
 #include "winapi.h"
+#include <tchar.h>
 #include "itemview10Script.h"
 #include "components/pixmapwidget.h"
 #include "components/scripttypedialog.h"
@@ -175,7 +177,8 @@ void Itemview10Script::initUI()
 
     scriptLayout->addWidget(relocationTabTabWidgetGroupBox);
     scriptLayout->setAlignment(Qt::AlignTop);
-    relocationTabTabWidgetGroupBox->setFixedHeight(60);
+
+    //    relocationTabTabWidgetGroupBox->setFixedHeight(60);
 
     auto layout_r_1_m = new QVBoxLayout();
     auto rightQWidgetGroup1aLayout = new QHBoxLayout();
@@ -751,6 +754,9 @@ void Itemview10Script::initUI()
             }
         }
     }
+
+    // 获取dpi
+    dpi_window =  WinAPI::get_window_dpi();
 }
 
 void Itemview10Script::initConnect()
@@ -1321,7 +1327,6 @@ void Itemview10Script::initConnect()
         QStandardItem *item4 = scriptDetailGridModel->item(item->row(), 4);
         item4->setData(tb_check_remark->text(), Qt::DisplayRole);
 
-        activeScriptDetailNo = "";
         tabScriptWidget->setCurrentIndex(0);
         clearScriptDetailEdit(); // 清除编辑信息
     });
@@ -1422,6 +1427,26 @@ void Itemview10Script::initConnect()
             menu_scriptDetailContent->exec(QCursor::pos());
         } else {
             menu_scriptDetail->exec(QCursor::pos());
+        }
+    });
+
+    // 事件 - 删除节点
+    connect(action_removeScript, &QAction::triggered, [this]() {
+        QModelIndex index = scriptTableView->currentIndex();
+
+        if (index.isValid()) {
+            scriptGridModel->removeRow(index.row(), index.parent());
+            clearScriptDetail();
+        }
+    });
+
+    // 事件 - 删除明细节点
+    connect(action_removeScriptDetail, &QAction::triggered, [this]() {
+        QModelIndex index = scriptDetailTableView->currentIndex();
+
+        if (index.isValid()) {
+            scriptDetailGridModel->removeRow(index.row(), index.parent());
+            clearScriptDetailEdit();
         }
     });
 
@@ -1676,8 +1701,8 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
         // 代表第一次主节点
     } else {
         // 上次一次改回
-        lastItem->setData("",                Qt::DisplayRole);
-        lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+        //        lastItem->setData("",                Qt::DisplayRole);
+        //        lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
 
         // 开始执行
         lastItem = scriptGridModel->itemFromIndex(now);
@@ -1685,36 +1710,150 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
         lastItem->setData(QColor(Qt::green), Qt::ForegroundRole);
 
 
+        int type = index2.data(Qt::UserRole + 3).toInt(); // 判断类型
         QJsonArray array = index2.data(Qt::UserRole + 2).toJsonArray();
 
-        for (int i = 0; i < array.count(); i++) {
-            QJsonObject obj = array.at(i).toObject();
+        switch (type) {
+        // 判断
+        case 1: {
+            for (int i = 0; i < array.count(); i++) {
+                QJsonObject obj = array.at(i).toObject();
 
-            // obj[""].toInt();
+                int xCheck =  obj["check_position_x"].toInt();
+                int yCheck =  obj["check_position_y"].toInt();
+                int rCheck =  obj["check_position_r"].toInt();
+                int gCheck =  obj["check_position_g"].toInt();
+                int bCheck =  obj["check_position_b"].toInt();
+                int aCheck =  obj["check_position_a"].toInt();
+
+                // 检查像素
+                QColor color = pixmapWidget->getRgb(xCheck, yCheck);
+                QColor checkColor(rCheck, gCheck, bCheck, aCheck);
+
+                if (color == checkColor) {
+                    // 判断成功
+                    continue;
+                } else {
+                    // 判断失败
+                    // break;
+                    Sleep(2000);
+                    lastItem->setData("",                Qt::DisplayRole);
+                    lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+                    return false;
+                }
+            }
+
+            lastItem->setData("",                Qt::DisplayRole);
+            lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+            break;
+        }
+
+        // 执行
+        case 2: {
+            for (int i = 0; i < array.count(); i++) {
+                QJsonObject obj = array.at(i).toObject();
+
+                int xClick =  obj["click_position_x"].toInt();
+                int yClick =  obj["click_position_y"].toInt();
+
+
+                HWND  hwnd = windowInfo.HandleWindow;
+                POINT pt;
+                pt.x = round(xClick / dpi_window);
+                pt.y = round(yClick / dpi_window);
+                LPARAM lParam = MAKELPARAM(pt.x, pt.y);
+                SendMessage(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lParam);
+                SendMessage(hwnd, WM_LBUTTONUP,   0,          lParam);
+
+                Sleep(2000);
+                lastItem->setData("",                Qt::DisplayRole);
+                lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+
+                // 执行结束
+                return true;
+            }
+
+            break;
+        }
+
+        // 判断 + 执行
+        case 3: {
+            for (int i = 0; i < array.count(); i++) {
+                QJsonObject obj = array.at(i).toObject();
+
+                int xCheck =  obj["check_position_x"].toInt();
+                int yCheck =  obj["check_position_y"].toInt();
+                int rCheck =  obj["check_position_r"].toInt();
+                int gCheck =  obj["check_position_g"].toInt();
+                int bCheck =  obj["check_position_b"].toInt();
+                int aCheck =  obj["check_position_a"].toInt();
+
+                // 检查像素
+                QColor color = pixmapWidget->getRgb(xCheck, yCheck);
+                QColor checkColor(rCheck, gCheck, bCheck, aCheck);
+
+                if (color == checkColor) {
+                    // 判断成功
+                    int xClick =  obj["click_position_x"].toInt();
+                    int yClick =  obj["click_position_y"].toInt();
+
+                    HWND  hwnd = windowInfo.HandleWindow;
+                    POINT pt;
+                    pt.x = round(xClick / dpi_window);
+                    pt.y = round(yClick / dpi_window);
+                    LPARAM lParam = MAKELPARAM(pt.x, pt.y);
+                    SendMessage(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lParam);
+                    SendMessage(hwnd, WM_LBUTTONUP,   0,          lParam);
+
+                    Sleep(2000);
+                    lastItem->setData("",                Qt::DisplayRole);
+                    lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+                } else {
+                    Sleep(2000);
+                    lastItem->setData("",                Qt::DisplayRole);
+                    lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+                    break;
+                }
+            }
+            break;
+        }
+
+        default:
+            break;
         }
     }
 
     int count = scriptGridModel->rowCount(now);
 
     for (int rowIndex = 0; rowIndex < count; rowIndex++) {
-        auto index = scriptGridModel->index(rowIndex, 0, now);
+        // 先判断是否勾选
+        auto index2 = scriptGridModel->index(rowIndex, 2, now);
+        int  checkStatus = index2.data(Qt::CheckStateRole).toInt();
 
-        if (!recursionScriptStart(index)) {
-            return false;
+        if (Qt::Unchecked != checkStatus) {
+            auto index = scriptGridModel->index(rowIndex, 0, now);
+
+            if (!recursionScriptStart(index)) {
+                return false;
+            }
         }
     }
     return true;
 }
 
 void Itemview10Script::clearScript() {
-    activeScriptNo = "";
-    activeScriptDetailNo = "";
-
     // 删除
     for (int i = scriptGridModel->rowCount() - 1; i >= 0; i--) {
         scriptGridModel->removeRow(i);
     }
 
+    clearScriptDetail();
+}
+
+void Itemview10Script::clearScriptDetail() {
+    activeScriptNo = "";
+
+    // 删除
     for (int i = scriptDetailGridModel->rowCount() - 1; i >= 0; i--) {
         scriptDetailGridModel->removeRow(i);
     }
@@ -1727,6 +1866,7 @@ void Itemview10Script::clearScript() {
 }
 
 void Itemview10Script::clearScriptDetailEdit() {
+    activeScriptDetailNo = "";
     rb_scriptTypeCondition->setCheckable(false);
     rb_scriptTypeDeal->setCheckable(false);
     rb_scriptTypeConditionAndDeal->setCheckable(false);
@@ -2052,7 +2192,7 @@ unsigned __stdcall Itemview10Script::RefreshScript(void *param) {
             break;
         }
 
-        if (obj->recursionScriptSaveCheck()) {
+        if (!obj->recursionScriptSaveCheck()) {
             break;
         }
 

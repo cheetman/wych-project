@@ -6,6 +6,8 @@
 # include <vector>
 #endif // ifdef DEBUG_STRING
 
+// #define WINVER 0x0705
+
 
 namespace WychUtils_WinAPI {
 std::int32_t MessageBox(
@@ -552,5 +554,35 @@ void get_process_info(int pid) {
         } while (sysProInfo->NextEntryOffset != 0);
         free(old);
     }
+}
+
+float get_window_dpi() {
+    HWND  hd = GetDesktopWindow();
+    int   zoom = GetDpiForWindow(hd);
+    float scale = 0;
+
+    switch (zoom) {
+    // 百分比对应DPI
+    case 96:
+        scale = 1.0;
+        break;
+
+    case 120:
+        scale = 1.25;
+        break;
+
+    case 144:
+        scale = 1.5;
+        break;
+
+    case 192:
+        scale = 2.0;
+        break;
+
+    default:
+        scale = 1;
+        break;
+    }
+    return scale;
 }
 }

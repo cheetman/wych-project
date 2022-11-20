@@ -174,3 +174,7 @@ void PixmapWidget::mouseMoveEvent(QMouseEvent *event) {
 
     emit mousePositionEvent(mouseX / m_scale, mouseY / m_scale, color,    (float)mouseX / (float)m_pixmapSize.width(), (float)mouseY / (float)m_pixmapSize.height());
 }
+
+QColor PixmapWidget::getRgb(int x, int y) {
+    return m_image.pixel(x, y);
+}

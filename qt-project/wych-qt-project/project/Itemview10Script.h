@@ -60,6 +60,7 @@ private:
     void    buildScriptDetailEdit();
     void    clearScriptDetailEdit();
     void    clearScript();
+    void    clearScriptDetail();
     bool    recursionScriptStart(const QModelIndex& now = QModelIndex());
 
     void    recursionScriptSave(QJsonObject      & json,
@@ -76,6 +77,7 @@ private:
 
     WIN32_WINDOW_INFO windowInfo = { 0 };
     PixmapWidget *pixmapWidget;
+    float dpi_window = 1.0f;
 
     QLineEdit *dos_e_magic;
     QLineEdit *dos_e_lfanew;
@@ -128,6 +130,8 @@ private:
     QLineEdit *tb_process_handle;
     QLineEdit *tb_window_name;
     QLineEdit *tb_window_handle;
+    HWND active_window_handle;
+
     QLineEdit *tb_window_size;
     QLineEdit *tb_window2_size;
     QLineEdit *tb_window_position;

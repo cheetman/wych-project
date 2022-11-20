@@ -25,19 +25,22 @@ void ItemView9CSS::initUI()
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox1);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout = new QGridLayout(leftQWidgetGroupBox1);
-    leftQWidgetGroupBox1->setFixedHeight(200);
+
+    //    leftQWidgetGroupBox1->setFixedHeight(200);
 
     auto leftQWidgetGroupBox2 = new QGroupBox("自瞄设置", this);
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox2);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout2 = new QGridLayout(leftQWidgetGroupBox2);
-    leftQWidgetGroupBox2->setFixedHeight(130);
+
+    //    leftQWidgetGroupBox2->setFixedHeight(130);
 
     auto leftQWidgetGroupBox3 = new QGroupBox("显示设置", this);
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox3);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout3 = new QGridLayout(leftQWidgetGroupBox3);
-    leftQWidgetGroupBox3->setFixedHeight(90);
+
+    //    leftQWidgetGroupBox3->setFixedHeight(90);
 
 
     auto centerQWidget = new QWidget(this);

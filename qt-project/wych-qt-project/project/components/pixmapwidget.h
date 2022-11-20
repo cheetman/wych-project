@@ -9,8 +9,10 @@ class PixmapWidget : public QWidget {
 public:
 
     explicit PixmapWidget(QWidget *parent = nullptr);
-    void  setPixmap(QPixmap& newPixmap);
-    QSize getPixmapSize();
+    void   setPixmap(QPixmap& newPixmap);
+    QSize  getPixmapSize();
+    QColor getRgb(int x,
+                  int y);
 
 protected:
 

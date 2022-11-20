@@ -40,18 +40,19 @@ typedef struct _WIN32_WINDOW_INFO {
 } WIN32_WINDOW_INFO, *PWIN32_WINDOW_INFO;
 
 namespace WinAPI {
-void get_process_info(int pid);
-BOOL get_process_info(DWORD               pid,
-                      PWIN32_PROCESS_INFO result);
+void  get_process_info(int pid);
+BOOL  get_process_info(DWORD               pid,
+                       PWIN32_PROCESS_INFO result);
 
-BOOL get_window_main(DWORD              pid,
-                     PWIN32_WINDOW_INFO result);
+BOOL  get_window_main(DWORD              pid,
+                      PWIN32_WINDOW_INFO result);
 
-BOOL get_window_child(HWND                            handleWindow,
-                      std::vector<WIN32_WINDOW_INFO>& list);
+BOOL  get_window_child(HWND                            handleWindow,
+                       std::vector<WIN32_WINDOW_INFO>& list);
 
-BOOL get_window_info(HWND               handle,
-                     PWIN32_WINDOW_INFO result);
+BOOL  get_window_info(HWND               handle,
+                      PWIN32_WINDOW_INFO result);
+float get_window_dpi();
 }
 
 namespace WychUtils_WinAPI {

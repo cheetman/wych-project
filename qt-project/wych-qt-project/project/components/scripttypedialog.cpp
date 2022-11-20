@@ -52,7 +52,9 @@ ScriptTypeDialog::ScriptTypeDialog(Type type, QWidget *parent) :
     layout3->addWidget(btn_ok);
 
     this->setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
-    this->setFixedSize(200, 160);
+
+    //    this->setFixedSize(200, 160);
+    this->setFixedWidth(200);
     this->setWindowTitle("新增节点");
 
     connect(btn_ok, &QPushButton::clicked, [this]() {

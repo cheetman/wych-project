@@ -270,6 +270,8 @@ private:
     QTabWidget *tabScriptWidget;
     QGroupBox *script2tGroupBox;
 
+    class QComboBox *ck_dpi;
+
     //    QGroupBox *script3GroupBox;
 
     QSize pixmapSize;
@@ -288,6 +290,8 @@ private:
     class QAction *action_addScript;
     class QAction *action_addRootScript;
     class QAction *action_removeScript;
+    class QAction *action_testScript;
+
     class QAction *action_addScriptDetail;
     class QAction *action_addRootScriptDetail;
     class QAction *action_removeScriptDetail;
@@ -304,6 +308,8 @@ private:
     class QHBoxLayout *saScriptLayout3;
     class QHBoxLayout *saScriptLayout4;
 
+
+    QWidget *saScriptContentWidget;
 
     QString activeFileNo;
 

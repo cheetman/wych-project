@@ -25,6 +25,7 @@
 #include <Windows.h>
 #include "utils.h"
 #include "winapi.h"
+#include <QComboBox>
 #include <QSpinBox>
 #include <QTableWidget>
 #include <tchar.h>
@@ -261,7 +262,7 @@ void Itemview10Script::initUI()
     auto script4Layout2 = new QHBoxLayout();
 
     auto saScript = new QScrollArea();
-    auto saScriptContentWidget = new QWidget();
+    saScriptContentWidget = new QWidget();
 
     //    saScript->setFixedHeight(90);
     auto saScriptLayouth = new QVBoxLayout();
@@ -546,6 +547,12 @@ void Itemview10Script::initUI()
     btnRefreshWindow = new QPushButton("刷新");
     btnRefreshWindow->setFixedWidth(60);
     rb_printClient->setChecked(true);
+    ck_dpi = new QComboBox();
+    ck_dpi->addItem("缩放:100%", QVariant::fromValue(1.0f));
+    ck_dpi->addItem("缩放:125%", QVariant::fromValue(1.25f));
+    ck_dpi->addItem("缩放:150%", QVariant::fromValue(1.5f));
+    ck_dpi->addItem("缩放:175%", QVariant::fromValue(1.75f));
+    ck_dpi->addItem("缩放:200%", QVariant::fromValue(2.0f));
 
     bg_printConfig = new QButtonGroup(this);
     bg_printConfig->addButton(rb_printWindow, 0);
@@ -592,11 +599,14 @@ void Itemview10Script::initUI()
 
     action_addScript = new QAction(tr("新增子节点"), this);
     action_removeScript = new QAction(tr("删除节点"), this);
+    action_testScript = new QAction(tr("测试节点"), this);
     menu_scriptContent = new QMenu(this);
+    menu_scriptContent->addAction(action_testScript);
     menu_scriptContent->addAction(action_addScript);
     menu_scriptContent->addAction(action_removeScript);
 
     menu_scriptContent2 = new QMenu(this);
+    menu_scriptContent2->addAction(action_testScript);
     menu_scriptContent2->addAction(action_removeScript);
 
     action_removeScriptDetail = new QAction(tr("删除"), this);
@@ -675,6 +685,7 @@ void Itemview10Script::initUI()
 
     //    rightQWidgetGroup1aLayout->addWidget(ckScriptStart);
     rightQWidgetGroup1aLayout->addWidget(btnScriptStart);
+    rightQWidgetGroup1aLayout->addWidget(ck_dpi);
 
     script3Layouta->addWidget(new QLabel("脚本类型:", this),     0, Qt::AlignLeft);
     script3Layouta->addWidget(rb_scriptTypeCondition,        0, Qt::AlignLeft);
@@ -837,6 +848,15 @@ void Itemview10Script::initUI()
 
     // 获取dpi
     dpi_window =  WinAPI::get_window_dpi();
+
+    int count = ck_dpi->count();
+
+    for (int i = 0; i < count; i++) {
+        if (dpi_window ==  ck_dpi->itemData(i).toFloat()) {
+            ck_dpi->setCurrentIndex(i);
+            break;
+        }
+    }
 }
 
 void Itemview10Script::initConnect()
@@ -1098,11 +1118,50 @@ void Itemview10Script::initConnect()
             sb_script_sleep_deal->setValue(item->data(Qt::UserRole + 13).toInt());
             sb_script_return_deal->setValue(item->data(Qt::UserRole + 14).toInt());
 
+
+            QList<QLabel *>itemsQLabel = saScriptContentWidget->findChildren<QLabel *>();       // 获取布局中所有按钮
+            QList<QSpinBox *>itemsQSpinBox = saScriptContentWidget->findChildren<QSpinBox *>(); // 获取布局中所有按钮
+            int i = 0;
+
             // 隐藏部分布局
+            if (activeScriptType == 1) {
+                foreach(QLabel * item, itemsQLabel) {
+                    if (i >= 2) item->hide();
+                    else item->show();
+
+                    i++;
+                }
+                i = 0;
+                foreach(QSpinBox * item, itemsQSpinBox) {
+                    if (i >= 2) item->hide();
+                    else item->show();
+
+                    i++;
+                }
+            }
+
             if (activeScriptType == 2) {
-                QList<QLabel *>items = saScriptLayout1->findChildren<QLabel *>(); // 获取布局中所有按钮
-                foreach(QLabel * item, items) {
-                    item->hide();                                                 // 析构所有按钮
+                foreach(QLabel * item, itemsQLabel) {
+                    if (i < 2) item->hide();
+                    else item->show();
+
+                    i++;
+                }
+                i = 0;
+                foreach(QSpinBox * item, itemsQSpinBox) {
+                    if (i < 2) item->hide();
+                    else item->show();
+
+                    i++;
+                }
+            }
+
+            if (activeScriptType == 3) {
+                foreach(QLabel * item, itemsQLabel) {
+                    item->show();
+                }
+                foreach(QSpinBox * item, itemsQSpinBox) {
+                    item->show();
                 }
             }
 
@@ -1573,6 +1632,135 @@ void Itemview10Script::initConnect()
     });
 
 
+    // 事件 - 测试节点
+    connect(action_testScript, &QAction::triggered, [this]() {
+        QModelIndex index = scriptTableView->currentIndex();
+        auto index2 = index.siblingAtColumn(2);
+
+        if (index2.isValid()) {
+            QJsonArray array = index2.data(Qt::UserRole + 2).toJsonArray();
+            int count = array.count();
+
+            if (count == 0) {
+                appendConsole(tr("测试失败！未配置明细脚本！"));
+                return;
+            }
+
+            if (!IsWindow(windowInfo.HandleWindow)) {
+                appendConsole("测试失败！窗口句柄无效！");
+                return;
+            }
+
+            activeWindowHandle = windowInfo.HandleWindow;
+
+            if (!print(activeWindowHandle)) {
+                appendConsole("测试失败！截图失败！");
+                return;
+            }
+
+
+            float dpi = ck_dpi->currentData().toFloat();      // 缩放
+            int type = index2.data(Qt::UserRole + 3).toInt(); // 判断类型
+            bool success = true;
+
+            switch (type) {
+            // 判断
+            case 1: {
+                for (int i = 0; i < count; i++) {
+                    QJsonObject obj = array.at(i).toObject();
+                    int xCheck =  obj["check_position_x"].toInt();
+                    int yCheck =  obj["check_position_y"].toInt();
+                    int rCheck =  obj["check_position_r"].toInt();
+                    int gCheck =  obj["check_position_g"].toInt();
+                    int bCheck =  obj["check_position_b"].toInt();
+                    int aCheck =  obj["check_position_a"].toInt();
+
+                    // 检查像素
+                    QColor color = pixmapWidget->getRgb(xCheck, yCheck);
+                    QColor checkColor(rCheck, gCheck, bCheck, aCheck);
+
+                    if (color == checkColor) {
+                        continue;
+                    } else {
+                        appendConsole(tr("测试失败！第%1条脚本明细未通过！").arg(i + 1));
+                        success = false;
+                    }
+                }
+
+                if (success) {
+                    appendConsole(tr("测试成功！"));
+                }
+                return;
+            }
+
+            // 执行
+            case 2: {
+                for (int i = 0; i < count; i++) {
+                    QJsonObject obj = array.at(i).toObject();
+
+                    int xClick =  obj["click_position_x"].toInt();
+                    int yClick =  obj["click_position_y"].toInt();
+
+
+                    HWND  hwnd = activeWindowHandle;
+                    POINT pt;
+                    pt.x = round(xClick / dpi);
+                    pt.y = round(yClick / dpi);
+                    LPARAM lParam = MAKELPARAM(pt.x, pt.y);
+                    SendMessage(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lParam);
+                    SendMessage(hwnd, WM_LBUTTONUP,   0,          lParam);
+
+                    appendConsole(tr("测试执行结束！"));
+                    return;
+                }
+
+                break;
+            }
+
+            // 判断 + 执行
+            case 3: {
+                for (int i = 0; i < count; i++) {
+                    QJsonObject obj = array.at(i).toObject();
+
+                    int xCheck =  obj["check_position_x"].toInt();
+                    int yCheck =  obj["check_position_y"].toInt();
+                    int rCheck =  obj["check_position_r"].toInt();
+                    int gCheck =  obj["check_position_g"].toInt();
+                    int bCheck =  obj["check_position_b"].toInt();
+                    int aCheck =  obj["check_position_a"].toInt();
+
+                    // 检查像素
+                    QColor color = pixmapWidget->getRgb(xCheck, yCheck);
+                    QColor checkColor(rCheck, gCheck, bCheck, aCheck);
+
+                    if (color == checkColor) {
+// 判断成功
+                        int xClick =  obj["click_position_x"].toInt();
+                        int yClick =  obj["click_position_y"].toInt();
+
+                        HWND  hwnd = activeWindowHandle;
+                        POINT pt;
+                        pt.x = round(xClick / dpi);
+                        pt.y = round(yClick / dpi);
+                        LPARAM lParam = MAKELPARAM(pt.x, pt.y);
+                        SendMessage(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lParam);
+                        SendMessage(hwnd, WM_LBUTTONUP,   0,          lParam);
+                    } else {
+                        appendConsole(tr("测试失败！脚本明细未通过！"));
+                        return;
+                    }
+                }
+                appendConsole(tr("测试成功！"));
+                return;
+            }
+
+            default:
+                break;
+            }
+        }
+    });
+
+
     // 事件 - ??
     connect(bg_scriptConditionType, &QButtonGroup::idToggled, [this](int id, bool b) {
         qDebug() << id << b;
@@ -1717,9 +1905,13 @@ void Itemview10Script::recursionScriptShow(QJsonObject& json, QStandardItem *par
         QStandardItem *keyItem = new QStandardItem(no);
         keyItem->setCheckable(true);
         keyItem->setCheckState(Qt::Unchecked);
-        keyItem->setData(scriptType, Qt::UserRole + 3); // 设置类型
-        keyItem->setData(details,    Qt::UserRole + 2); // 设置配置明细
-        keyItem->setData(1,          Qt::UserRole + 1); // 设置已配置
+        keyItem->setData(scriptType,                   Qt::UserRole + 3);  // 设置类型
+        keyItem->setData(details,                      Qt::UserRole + 2);  // 设置配置明细
+        keyItem->setData(1,                            Qt::UserRole + 1);  // 设置已配置
+        keyItem->setData(json["sleepSuccess"].toInt(), Qt::UserRole + 11); // 设置已配置
+        keyItem->setData(json["sleepFailure"].toInt(), Qt::UserRole + 12); // 设置已配置
+        keyItem->setData(json["sleepDeal"].toInt(),    Qt::UserRole + 13); // 设置已配置
+        keyItem->setData(json["returnDeal"].toInt(),   Qt::UserRole + 14); // 设置已配置
 
         QStandardItem *item0 =  new QStandardItem("");
         item0->setData(QColor(Qt::black), Qt::ForegroundRole);
@@ -1821,8 +2013,16 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
         lastItem->setData(QColor(Qt::blue), Qt::ForegroundRole);
 
 
-        int type = index2.data(Qt::UserRole + 3).toInt(); // 判断类型
+        int type = index2.data(Qt::UserRole + 3).toInt();           // 判断类型
         QJsonArray array = index2.data(Qt::UserRole + 2).toJsonArray();
+
+        float dpi = ck_dpi->currentData().toFloat();                // 缩放
+
+        int sleep_success = index2.data(Qt::UserRole + 11).toInt(); // 延迟
+        int sleep_failure = index2.data(Qt::UserRole + 12).toInt(); // 延迟
+
+        int sleep_deal = index2.data(Qt::UserRole + 13).toInt();    // 延迟
+        int return_deal = index2.data(Qt::UserRole + 14).toInt();   // 返回
 
         switch (type) {
         // 判断
@@ -1846,14 +2046,22 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
                     continue;
                 } else {
                     // 判断失败
-                    // break;
-                    Sleep(2000);
+                    lastItem->setData("失败",            Qt::DisplayRole);
+                    lastItem->setData(QColor(Qt::red), Qt::ForegroundRole);
+                    Sleep(sleep_failure * 100);
                     lastItem->setData("",                Qt::DisplayRole);
                     lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
-                    return false;
+
+                    // 这里不能返回false;
+                    // 失败后直接跳出，不执行后续代码，也就是子节点
+                    return true;
                 }
             }
 
+            // 成功时延迟
+            lastItem->setData("成功",             Qt::DisplayRole);
+            lastItem->setData(QColor(Qt::blue), Qt::ForegroundRole);
+            Sleep(sleep_success * 100);
             lastItem->setData("",                Qt::DisplayRole);
             lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
             break;
@@ -1870,17 +2078,17 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
 
                 HWND  hwnd = windowInfo.HandleWindow;
                 POINT pt;
-                pt.x = round(xClick / dpi_window);
-                pt.y = round(yClick / dpi_window);
+                pt.x = round(xClick / dpi);
+                pt.y = round(yClick / dpi);
                 LPARAM lParam = MAKELPARAM(pt.x, pt.y);
                 SendMessage(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lParam);
                 SendMessage(hwnd, WM_LBUTTONUP,   0,          lParam);
 
-                Sleep(2000);
+                Sleep(sleep_deal * 100);
                 lastItem->setData("",                Qt::DisplayRole);
                 lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
 
-                // 执行结束
+                // 执行结束，没有子节点
                 return true;
             }
 
@@ -1905,25 +2113,36 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
 
                 if (color == checkColor) {
                     // 判断成功
+                    lastItem->setData("成功",             Qt::DisplayRole);
+                    lastItem->setData(QColor(Qt::blue), Qt::ForegroundRole);
+                    Sleep(sleep_success * 100);
+
                     int xClick =  obj["click_position_x"].toInt();
                     int yClick =  obj["click_position_y"].toInt();
 
                     HWND  hwnd = windowInfo.HandleWindow;
                     POINT pt;
-                    pt.x = round(xClick / dpi_window);
-                    pt.y = round(yClick / dpi_window);
+                    pt.x = round(xClick / dpi);
+                    pt.y = round(yClick / dpi);
                     LPARAM lParam = MAKELPARAM(pt.x, pt.y);
                     SendMessage(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lParam);
                     SendMessage(hwnd, WM_LBUTTONUP,   0,          lParam);
 
-                    Sleep(2000);
+                    Sleep(sleep_deal * 100);
                     lastItem->setData("",                Qt::DisplayRole);
                     lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+
+                    // 执行结束，没有子节点
+                    return true;
                 } else {
-                    Sleep(2000);
+                    lastItem->setData("失败",            Qt::DisplayRole);
+                    lastItem->setData(QColor(Qt::red), Qt::ForegroundRole);
+                    Sleep(sleep_failure * 100);
                     lastItem->setData("",                Qt::DisplayRole);
                     lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
-                    break;
+
+                    // 执行结束，没有子节点
+                    return true;
                 }
             }
             break;
@@ -1944,7 +2163,10 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
         if (Qt::Unchecked != checkStatus) {
             auto index = scriptGridModel->index(rowIndex, 0, now);
 
-            if (!recursionScriptStart(index)) {
+            // 这个结果应该永远是true;
+            bool success =  recursionScriptStart(index);
+
+            if (!success) {
                 return false;
             }
         }

@@ -44,13 +44,12 @@ protected:
 
     void                      initUI();
     void                      initConnect();
-    void                      postMessage(const QString& msg);
-    void                      clearMessage();
-
-    void                      appendMessage(const QString& msg);
-    void                      showMessage(const QString& msg);
-
-    bool                      print();
+    void                      postAppendConsole(const QString& msg);
+    void                      clearConsole();
+    void                      appendConsole(const QString& msg);
+    void                      writeConsole(const QString& msg);
+    bool                      print(HWND windowHandle);
+    virtual void              customEvent(QEvent *e);
 
     static unsigned __stdcall RefreshScript(void *param);
 
@@ -61,6 +60,8 @@ private:
     void    clearScriptDetailEdit();
     void    clearScript();
     void    clearScriptDetail();
+    void    recursionScriptCheck(const QModelIndex& now);
+    void    recursionScriptUnCheck(const QModelIndex& now);
     bool    recursionScriptStart(const QModelIndex& now = QModelIndex());
 
     void    recursionScriptSave(QJsonObject      & json,
@@ -127,6 +128,7 @@ private:
     QLineEdit *tb_resource_rva;
     QLineEdit *tb_base_relocation_rva;
     QLineEdit *tb_process_name;
+    QLineEdit *tb_window_handle2;
     QLineEdit *tb_process_handle;
     QLineEdit *tb_window_name;
     QLineEdit *tb_window_handle;
@@ -290,9 +292,18 @@ private:
     class QAction *action_addRootScriptDetail;
     class QAction *action_removeScriptDetail;
 
+    class QSpinBox *sb_script_sleep_success;
+    class QSpinBox *sb_script_sleep_failure;
+    class QSpinBox *sb_script_sleep_deal;
+    class QSpinBox *sb_script_return_deal;
 
-    //    QModelIndex selectedIdIndex;
-    // QString activeScriptTypeNo;
+    class QSpinBox *sb_script_return_failure;
+
+    class QHBoxLayout *saScriptLayout1;
+    class QHBoxLayout *saScriptLayout2;
+    class QHBoxLayout *saScriptLayout3;
+    class QHBoxLayout *saScriptLayout4;
+
 
     QString activeFileNo;
 
@@ -310,6 +321,7 @@ private:
     QString activeScriptDetailNo;
     QString activeScriptDetailRemark;
     QStandardItem *lastItem;
+    HWND activeWindowHandle = 0;
 
 signals:
 };

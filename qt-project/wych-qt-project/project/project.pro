@@ -72,6 +72,7 @@ HEADERS += \
     components/scriptchecktypedialog.h \
     components/scripttypedialog.h \
     components/selectdialog.h \
+    events/customevent.h \
     itemview10Inject.h \
     itemview10.h \
     itemview10Script.h \
@@ -95,7 +96,6 @@ HEADERS += \
     test2.h \
     utils.h \
     vlclib.h \
-    customevent.h \
     winapi.h \
     window.h \
     configs/csgo.hpp

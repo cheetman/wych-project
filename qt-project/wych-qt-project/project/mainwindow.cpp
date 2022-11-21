@@ -1,6 +1,6 @@
 
 #include "mainwindow.h"
-#include "customevent.h"
+#include "events/customevent.h"
 #include "itemview10.h"
 
 #include <ItemView11.h>
@@ -44,7 +44,7 @@ void MainWindow::postMessage(const QString& msg)
     QApplication::postEvent(this, event);
 }
 
-void MainWindow::appendMessage(const QString& msg)
+void MainWindow::appendConsole(const QString& msg)
 {
     //    QString text = recvmsg->toPlainText();
     //    text += QDateTime::currentDateTime().toString("[yyyy-MM-dd hh:mm:ss.zzz] ");
@@ -52,10 +52,10 @@ void MainWindow::appendMessage(const QString& msg)
     //    if (text.back() != '\n') {
     //        text += "\n";
     //    }
-    //    showMessage(text);
+    //    writeConsole(text);
 }
 
-void MainWindow::showMessage(const QString& msg)
+void MainWindow::writeConsole(const QString& msg)
 {
     //    recvmsg->setText(msg);
     //    QTextCursor cursor = recvmsg->textCursor();

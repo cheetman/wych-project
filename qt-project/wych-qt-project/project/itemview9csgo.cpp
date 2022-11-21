@@ -1,6 +1,6 @@
 #include "itemview9csgo.h"
 #include "mainwindow.h"
-#include "customevent.h"
+#include "events/customevent.h"
 
 ItemView9CSGO *g_csgo;
 
@@ -25,19 +25,22 @@ void ItemView9CSGO::initUI()
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox1);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout = new QGridLayout(leftQWidgetGroupBox1);
-    leftQWidgetGroupBox1->setFixedHeight(200);
+
+    //    leftQWidgetGroupBox1->setFixedHeight(200);
 
     auto leftQWidgetGroupBox2 = new QGroupBox("自瞄设置", this);
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox2);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout2 = new QGridLayout(leftQWidgetGroupBox2);
-    leftQWidgetGroupBox2->setFixedHeight(130);
+
+    //    leftQWidgetGroupBox2->setFixedHeight(130);
 
     auto leftQWidgetGroupBox3 = new QGroupBox("显示设置", this);
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox3);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout3 = new QGridLayout(leftQWidgetGroupBox3);
-    leftQWidgetGroupBox3->setFixedHeight(90);
+
+    //    leftQWidgetGroupBox3->setFixedHeight(90);
 
 
     auto centerQWidget = new QWidget(this);
@@ -521,7 +524,7 @@ unsigned __stdcall ItemView9CSGO::Resize(void *param) {
 void ItemView9CSGO::initConnect()
 {
     connect(btnConsoleClear, &QPushButton::clicked, [this]() {
-        clearMessage();
+        clearConsole();
     });
 
     connect(btnStartStop, &QPushButton::clicked, [this]() {
@@ -624,7 +627,7 @@ void ItemView9CSGO::refreshForm() {
     }
 }
 
-void ItemView9CSGO::clearMessage()
+void ItemView9CSGO::clearConsole()
 {
     edtMsg->clear();
 }
@@ -636,7 +639,7 @@ void ItemView9CSGO::postMessage(const QString& msg)
     QApplication::postEvent(this, event);
 }
 
-void ItemView9CSGO::appendMessage(const QString& msg)
+void ItemView9CSGO::appendConsole(const QString& msg)
 {
     QString text = edtMsg->toPlainText();
 
@@ -649,10 +652,10 @@ void ItemView9CSGO::appendMessage(const QString& msg)
     if (text.back() != '\n') {
         text += "\n";
     }
-    showMessage(text);
+    writeConsole(text);
 }
 
-void ItemView9CSGO::showMessage(const QString& msg)
+void ItemView9CSGO::writeConsole(const QString& msg)
 {
     edtMsg->setPlainText(msg);
     QTextCursor cursor = edtMsg->textCursor();
@@ -668,7 +671,7 @@ void ItemView9CSGO::customEvent(QEvent *e)
     case qEventRecvMsg:
     {
         QStringEvent *event = dynamic_cast<QStringEvent *>(e);
-        appendMessage(event->message);
+        appendConsole(event->message);
     }
         e->accept();
         break;

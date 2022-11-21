@@ -31,10 +31,10 @@ protected:
     void         initUI();
     void         initConnect();
     void         postMessage(const QString& msg);
-    void         clearMessage();
+    void         clearConsole();
 
     void         appendConsolo(const QString& msg);
-    void         showMessage(const QString& msg);
+    void         writeConsole(const QString& msg);
     virtual void customEvent(QEvent *e);
 
     void         inputCmd();

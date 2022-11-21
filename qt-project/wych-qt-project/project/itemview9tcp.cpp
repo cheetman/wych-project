@@ -1,7 +1,7 @@
 #include "itemview9tcp.h"
 
 #include "mainwindow.h"
-#include "customevent.h"
+#include "events/customevent.h"
 
 // #pragma comment(lib, "libhv.lib")
 
@@ -97,7 +97,7 @@ void ItemView9Tcp::initUI()
 void ItemView9Tcp::initConnect()
 {
     connect(btnConsoleClear, &QPushButton::clicked, [this]() {
-        clearMessage();
+        clearConsole();
     });
 
     connect(btnStartStop, &QPushButton::clicked, [this]() {
@@ -107,9 +107,9 @@ void ItemView9Tcp::initConnect()
 
             if (start(port, host.c_str())) {
                 btnStartStop->setText(tr("关闭"));
-                appendMessage(QString::asprintf("TCP server running on %s:%d ...", host.c_str(), port));
+                appendConsole(QString::asprintf("TCP server running on %s:%d ...", host.c_str(), port));
             } else {
-                appendMessage(QString::asprintf("TCP server start failed!"));
+                appendConsole(QString::asprintf("TCP server start failed!"));
             }
             isStart = true;
         } else {
@@ -117,7 +117,7 @@ void ItemView9Tcp::initConnect()
             btnStartStop->setText(tr("打开"));
 
             //        g_mainwnd->
-            appendMessage("TCP server stopped!");
+            appendConsole("TCP server stopped!");
             isStart = false;
         }
     });
@@ -222,7 +222,7 @@ void ItemView9Tcp::stop()
     SAFE_DELETE(server);
 }
 
-void ItemView9Tcp::clearMessage()
+void ItemView9Tcp::clearConsole()
 {
     edtMsg->clear();
 }
@@ -234,7 +234,7 @@ void ItemView9Tcp::postMessage(const QString& msg)
     QApplication::postEvent(this, event);
 }
 
-void ItemView9Tcp::appendMessage(const QString& msg)
+void ItemView9Tcp::appendConsole(const QString& msg)
 {
     QString text = edtMsg->toPlainText();
 
@@ -247,10 +247,10 @@ void ItemView9Tcp::appendMessage(const QString& msg)
     if (text.back() != '\n') {
         text += "\n";
     }
-    showMessage(text);
+    writeConsole(text);
 }
 
-void ItemView9Tcp::showMessage(const QString& msg)
+void ItemView9Tcp::writeConsole(const QString& msg)
 {
     edtMsg->setPlainText(msg);
     QTextCursor cursor = edtMsg->textCursor();
@@ -266,7 +266,7 @@ void ItemView9Tcp::customEvent(QEvent *e)
     case qEventRecvMsg:
     {
         QStringEvent *event = dynamic_cast<QStringEvent *>(e);
-        appendMessage(event->message);
+        appendConsole(event->message);
     }
         e->accept();
         break;

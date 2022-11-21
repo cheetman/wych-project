@@ -43,7 +43,8 @@ void Itemview10Inject::initUI()
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox1);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout = new QGridLayout(leftQWidgetGroupBox1);
-    leftQWidgetGroupBox1->setFixedHeight(100);
+
+    //    leftQWidgetGroupBox1->setFixedHeight(100);
 
 
     auto leftQWidgetGroupBox2 = new QGroupBox("进程", this);
@@ -389,7 +390,7 @@ void Itemview10Inject::initConnect()
 
 
     connect(btnConsoleClear, &QPushButton::clicked, [this]() {
-        clearMessage();
+        clearConsole();
     });
 
     connect(btnDebugPrivilege, &QPushButton::clicked, [this]() {
@@ -408,7 +409,7 @@ void Itemview10Inject::initConnect()
             fOk = (GetLastError() == ERROR_SUCCESS);
             CloseHandle(hToken);
         }
-        appendMessage(tr("提升权限：%1!").arg(fOk));
+        appendConsole(tr("提升权限：%1!").arg(fOk));
     });
 
 
@@ -572,7 +573,7 @@ void Itemview10Inject::initConnect()
 
         if (hProcessSnap == INVALID_HANDLE_VALUE)
         {
-            appendMessage(tr("CreateToolhelp32Snapshot 报错 errorcode:[%1]").arg(GetLastError()));
+            appendConsole(tr("CreateToolhelp32Snapshot 报错 errorcode:[%1]").arg(GetLastError()));
             return;
         }
         BOOL bMore = Process32First(hProcessSnap, &pe32);
@@ -597,7 +598,7 @@ void Itemview10Inject::initConnect()
 
             if (hProcess == 0)
             {
-                appendMessage(tr("OpenProcess[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
+                appendConsole(tr("OpenProcess[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
                 platform = tr("-");
             }
             else
@@ -631,7 +632,7 @@ void Itemview10Inject::initConnect()
                     HANDLE hToken;
 
                     if (!OpenProcessToken(hProcess, TOKEN_QUERY, &hToken)) {
-                        appendMessage(tr("OpenProcessToken[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
+                        appendConsole(tr("OpenProcessToken[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
                         break;
                     }
 
@@ -644,7 +645,7 @@ void Itemview10Inject::initConnect()
 
                         if (dwError != ERROR_INSUFFICIENT_BUFFER)
                         {
-                            appendMessage(tr("GetTokenInformation[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
+                            appendConsole(tr("GetTokenInformation[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
                             CloseHandle(hToken);
                             break;
                         }
@@ -655,14 +656,14 @@ void Itemview10Inject::initConnect()
 
                     if (!to)
                     {
-                        appendMessage(tr("LocalAlloc[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
+                        appendConsole(tr("LocalAlloc[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
                         CloseHandle(hToken);
                         break;
                     }
 
                     if (!GetTokenInformation(hToken, TokenOwner, to, len, &len))
                     {
-                        appendMessage(tr("GetTokenInformation[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
+                        appendConsole(tr("GetTokenInformation[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
                         LocalFree(to);
                         CloseHandle(hToken);
                         break;
@@ -677,7 +678,7 @@ void Itemview10Inject::initConnect()
                     if (!LookupAccountSidA(NULL, to->Owner, nameUser, &nameUserLen, domainName, &domainNameLen, &snu))
                     {
                         dwError = GetLastError();
-                        appendMessage(tr("LookupAccountSid[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
+                        appendConsole(tr("LookupAccountSid[%1] 报错 errorcode:[%2] ").arg(QString::fromWCharArray(pe32.szExeFile)).arg(GetLastError()));
                         LocalFree(to);
                         CloseHandle(hToken);
                         break;
@@ -740,7 +741,7 @@ void Itemview10Inject::initConnect()
         }
 
         CloseHandle(hProcessSnap);
-        appendMessage(tr("刷新进程成功!"));
+        appendConsole(tr("刷新进程成功!"));
     });
 
 
@@ -843,7 +844,7 @@ void Itemview10Inject::initConnect()
         hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid);
 
         if (hModuleSnap == INVALID_HANDLE_VALUE) {
-            appendMessage(tr("CreateToolhelp32Snapshot 报错 errorcode:[%1]").arg(GetLastError()));
+            appendConsole(tr("CreateToolhelp32Snapshot 报错 errorcode:[%1]").arg(GetLastError()));
             return;
         }
         BOOL bRet = Module32First(hModuleSnap, &lpme);
@@ -877,7 +878,7 @@ void Itemview10Inject::initConnect()
         }
 
         CloseHandle(hModuleSnap);
-        appendMessage(tr("刷新进程模块成功"));
+        appendConsole(tr("刷新进程模块成功"));
     });
 
 
@@ -891,7 +892,7 @@ void Itemview10Inject::initConnect()
         auto isWindow =  processGridModel->item(rowIndex, 0)->text();
 
         if (isWindow.isEmpty()) {
-            appendMessage(tr("该进程没有窗口！"));
+            appendConsole(tr("该进程没有窗口！"));
             return;
         }
 
@@ -906,7 +907,7 @@ void Itemview10Inject::initConnect()
     });
 }
 
-void Itemview10Inject::appendMessage(const QString& msg)
+void Itemview10Inject::appendConsole(const QString& msg)
 {
     QString text = edtMsg->toPlainText();
 
@@ -919,10 +920,10 @@ void Itemview10Inject::appendMessage(const QString& msg)
     if (text.back() != '\n') {
         text += "\n";
     }
-    showMessage(text);
+    writeConsole(text);
 }
 
-void Itemview10Inject::showMessage(const QString& msg)
+void Itemview10Inject::writeConsole(const QString& msg)
 {
     edtMsg->setPlainText(msg);
     QTextCursor cursor = edtMsg->textCursor();
@@ -931,7 +932,7 @@ void Itemview10Inject::showMessage(const QString& msg)
     edtMsg->repaint();
 }
 
-void Itemview10Inject::clearMessage()
+void Itemview10Inject::clearConsole()
 {
     edtMsg->clear();
 }

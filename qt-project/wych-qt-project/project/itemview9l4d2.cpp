@@ -1,6 +1,6 @@
 #include "itemview9l4d2.h"
 #include "mainwindow.h"
-#include "customevent.h"
+#include "events/customevent.h"
 
 
 ItemView9L4D2 *g_l4d2;
@@ -27,21 +27,22 @@ void ItemView9L4D2::initUI()
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox1);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout = new QGridLayout(leftQWidgetGroupBox1);
-    leftQWidgetGroupBox1->setFixedHeight(200);
+
+    //    leftQWidgetGroupBox1->setFixedHeight(200);
 
     auto leftQWidgetGroupBox2 = new QGroupBox("自瞄设置", this);
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox2);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout2 = new QGridLayout(leftQWidgetGroupBox2);
-    leftQWidgetGroupBox2->setFixedHeight(130);
+
+    //    leftQWidgetGroupBox2->setFixedHeight(130);
 
     auto leftQWidgetGroupBox3 = new QGroupBox("显示设置", this);
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox3);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout3 = new QGridLayout(leftQWidgetGroupBox3);
-    leftQWidgetGroupBox3->setFixedHeight(90);
 
-    //    leftQWidgetGroupBox1->setFixedWidth(400);
+    //    leftQWidgetGroupBox3->setFixedHeight(90);
 
 
     auto centerQWidget = new QWidget(this);
@@ -801,7 +802,7 @@ unsigned __stdcall ItemView9L4D2::Resize(void *param) {
 void ItemView9L4D2::initConnect()
 {
     connect(btnConsoleClear, &QPushButton::clicked, [this]() {
-        clearMessage();
+        clearConsole();
     });
 
     connect(btnStartStop, &QPushButton::clicked, [this]() {
@@ -923,7 +924,7 @@ void ItemView9L4D2::refreshForm() {
     }
 }
 
-void ItemView9L4D2::clearMessage()
+void ItemView9L4D2::clearConsole()
 {
     edtMsg->clear();
 }
@@ -935,7 +936,7 @@ void ItemView9L4D2::postMessage(const QString& msg)
     QApplication::postEvent(this, event);
 }
 
-void ItemView9L4D2::appendMessage(const QString& msg)
+void ItemView9L4D2::appendConsole(const QString& msg)
 {
     QString text = edtMsg->toPlainText();
 
@@ -948,10 +949,10 @@ void ItemView9L4D2::appendMessage(const QString& msg)
     if (text.back() != '\n') {
         text += "\n";
     }
-    showMessage(text);
+    writeConsole(text);
 }
 
-void ItemView9L4D2::showMessage(const QString& msg)
+void ItemView9L4D2::writeConsole(const QString& msg)
 {
     edtMsg->setPlainText(msg);
     QTextCursor cursor = edtMsg->textCursor();
@@ -967,7 +968,7 @@ void ItemView9L4D2::customEvent(QEvent *e)
     case qEventRecvMsg:
     {
         QStringEvent *event = dynamic_cast<QStringEvent *>(e);
-        appendMessage(event->message);
+        appendConsole(event->message);
     }
         e->accept();
         break;

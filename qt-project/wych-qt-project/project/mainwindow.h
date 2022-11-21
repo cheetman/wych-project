@@ -26,8 +26,8 @@ public:
 
 //    static QString FtpFavorDirList;
     void postMessage(const QString& msg);
-    void appendMessage(const QString& msg);
-    void showMessage(const QString& msg);
+    void appendConsole(const QString& msg);
+    void writeConsole(const QString& msg);
 };
 
 

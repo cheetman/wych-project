@@ -1,6 +1,6 @@
 #include "itemview9css.h"
 #include "mainwindow.h"
-#include "customevent.h"
+#include "events/customevent.h"
 
 ItemView9CSS *g_css;
 
@@ -520,7 +520,7 @@ unsigned __stdcall ItemView9CSS::Resize(void *param) {
 void ItemView9CSS::initConnect()
 {
     connect(btnConsoleClear, &QPushButton::clicked, [this]() {
-        clearMessage();
+        clearConsole();
     });
 
     connect(btnStartStop, &QPushButton::clicked, [this]() {
@@ -623,7 +623,7 @@ void ItemView9CSS::refreshForm() {
     }
 }
 
-void ItemView9CSS::clearMessage()
+void ItemView9CSS::clearConsole()
 {
     edtMsg->clear();
 }
@@ -635,7 +635,7 @@ void ItemView9CSS::postMessage(const QString& msg)
     QApplication::postEvent(this, event);
 }
 
-void ItemView9CSS::appendMessage(const QString& msg)
+void ItemView9CSS::appendConsole(const QString& msg)
 {
     QString text = edtMsg->toPlainText();
 
@@ -648,10 +648,10 @@ void ItemView9CSS::appendMessage(const QString& msg)
     if (text.back() != '\n') {
         text += "\n";
     }
-    showMessage(text);
+    writeConsole(text);
 }
 
-void ItemView9CSS::showMessage(const QString& msg)
+void ItemView9CSS::writeConsole(const QString& msg)
 {
     edtMsg->setPlainText(msg);
     QTextCursor cursor = edtMsg->textCursor();
@@ -667,7 +667,7 @@ void ItemView9CSS::customEvent(QEvent *e)
     case qEventRecvMsg:
     {
         QStringEvent *event = dynamic_cast<QStringEvent *>(e);
-        appendMessage(event->message);
+        appendConsole(event->message);
     }
         e->accept();
         break;

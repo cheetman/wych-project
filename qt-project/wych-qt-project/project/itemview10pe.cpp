@@ -36,7 +36,8 @@ void ItemView10PE::initUI()
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox1);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout = new QGridLayout(leftQWidgetGroupBox1);
-    leftQWidgetGroupBox1->setFixedHeight(120);
+
+    //    leftQWidgetGroupBox1->setFixedHeight(120);
 
 
     auto leftQWidgetGroupBox2 = new QGroupBox("PE头", this);
@@ -434,7 +435,7 @@ void ItemView10PE::initConnect()
         QString fileName = QFileDialog::getOpenFileName(this, tr("文件对话框！"), "F:", tr("动态链接库(*dll *exe);;" "执行文件(*exe)"));
 
         if (fileName.isEmpty()) {
-            appendMessage("请选择一个文件");
+            appendConsole("请选择一个文件");
             return;
         }
         auto path = (wchar_t *)fileName.utf16();
@@ -1088,7 +1089,7 @@ void ItemView10PE::InjectImportTable() {
     // memset((LPVOID)((DWORD)pFileBuffer + file_size + 0x2000), 7, 0x2000);
 }
 
-void ItemView10PE::appendMessage(const QString& msg)
+void ItemView10PE::appendConsole(const QString& msg)
 {
     QString text = edtMsg->toPlainText();
 
@@ -1101,10 +1102,10 @@ void ItemView10PE::appendMessage(const QString& msg)
     if (text.back() != '\n') {
         text += "\n";
     }
-    showMessage(text);
+    writeConsole(text);
 }
 
-void ItemView10PE::showMessage(const QString& msg)
+void ItemView10PE::writeConsole(const QString& msg)
 {
     edtMsg->setPlainText(msg);
     QTextCursor cursor = edtMsg->textCursor();

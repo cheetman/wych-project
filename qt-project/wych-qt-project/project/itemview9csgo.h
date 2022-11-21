@@ -125,10 +125,10 @@ protected:
     void                      initUI();
     void                      initConnect();
     void                      postMessage(const QString& msg);
-    void                      clearMessage();
+    void                      clearConsole();
 
-    void                      appendMessage(const QString& msg);
-    void                      showMessage(const QString& msg);
+    void                      appendConsole(const QString& msg);
+    void                      writeConsole(const QString& msg);
     virtual void              customEvent(QEvent *e);
 
     static unsigned __stdcall Start(void *param);

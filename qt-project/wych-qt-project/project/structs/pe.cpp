@@ -133,7 +133,7 @@ bool PE::build() {
 
 void PE::warning(const QString& msg) {
     if (parent) {
-        ((ItemView10PE *)parent)->appendMessage(msg);
+        ((ItemView10PE *)parent)->appendConsole(msg);
     }
 }
 

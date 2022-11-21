@@ -5,13 +5,16 @@
 #include <QString>
 
 const static QEvent::Type qEventRecvMsg = (QEvent::Type)(QEvent::User + 1);
+const static QEvent::Type qEventAppendConsole = (QEvent::Type)(QEvent::User + 2);
 
 class QStringEvent : public QEvent {
 public:
+
     QStringEvent(const QString& msg = "", QEvent::Type type = qEventRecvMsg) : QEvent(type)
     {
         message = msg;
     }
+
     QString message;
 };
 

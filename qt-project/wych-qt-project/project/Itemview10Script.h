@@ -57,6 +57,7 @@ private:
 
     QString getScriptTypeName(int type);
     void    buildScriptDetailEdit();
+    void    buildScriptDetail();
     void    clearScriptDetailEdit();
     void    clearScript();
     void    clearScriptDetail();
@@ -167,6 +168,7 @@ private:
     QCheckBox *ck_check_color_get;
     QLabel *tb_check_color;
     QLabel *tb_check_print_size;
+    QPushButton *btn_color_select;
 
     int check_print_width;
     int check_print_height;
@@ -282,6 +284,7 @@ private:
     class QMenu *menu_script;
     class QMenu *menu_scriptContent;
     class QMenu *menu_scriptContent2;
+    class QMenu *menu_scriptContent3;
     class QMenu *menu_scriptDetail;
     class QMenu *menu_scriptDetailContent;
 
@@ -308,9 +311,10 @@ private:
     class QHBoxLayout *saScriptLayout3;
     class QHBoxLayout *saScriptLayout4;
 
-
+    class QScrollArea *saScript;
     QWidget *saScriptContentWidget;
 
+    QModelIndex selectedIdIndex;
     QString activeFileNo;
 
     // -1 新建未配置 1 已配置

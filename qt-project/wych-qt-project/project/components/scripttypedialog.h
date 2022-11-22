@@ -26,6 +26,7 @@ public:
     class QRadioButton *rb_scriptTypeDeal;
     class QRadioButton *rb_scriptTypeCondition;
     class QRadioButton *rb_scriptTypeConditionAndDeal;
+    class QRadioButton *rb_scriptTypeDir;
 
 private:
 };

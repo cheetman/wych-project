@@ -26,8 +26,9 @@ ScriptTypeDialog::ScriptTypeDialog(Type type, QWidget *parent) :
     rb_scriptTypeCondition = new QRadioButton("条件判断", this);
     rb_scriptTypeDeal = new QRadioButton("操作", this);
     rb_scriptTypeConditionAndDeal = new QRadioButton("条件判断+操作", this);
-    rb_scriptTypeConditionAndDeal->setChecked(true);
+    rb_scriptTypeDir = new QRadioButton("目录", this);
     bg_scriptType = new QButtonGroup(this);
+    bg_scriptType->addButton(rb_scriptTypeDir,              4);
     bg_scriptType->addButton(rb_scriptTypeCondition,        1);
     bg_scriptType->addButton(rb_scriptTypeDeal,             2);
     bg_scriptType->addButton(rb_scriptTypeConditionAndDeal, 3);
@@ -39,14 +40,18 @@ ScriptTypeDialog::ScriptTypeDialog(Type type, QWidget *parent) :
     rb_scriptTypeCondition->hide();
     rb_scriptTypeDeal->hide();
 
+    layout2->addWidget(rb_scriptTypeDir);
+
     if ((type == Check) || (type == CheckOrDeal)) {
         layout2->addWidget(rb_scriptTypeCondition);
         rb_scriptTypeCondition->show();
+        rb_scriptTypeCondition->setChecked(true);
     }
 
     if ((type == Deal) || (type == CheckOrDeal)) {
         layout2->addWidget(rb_scriptTypeDeal);
         rb_scriptTypeDeal->show();
+        rb_scriptTypeDeal->setChecked(true);
     }
     layout2->addWidget(rb_scriptTypeConditionAndDeal);
     layout3->addWidget(btn_ok);

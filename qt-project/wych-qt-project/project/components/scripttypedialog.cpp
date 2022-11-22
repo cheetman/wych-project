@@ -8,7 +8,7 @@
 #include <QRadioButton>
 
 
-ScriptTypeDialog::ScriptTypeDialog(Type type, QWidget *parent) :
+ScriptTypeDialog::ScriptTypeDialog(Type type, int parentType, QWidget *parent) :
     QDialog(parent)
 {
     auto layout = new QVBoxLayout(this);
@@ -37,24 +37,47 @@ ScriptTypeDialog::ScriptTypeDialog(Type type, QWidget *parent) :
     layout11->addWidget(new QLabel("名称：", this));
     layout11->addWidget(le_name);
 
-    rb_scriptTypeCondition->hide();
-    rb_scriptTypeDeal->hide();
+
+    //    if ((type == Check) || (type == CheckOrDeal)) {
+    //        layout2->addWidget(rb_scriptTypeCondition);
+    //        rb_scriptTypeCondition->show();
+    //        rb_scriptTypeCondition->setChecked(true);
+    //    }
+
+    //    if ((type == Deal) || (type == CheckOrDeal)) {
+    //        layout2->addWidget(rb_scriptTypeDeal);
+    //        rb_scriptTypeDeal->show();
+    //        rb_scriptTypeDeal->setChecked(true);
+    //    }
+
 
     layout2->addWidget(rb_scriptTypeDir);
+    layout2->addWidget(rb_scriptTypeCondition);
+    layout2->addWidget(rb_scriptTypeDeal);
 
-    if ((type == Check) || (type == CheckOrDeal)) {
-        layout2->addWidget(rb_scriptTypeCondition);
-        rb_scriptTypeCondition->show();
-        rb_scriptTypeCondition->setChecked(true);
-    }
-
-    if ((type == Deal) || (type == CheckOrDeal)) {
-        layout2->addWidget(rb_scriptTypeDeal);
-        rb_scriptTypeDeal->show();
-        rb_scriptTypeDeal->setChecked(true);
-    }
-    layout2->addWidget(rb_scriptTypeConditionAndDeal);
+    //    layout2->addWidget(rb_scriptTypeConditionAndDeal);
     layout3->addWidget(btn_ok);
+
+
+    switch (parentType) {
+    case 1:
+        rb_scriptTypeDeal->setChecked(true);
+        rb_scriptTypeConditionAndDeal->hide();
+        break;
+
+    case 4:
+        rb_scriptTypeCondition->setChecked(true);
+
+        //        rb_scriptTypeDeal->hide();
+        rb_scriptTypeConditionAndDeal->hide();
+        break;
+
+    default:
+        rb_scriptTypeCondition->setChecked(true);
+        rb_scriptTypeDeal->hide();
+        rb_scriptTypeConditionAndDeal->hide();
+        break;
+    }
 
     this->setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
 

@@ -294,6 +294,7 @@ private:
     class QAction *action_addRootScript;
     class QAction *action_removeScript;
     class QAction *action_testScript;
+    class QAction *action_renameScript;
 
     class QAction *action_addScriptDetail;
     class QAction *action_addRootScriptDetail;

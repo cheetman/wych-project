@@ -13,9 +13,10 @@ private:
 
 public:
 
-    enum Type { Check, Deal, CheckOrDeal };
+    enum Type { Check, Deal, CheckOrDeal, Dir };
 
     explicit ScriptTypeDialog(Type     type,
+                              int      parentType,
                               QWidget *parent = 0);
     ~ScriptTypeDialog();
     QString getResult();

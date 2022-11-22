@@ -600,19 +600,23 @@ void Itemview10Script::initUI()
     action_addScript = new QAction(tr("新增子节点"), this);
     action_removeScript = new QAction(tr("删除节点"), this);
     action_testScript = new QAction(tr("测试节点"), this);
+    action_renameScript = new QAction(tr("重命名节点"), this);
     menu_scriptContent = new QMenu(this);
     menu_scriptContent->addAction(action_testScript);
     menu_scriptContent->addAction(action_addScript);
     menu_scriptContent->addAction(action_removeScript);
+    menu_scriptContent->addAction(action_renameScript);
 
     menu_scriptContent2 = new QMenu(this);
     menu_scriptContent2->addAction(action_testScript);
     menu_scriptContent2->addAction(action_removeScript);
+    menu_scriptContent2->addAction(action_renameScript);
 
 
     menu_scriptContent3 = new QMenu(this);
     menu_scriptContent3->addAction(action_addScript);
     menu_scriptContent3->addAction(action_removeScript);
+    menu_scriptContent3->addAction(action_renameScript);
 
 
     action_removeScriptDetail = new QAction(tr("删除"), this);
@@ -934,7 +938,7 @@ void Itemview10Script::initConnect()
     connect(action_addRootScript, &QAction::triggered, [this]() {
         QString name;
         int type;
-        ScriptTypeDialog scriptTypeDialog(ScriptTypeDialog::Check, this);
+        ScriptTypeDialog scriptTypeDialog(ScriptTypeDialog::Check, -1, this);
         int ret = scriptTypeDialog.exec(); // 以模态方式显示对话框
 
         if (ret == QDialog::Accepted)      // OK键被按下
@@ -1025,9 +1029,11 @@ void Itemview10Script::initConnect()
         QModelIndex index = scriptTableView->currentIndex();
 
         if (index.isValid()) {
+            int parentType =  index.siblingAtColumn(2).data(Qt::UserRole + 3).toInt();
+
             QString name;
             int type;
-            ScriptTypeDialog scriptTypeDialog(ScriptTypeDialog::CheckOrDeal, this);
+            ScriptTypeDialog scriptTypeDialog(ScriptTypeDialog::CheckOrDeal, parentType, this);
             int ret = scriptTypeDialog.exec(); // 以模态方式显示对话框
 
             if (ret == QDialog::Accepted)      // OK键被按下
@@ -1095,7 +1101,7 @@ void Itemview10Script::initConnect()
 
             keyItem->setData(5,    Qt::UserRole + 11); // 成功后延迟
             keyItem->setData(5,    Qt::UserRole + 12); // 失败后延迟
-            keyItem->setData(10,   Qt::UserRole + 13); // 执行后延迟
+            keyItem->setData(5,    Qt::UserRole + 13); // 执行后延迟
             keyItem->setData(-1,   Qt::UserRole + 14); // 执行成功后退回几层(-1代表重新开始)
 
             // newItem->setData();
@@ -1104,6 +1110,8 @@ void Itemview10Script::initConnect()
             parentItem->setChild(rowCount, 1, new QStandardItem(name));
             parentItem->setChild(rowCount, 2, keyItem);
             parentItem->setChild(rowCount, 3, new QStandardItem(getScriptTypeName(type)));
+
+            scriptTableView->expand(index);
         }
     });
 
@@ -1600,6 +1608,31 @@ void Itemview10Script::initConnect()
         if (index.isValid()) {
             scriptDetailGridModel->removeRow(index.row(), index.parent());
             clearScriptDetailEdit();
+        }
+    });
+
+
+    // 事件 - 重命名脚本节点
+    connect(action_renameScript, &QAction::triggered, [this]() {
+        QModelIndex index = scriptTableView->currentIndex();
+
+        if (index.isValid()) {
+            bool ok;
+            QString text = QInputDialog::getText(this, tr("重命名"), tr("请输入名称"), QLineEdit::Normal, NULL, &ok);
+
+            if (ok && !text.isEmpty())
+            {
+                auto index0 = index.siblingAtColumn(0);
+                auto index1 = index.siblingAtColumn(1);
+                auto index2 = index.siblingAtColumn(2);
+                auto item0 = scriptGridModel->itemFromIndex(index0);
+                auto item1 = scriptGridModel->itemFromIndex(index1);
+                auto item2 = scriptGridModel->itemFromIndex(index2);
+                item0->setData("未保存",           Qt::DisplayRole);
+                item0->setData(QColor(Qt::red), Qt::ForegroundRole);
+                item1->setData(text, Qt::DisplayRole);
+                item2->setData(-2, Qt::UserRole + 1);
+            }
         }
     });
 

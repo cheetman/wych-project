@@ -33,6 +33,7 @@
 #include "components/pixmapwidget.h"
 #include "components/scripttypedialog.h"
 #include "events/customevent.h"
+#include <events/eventstatusgrid.h>
 
 
 Itemview10Script::Itemview10Script(QWidget *parent)
@@ -871,16 +872,29 @@ void Itemview10Script::initUI()
             break;
         }
     }
+
+    threadScript = new ThreadScript(this);
+    threadScript->setParent(this);
 }
 
 void Itemview10Script::initConnect()
 {
-    // 事件 - 颜色
+    // 事件 - 线程通知
+    //    connect(threadScript, &ThreadScript::updateStatus, [this]() {
+    //        setPixmap();
+    //        postAppendConsole("正在通知");
+    //    });
+
+    // 事件 - 线程通知
+    connect(threadScript, &ThreadScript::scriptFinished, [this]() {
+        isStart = false;
+        btnScriptStart->setText(tr("启动脚本"));
+    });
 
 
     // 事件 - 启动脚本
     connect(btnScriptStart, &QPushButton::clicked, [this]() {
-        if (!isStart) {
+        if (!threadScript->isRunning()) {
             if (!IsWindow(windowInfo.HandleWindow)) {
                 appendConsole("启动失败！窗口句柄无效！");
                 return;
@@ -895,19 +909,33 @@ void Itemview10Script::initConnect()
                 appendConsole("启动失败！存在未配置脚本！");
                 return;
             }
-
             activeWindowHandle = windowInfo.HandleWindow;
 
-
+            qDebug() << tr("开启");
             isStart = true;
-            unsigned threadid;
-            HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &Itemview10Script::RefreshScript, this, NULL, &threadid);
-            CloseHandle(hThread);
             btnScriptStart->setText(tr("关闭脚本"));
+            threadScript->start();
         } else {
+            qDebug() << tr("准备关闭");
             isStart = false;
-            btnScriptStart->setText(tr("启动脚本"));
         }
+
+
+        //        if (!isStart) {
+
+
+        //
+
+
+        //            isStart = true;
+        //            unsigned threadid;
+        //            HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &Itemview10Script::RefreshScript, this, NULL, &threadid);
+        //            CloseHandle(hThread);
+        //            btnScriptStart->setText(tr("关闭脚本"));
+        //        } else {
+        //            isStart = false;
+        //            btnScriptStart->setText(tr("启动脚本"));
+        //        }
     });
 
 
@@ -1002,8 +1030,8 @@ void Itemview10Script::initConnect()
             }
         }
         keyItem->setData(type, Qt::UserRole + 3);  // 设置类型
-        keyItem->setData(5,    Qt::UserRole + 11); // 成功后延迟
-        keyItem->setData(5,    Qt::UserRole + 12); // 失败后延迟
+        keyItem->setData(2,    Qt::UserRole + 11); // 成功后延迟
+        keyItem->setData(2,    Qt::UserRole + 12); // 失败后延迟
         keyItem->setData(5,    Qt::UserRole + 13); // 执行后延迟
         keyItem->setData(-1,   Qt::UserRole + 14); // 执行成功后退回几层(-1代表重新开始)
 
@@ -1099,8 +1127,8 @@ void Itemview10Script::initConnect()
             keyItem->setData(arr,  Qt::UserRole + 2);  // children配置
             keyItem->setData(type, Qt::UserRole + 3);  // 设置类型
 
-            keyItem->setData(5,    Qt::UserRole + 11); // 成功后延迟
-            keyItem->setData(5,    Qt::UserRole + 12); // 失败后延迟
+            keyItem->setData(2,    Qt::UserRole + 11); // 成功后延迟
+            keyItem->setData(2,    Qt::UserRole + 12); // 失败后延迟
             keyItem->setData(5,    Qt::UserRole + 13); // 执行后延迟
             keyItem->setData(-1,   Qt::UserRole + 14); // 执行成功后退回几层(-1代表重新开始)
 
@@ -1810,6 +1838,7 @@ void Itemview10Script::initConnect()
         if (ok) {
             updateWindowInfo((HWND)currentHandle);
             print(windowInfo.HandleWindow);
+            setPixmap();
         }
     });
 
@@ -1879,6 +1908,7 @@ void Itemview10Script::initConnect()
     // 截图
     connect(btnWindowPrint, &QPushButton::clicked, [this]() {
         print(windowInfo.HandleWindow);
+        setPixmap();
     });
 
 
@@ -2034,8 +2064,10 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
 
         // 开始执行
         lastItem = scriptGridModel->itemFromIndex(now);
-        lastItem->setData("执行中",            Qt::DisplayRole);
-        lastItem->setData(QColor(Qt::blue), Qt::ForegroundRole);
+
+
+        //        lastItem->setData("执行中",            Qt::DisplayRole);
+        //        lastItem->setData(QColor(Qt::blue), Qt::ForegroundRole);
 
 
         int type = index2.data(Qt::UserRole + 3).toInt();           // 判断类型
@@ -2052,6 +2084,8 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
         switch (type) {
         // 判断
         case 1: {
+            postUpdateScriptStatus(lastItem, EventStatusGrid::Running);
+
             for (int i = 0; i < array.count(); i++) {
                 QJsonObject obj = array.at(i).toObject();
 
@@ -2071,11 +2105,15 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
                     continue;
                 } else {
                     // 判断失败
-                    lastItem->setData("失败",            Qt::DisplayRole);
-                    lastItem->setData(QColor(Qt::red), Qt::ForegroundRole);
+                    //                    lastItem->setData("失败",            Qt::DisplayRole);
+                    //                    lastItem->setData(QColor(Qt::red), Qt::ForegroundRole);
                     Sleep(sleep_failure * 100);
-                    lastItem->setData("",                Qt::DisplayRole);
-                    lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+
+                    //                    lastItem->setData("",                Qt::DisplayRole);
+                    //                    lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+
+
+                    postUpdateScriptStatus(lastItem, EventStatusGrid::Default);
 
                     // 这里不能返回false;
                     // 失败后直接跳出，不执行后续代码，也就是子节点
@@ -2084,16 +2122,20 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
             }
 
             // 成功时延迟
-            lastItem->setData("成功",             Qt::DisplayRole);
-            lastItem->setData(QColor(Qt::blue), Qt::ForegroundRole);
+            //            lastItem->setData("成功",             Qt::DisplayRole);
+            //            lastItem->setData(QColor(Qt::blue), Qt::ForegroundRole);
             Sleep(sleep_success * 100);
-            lastItem->setData("",                Qt::DisplayRole);
-            lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+
+            //            lastItem->setData("",                Qt::DisplayRole);
+            //            lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+            postUpdateScriptStatus(lastItem, EventStatusGrid::Success);
             break;
         }
 
         // 执行
         case 2: {
+            postUpdateScriptStatus(lastItem, EventStatusGrid::Running);
+
             for (int i = 0; i < array.count(); i++) {
                 QJsonObject obj = array.at(i).toObject();
 
@@ -2110,9 +2152,11 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
                 SendMessage(hwnd, WM_LBUTTONUP,   0,          lParam);
 
                 Sleep(sleep_deal * 100);
-                lastItem->setData("",                Qt::DisplayRole);
-                lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
 
+                //                lastItem->setData("",                Qt::DisplayRole);
+                //                lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+
+                postUpdateScriptStatus(lastItem, EventStatusGrid::Default);
 
                 // 执行结束
                 if (return_deal == -1) return false;
@@ -2130,6 +2174,8 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
 
         // 判断 + 执行
         case 3: {
+            postUpdateScriptStatus(lastItem, EventStatusGrid::Running);
+
             for (int i = 0; i < array.count(); i++) {
                 QJsonObject obj = array.at(i).toObject();
 
@@ -2146,8 +2192,8 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
 
                 if (color == checkColor) {
                     // 判断成功
-                    lastItem->setData("成功",             Qt::DisplayRole);
-                    lastItem->setData(QColor(Qt::blue), Qt::ForegroundRole);
+                    //                    lastItem->setData("成功",             Qt::DisplayRole);
+                    //                    lastItem->setData(QColor(Qt::blue), Qt::ForegroundRole);
                     Sleep(sleep_success * 100);
 
                     int xClick =  obj["click_position_x"].toInt();
@@ -2162,8 +2208,10 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
                     SendMessage(hwnd, WM_LBUTTONUP,   0,          lParam);
 
                     Sleep(sleep_deal * 100);
-                    lastItem->setData("",                Qt::DisplayRole);
-                    lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+
+                    //                    lastItem->setData("",                Qt::DisplayRole);
+                    //                    lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+                    postUpdateScriptStatus(lastItem, EventStatusGrid::Success);
 
                     // 执行结束
                     if (return_deal == -1) return false;
@@ -2175,11 +2223,13 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
                         return true;
                     }
                 } else {
-                    lastItem->setData("失败",            Qt::DisplayRole);
-                    lastItem->setData(QColor(Qt::red), Qt::ForegroundRole);
+                    //                    lastItem->setData("失败",            Qt::DisplayRole);
+                    //                    lastItem->setData(QColor(Qt::red), Qt::ForegroundRole);
                     Sleep(sleep_failure * 100);
-                    lastItem->setData("",                Qt::DisplayRole);
-                    lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+
+                    //                    lastItem->setData("",                Qt::DisplayRole);
+                    //                    lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+                    postUpdateScriptStatus(lastItem, EventStatusGrid::Default);
 
                     // 执行结束，没有子节点
                     return true;
@@ -2576,6 +2626,8 @@ bool Itemview10Script::buildProcess(DWORD pid) {
             WindowsTableView->expandAll();
 
             print(windowInfo.HandleWindow);
+            setPixmap();
+
             return true;
         }
     }
@@ -2640,9 +2692,10 @@ bool Itemview10Script::print(HWND hwnd_) {
     SelectObject(bitmapDC, null_bitmap);
     DeleteDC(bitmapDC);
 
-    QPixmap map = QtWin::fromHBITMAP(bitmap);
-    pixmapSize = map.size();
-    pixmapWidget->setPixmap(map);
+    pixmap = QtWin::fromHBITMAP(bitmap);
+    pixmapSize = pixmap.size();
+
+    //    pixmapWidget->setPixmap(pixmap); // 独立出来
 
     //        QImage image = QImage::fromHBITMAP(bitmap);
     //        image.reinterpretAsFormat(QImage::QImage::Format_ARGB32_Premultiplied);
@@ -2740,6 +2793,10 @@ unsigned __stdcall Itemview10Script::RefreshScript(void *param) {
     return 1;
 }
 
+void Itemview10Script::setPixmap() {
+    pixmapWidget->setPixmap(pixmap);
+}
+
 void Itemview10Script::postAppendConsole(const QString& msg)
 {
     QStringEvent *event = new QStringEvent(msg, qEventAppendConsole);
@@ -2777,6 +2834,41 @@ void Itemview10Script::clearConsole()
     edtMsg->clear();
 }
 
+void Itemview10Script::postUpdateScriptStatus(QStandardItem *item, EventStatusGrid::GridType type)
+{
+    EventStatusGrid *event = new EventStatusGrid(item, type, qEventStatusGridScript);
+
+    QApplication::postEvent(this, event);
+}
+
+void Itemview10Script::updateScriptStatus(QStandardItem *item, EventStatusGrid::GridType type) {
+    switch (type) {
+    case EventStatusGrid::Default:
+
+        item->setData("",                Qt::DisplayRole);
+        item->setData(QColor(Qt::black), Qt::ForegroundRole);
+        break;
+
+    case EventStatusGrid::Success:
+
+        item->setData("成功",              Qt::DisplayRole);
+        item->setData(QColor(Qt::green), Qt::ForegroundRole);
+        break;
+
+    case EventStatusGrid::Running:
+
+        item->setData("执行中",            Qt::DisplayRole);
+        item->setData(QColor(Qt::blue), Qt::ForegroundRole);
+        break;
+
+    case EventStatusGrid::Failure:
+
+        item->setData("失败",            Qt::DisplayRole);
+        item->setData(QColor(Qt::red), Qt::ForegroundRole);
+        break;
+    }
+}
+
 void Itemview10Script::customEvent(QEvent *e)
 {
     switch (e->type())
@@ -2785,6 +2877,12 @@ void Itemview10Script::customEvent(QEvent *e)
     {
         QStringEvent *event = dynamic_cast<QStringEvent *>(e);
         appendConsole(event->message);
+    }
+
+    case qEventStatusGridScript:
+    {
+        EventStatusGrid *event = dynamic_cast<EventStatusGrid *>(e);
+        updateScriptStatus(event->item, event->gridType);
     }
         e->accept();
         break;

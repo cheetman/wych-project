@@ -1,4 +1,5 @@
 #include "pixmapwidget.h"
+#include "qtimer.h"
 #include <QMouseEvent>
 #include <QPainter>
 #include <QDebug>
@@ -34,7 +35,14 @@ void PixmapWidget::setPixmap(QPixmap& newPixmap) {
 
     m_image.swap(image);
     m_pixmap.swap(newPixmap);
-    this->setFixedSize(size);
+
+    // 子线程会报错，用sign也不行。。
+    QTimer::singleShot(0, this, [this, size]()
+    {
+        this->setFixedSize(size);
+    });
+
+    //    this->setFixedSize(size);
     m_pixmapSize = size;
 
     //    this->resize(size); // 没用，估计是调用了resize事件

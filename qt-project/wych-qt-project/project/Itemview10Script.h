@@ -20,6 +20,9 @@
 #include "winapi.h"
 
 #include <components/pixmapwidget.h>
+#include <events/eventstatusgrid.h>
+
+#include <threads/threadscript.h>
 
 
 class Itemview10Script : public QWidget {
@@ -40,15 +43,20 @@ public:
     bool updateWindowInfo(HWND handleWindow);
     bool isStart = false;
 
+
+    void postAppendConsole(const QString& msg);
+    HWND activeWindowHandle = 0;
+    bool print(HWND windowHandle);
+    bool recursionScriptStart(const QModelIndex& now = QModelIndex());
+    void setPixmap();
+
 protected:
 
     void                      initUI();
     void                      initConnect();
-    void                      postAppendConsole(const QString& msg);
     void                      clearConsole();
     void                      appendConsole(const QString& msg);
     void                      writeConsole(const QString& msg);
-    bool                      print(HWND windowHandle);
     virtual void              customEvent(QEvent *e);
 
     static unsigned __stdcall RefreshScript(void *param);
@@ -63,7 +71,6 @@ private:
     void    clearScriptDetail();
     void    recursionScriptCheck(const QModelIndex& now);
     void    recursionScriptUnCheck(const QModelIndex& now);
-    bool    recursionScriptStart(const QModelIndex& now = QModelIndex());
 
     void    recursionScriptSave(QJsonObject      & json,
                                 const QModelIndex& now = QModelIndex());
@@ -73,6 +80,17 @@ private:
 
     void recursionScriptShow(QJsonObject  & json,
                              QStandardItem *now = NULL);
+
+    void updateScriptStatus(QStandardItem            *item,
+                            EventStatusGrid::GridType type);
+
+    void postUpdateScriptStatus(QStandardItem            *item,
+                                EventStatusGrid::GridType type);
+
+
+    ThreadScript *threadScript;
+
+
     WIN32_PROCESS_INFO processInfo = {
         0
     };
@@ -276,6 +294,7 @@ private:
 
     //    QGroupBox *script3GroupBox;
 
+    QPixmap pixmap;
     QSize pixmapSize;
 
 
@@ -332,7 +351,6 @@ private:
     QString activeScriptDetailNo;
     QString activeScriptDetailRemark;
     QStandardItem *lastItem;
-    HWND activeWindowHandle = 0;
 
 signals:
 };

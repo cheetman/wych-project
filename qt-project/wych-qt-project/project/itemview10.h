@@ -39,6 +39,7 @@ public:
     class ItemView10PE *itemView10PE;
     class Itemview10Inject *itemview10Inject;
     class Itemview10Script *itemview10Script;
+    class Itemview10Script *itemview10Script2;
 
     void SetTabIndex(int index);
 

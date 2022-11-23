@@ -61,6 +61,7 @@ SOURCES += \
     structs/pe.cpp \
     qurlinfo.cpp \
     tcpserver.cpp \
+    threads/threadscript.cpp \
     utils.cpp \
     vlclib.cpp \
     winapi.cpp \
@@ -73,6 +74,7 @@ HEADERS += \
     components/scripttypedialog.h \
     components/selectdialog.h \
     events/customevent.h \
+    events/eventstatusgrid.h \
     itemview10Inject.h \
     itemview10.h \
     itemview10Script.h \
@@ -94,6 +96,7 @@ HEADERS += \
     qurlinfo.h \
     tcpserver.h \
     test2.h \
+    threads/threadscript.h \
     utils.h \
     vlclib.h \
     winapi.h \

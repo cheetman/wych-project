@@ -61,6 +61,8 @@ void Itemview10Inject::initUI()
 
     processTableView = new QTableView(this);
     processGridModel = new QStandardItemModel();
+
+    //    processTableView->setColumnWidth(1, 100);
     processGridModel->setHorizontalHeaderLabels({ "窗口", "进程", "PID", "平台", "镜像基址", "镜像大小", "用户名", "用户所属" });
     processTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     processTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);

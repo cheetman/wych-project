@@ -78,7 +78,7 @@ void Itemview10Script::initUI()
     layout_l_1_m->addLayout(leftQWidgetGroup1eLayout);
 
 
-    auto leftQWidgetGroupBox2 = new QGroupBox("截图", this);
+    leftQWidgetGroupBox2 = new QGroupBox("截图", this);
     leftQWidgetLayout->addWidget(leftQWidgetGroupBox2);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
     auto leftQWidgetGroup1Layout2 = new QGridLayout(leftQWidgetGroupBox2);
@@ -166,7 +166,9 @@ void Itemview10Script::initUI()
 
     WindowsTableView = new QTreeView(this);
     WindowsGridModel = new QStandardItemModel(this);
-    WindowsGridModel->setHorizontalHeaderLabels({  "句柄",  "编号", "标题", "类", "窗口大小" });
+
+    WindowsTableView->setTreePosition(1);
+    WindowsGridModel->setHorizontalHeaderLabels({ "选择",  "句柄",  "编号", "标题", "类", "窗口大小" });
 
     WindowsTableView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
@@ -263,6 +265,7 @@ void Itemview10Script::initUI()
     auto script4Layout2 = new QHBoxLayout();
 
     saScript = new QScrollArea();
+    saScript->setMinimumHeight(85);
     saScriptContentWidget = new QWidget();
 
     //    saScript->setFixedHeight(90);
@@ -328,8 +331,8 @@ void Itemview10Script::initUI()
     saScriptLayout2->addWidget(sb_script_sleep_failure, 0, Qt::AlignLeft);
     saScriptLayout3->addWidget(new QLabel("执行后延迟："), 0, Qt::AlignLeft);
     saScriptLayout3->addWidget(sb_script_sleep_deal, 0, Qt::AlignLeft);
-    saScriptLayout4->addWidget(new QLabel("执行成功后退回几层(0代表重新开始)："), 0, Qt::AlignLeft);
-    saScriptLayout4->addWidget(sb_script_return_deal,             0, Qt::AlignLeft);
+    saScriptLayout4->addWidget(new QLabel("执行成功后退回层数(-1：重新开始 0：继续执行)："), 0, Qt::AlignLeft);
+    saScriptLayout4->addWidget(sb_script_return_deal,                    0, Qt::AlignLeft);
 
 
     auto splitterRightDown = new QSplitter(Qt::Vertical, this);
@@ -911,31 +914,17 @@ void Itemview10Script::initConnect()
             }
             activeWindowHandle = windowInfo.HandleWindow;
 
-            qDebug() << tr("开启");
             isStart = true;
             btnScriptStart->setText(tr("关闭脚本"));
             threadScript->start();
         } else {
-            qDebug() << tr("准备关闭");
+            btnScriptStart->setText(tr("正在关闭.."));
             isStart = false;
         }
 
-
-        //        if (!isStart) {
-
-
-        //
-
-
-        //            isStart = true;
         //            unsigned threadid;
         //            HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, &Itemview10Script::RefreshScript, this, NULL, &threadid);
         //            CloseHandle(hThread);
-        //            btnScriptStart->setText(tr("关闭脚本"));
-        //        } else {
-        //            isStart = false;
-        //            btnScriptStart->setText(tr("启动脚本"));
-        //        }
     });
 
 
@@ -1473,11 +1462,6 @@ void Itemview10Script::initConnect()
         json.insert("click_print_height",       click_print_height);
 
 
-        //        QJsonDocument document;
-        //        document.setObject(json);
-        //        QByteArray jsonStr = document.toJson(QJsonDocument::Compact);
-
-
         QStandardItem *item = items.first();
 
         item->setData(-2,   Qt::UserRole + 1); // 设置状态
@@ -1832,13 +1816,28 @@ void Itemview10Script::initConnect()
 
 
         bool ok;
-        auto currentHandleV = current.sibling(current.row(), 0).data().toString();
+        auto currentHandleV = current.sibling(current.row(), 1).data().toString();
         auto currentHandle = currentHandleV.toInt(&ok, 16);
+
+        // 打勾
+        QList<QStandardItem *>items =  WindowsGridModel->findItems("✔", Qt::MatchExactly  | Qt::MatchRecursive, 0);
+
+        if (items.count() == 1) {
+            auto *firstItem = items.first();
+            firstItem->setData("", Qt::DisplayRole);
+        }
+        auto item0 = WindowsGridModel->itemFromIndex(current.siblingAtColumn(0));
+        item0->setData("✔", Qt::DisplayRole);
+
+        // 打勾
 
         if (ok) {
             updateWindowInfo((HWND)currentHandle);
             print(windowInfo.HandleWindow);
             setPixmap();
+
+            // 保存配置
+            writeConfigDefaultHWND(QString::fromWCharArray(processInfo.PName), currentHandle);
         }
     });
 
@@ -2594,10 +2593,12 @@ bool Itemview10Script::buildProcess(DWORD pid) {
             tb_window2_position->setText(tr("(%1,%2),(%3,%4)").arg(windowInfo.ClientToScreen.x).arg(windowInfo.ClientToScreen.y).arg(windowInfo.ClientToScreen.x + windowInfo.ClientRect.right).arg(windowInfo.ClientToScreen.y + windowInfo.ClientRect.bottom));
 
 
-            WindowsGridModel->setItem(0, 0, new QStandardItem(QString::number((intptr_t)(windowInfo.HandleWindow), 16).toUpper()));
-            WindowsGridModel->setItem(0, 1, new QStandardItem(QString::number(0)));
-            WindowsGridModel->setItem(0, 2, new QStandardItem(QString::fromWCharArray(windowInfo.TitleName)));
-            WindowsGridModel->setItem(0, 3, new QStandardItem(QString::fromWCharArray(windowInfo.ClassName)));
+            WindowsGridModel->setItem(0, 0, new QStandardItem(""));
+            WindowsGridModel->setItem(0, 1, new QStandardItem(QString::number((intptr_t)(windowInfo.HandleWindow), 16).toUpper()));
+            WindowsGridModel->setItem(0, 2, new QStandardItem(QString::number(0)));
+            WindowsGridModel->setItem(0, 3, new QStandardItem(QString::fromWCharArray(windowInfo.TitleName)));
+            WindowsGridModel->setItem(0, 4, new QStandardItem(QString::fromWCharArray(windowInfo.ClassName)));
+
 
             // 子窗口
             std::vector<WIN32_WINDOW_INFO> children;
@@ -2608,26 +2609,54 @@ bool Itemview10Script::buildProcess(DWORD pid) {
 
                 QString itemHandle = QString::number((intptr_t)(iter->HandleParentWindow), 16).toUpper();
 
-                QList<QStandardItem *> parents =  WindowsGridModel->findItems(itemHandle, Qt::MatchExactly  | Qt::MatchRecursive, 0);
+                QList<QStandardItem *> parents =  WindowsGridModel->findItems(itemHandle, Qt::MatchExactly  | Qt::MatchRecursive, 1);
 
                 if (parents.count() == 1) {
                     QStandardItem *rowItem = parents.first();
-                    int rowCount = rowItem->rowCount();
-                    rowItem->setChild(rowCount, 0, new QStandardItem(QString::number((intptr_t)(iter->HandleWindow), 16).toUpper()));
+
+                    // 只能这么转
+                    QModelIndex index1 =  WindowsGridModel->indexFromItem(rowItem);
+                    QModelIndex index0 =  index1.siblingAtColumn(0);
+                    QStandardItem *item0 = WindowsGridModel->itemFromIndex(index0);
+
+                    int rowCount = item0->rowCount();
+                    item0->setChild(rowCount, 1, new QStandardItem(QString::number((intptr_t)(iter->HandleWindow), 16).toUpper()));
 
                     //                    rowItem->setChild(0, 1, new QStandardItem(itemHandle));
-                    rowItem->setChild(rowCount, 2, new QStandardItem(QString::fromWCharArray(iter->TitleName)));
-                    rowItem->setChild(rowCount, 3, new QStandardItem(QString::fromWCharArray(iter->ClassName)));
-                    rowItem->setChild(rowCount, 1, new QStandardItem(QString::number(index)));
+                    item0->setChild(rowCount, 3, new QStandardItem(QString::fromWCharArray(iter->TitleName)));
+                    item0->setChild(rowCount, 4, new QStandardItem(QString::fromWCharArray(iter->ClassName)));
+                    item0->setChild(rowCount, 2, new QStandardItem(QString::number(index)));
+                    item0->setChild(rowCount, 0, new QStandardItem(""));
                 }
             }
 
 
             WindowsTableView->expandAll();
 
+            // 取一下缓存
+            int  defaultHWND;
+            bool success = readConfigDefaultHWND(QString::fromWCharArray(processInfo.PName), &defaultHWND);
+
+            if (success) {
+                if (defaultHWND != (int)windowInfo.HandleWindow) {
+                    updateWindowInfo((HWND)defaultHWND);
+                    print(windowInfo.HandleWindow);
+                    setPixmap();
+                    QString itemHandle = QString::number((intptr_t)(defaultHWND), 16).toUpper();
+                    QList<QStandardItem *> items =  WindowsGridModel->findItems(itemHandle, Qt::MatchExactly  | Qt::MatchRecursive, 1);
+
+                    if (items.count() == 1) {
+                        auto item0 = WindowsGridModel->itemFromIndex(WindowsGridModel->indexFromItem(items.first()).siblingAtColumn(0));
+                        item0->setData("✔", Qt::DisplayRole);
+                    }
+                    return true;
+                }
+            }
+
+
             print(windowInfo.HandleWindow);
             setPixmap();
-
+            WindowsGridModel->item(0)->setData("✔", Qt::DisplayRole);
             return true;
         }
     }
@@ -2772,29 +2801,111 @@ bool Itemview10Script::print(HWND hwnd_) {
     //        ::ReleaseDC(hwnd_, scrDc_);
 }
 
-unsigned __stdcall Itemview10Script::RefreshScript(void *param) {
-    auto obj = (Itemview10Script *)param;
+// unsigned __stdcall Itemview10Script::RefreshScript(void *param) {
+//    auto obj = (Itemview10Script *)param;
 
-    while (true)
-    {
-        if (!obj->isStart) {
-            break;
-        }
-        Sleep(2000);
+//    while (true)
+//    {
+//        if (!obj->isStart) {
+//            break;
+//        }
+//        Sleep(2000);
 
-        if (!obj->print(obj->activeWindowHandle)) {
-            obj->postAppendConsole("截图失败！停止脚本！");
-            break;
-        }
+//        if (!obj->print(obj->activeWindowHandle)) {
+//            obj->postAppendConsole("截图失败！停止脚本！");
+//            break;
+//        }
 
-        obj->recursionScriptStart();
-    }
+//        obj->recursionScriptStart();
+//    }
 
-    return 1;
-}
+//    return 1;
+// }
 
 void Itemview10Script::setPixmap() {
     pixmapWidget->setPixmap(pixmap);
+    leftQWidgetGroupBox2->setTitle(tr("截图 [%1x%2]").arg(pixmapSize.width()).arg(pixmapSize.height()));
+}
+
+bool Itemview10Script::readConfigDefaultHWND(QString process, int *HWND)
+{
+    QFile file(tr("./configs/defaultHWND.json"));
+
+    if (!file.exists()) {
+        appendConsole(tr("读取异常！配置文件不存在！"));
+        return false;
+    }
+    QByteArray fileText;
+
+    if (file.open(QIODevice::ReadOnly)) {
+        fileText = file.readAll();
+        file.close();
+    }
+
+    // 读取json
+    QJsonParseError parseError;
+    QJsonDocument   document = QJsonDocument::fromJson(fileText, &parseError);
+
+    if (parseError.error != QJsonParseError::NoError) {
+        appendConsole(tr("读取异常！配置文件无法读取！"));
+        return false;
+    }
+    QJsonObject json = document.object();
+
+    if (!json.contains(process)) {
+        return false;
+    }
+    *HWND = json[process].toInt();
+    return true;
+}
+
+bool Itemview10Script::writeConfigDefaultHWND(QString process, int HWND)
+{
+    QDir dir(tr("./configs/"));
+
+    if (!dir.exists()) {
+        dir.mkpath("./");
+    }
+
+    QFile file(tr("./configs/defaultHWND.json"));
+
+    QJsonObject   json;
+    QJsonDocument document;
+
+    if (file.exists()) {
+        QByteArray fileText;
+
+        if (file.open(QIODevice::ReadOnly)) {
+            fileText = file.readAll();
+            file.close();
+        }
+
+        // 读取json
+        QJsonParseError parseError;
+        QJsonDocument   document2 = QJsonDocument::fromJson(fileText, &parseError);
+
+        if (parseError.error != QJsonParseError::NoError) {
+            appendConsole(tr("读取异常！配置文件无法读取！"));
+            return false;
+        }
+
+        json = document2.object();
+    }
+
+
+    json[process] = HWND;
+
+    document.setObject(json);
+    QByteArray jsonStr = document.toJson(QJsonDocument::Compact);
+
+
+    QFile file2(tr("./configs/defaultHWND.json"));
+
+    if (file2.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        file2.write(jsonStr);
+        file2.close();
+    }
+    return true;
 }
 
 void Itemview10Script::postAppendConsole(const QString& msg)

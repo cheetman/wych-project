@@ -47,21 +47,26 @@ public:
     void postAppendConsole(const QString& msg);
     HWND activeWindowHandle = 0;
     bool print(HWND windowHandle);
-    bool recursionScriptStart(const QModelIndex& now = QModelIndex());
     void setPixmap();
+    bool recursionScriptStart(const QModelIndex& now = QModelIndex());
 
 protected:
 
-    void                      initUI();
-    void                      initConnect();
-    void                      clearConsole();
-    void                      appendConsole(const QString& msg);
-    void                      writeConsole(const QString& msg);
-    virtual void              customEvent(QEvent *e);
+    void         initUI();
+    void         initConnect();
+    void         clearConsole();
+    void         appendConsole(const QString& msg);
+    void         writeConsole(const QString& msg);
+    virtual void customEvent(QEvent *e);
 
-    static unsigned __stdcall RefreshScript(void *param);
+    //    static unsigned __stdcall RefreshScript(void *param);
 
 private:
+
+    bool    readConfigDefaultHWND(QString process,
+                                  int    *HWND);
+    bool    writeConfigDefaultHWND(QString process,
+                                   int     HWND);
 
     QString getScriptTypeName(int type);
     void    buildScriptDetailEdit();
@@ -289,7 +294,7 @@ private:
 
     QTabWidget *tabScriptWidget;
     QGroupBox *script2tGroupBox;
-
+    QGroupBox *leftQWidgetGroupBox2;
     class QComboBox *ck_dpi;
 
     //    QGroupBox *script3GroupBox;

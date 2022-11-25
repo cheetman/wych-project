@@ -1,5 +1,6 @@
 #include "threadscript.h"
 #include <QDebug>
+#include <QSpinBox>
 
 #include <itemview10Script.h>
 
@@ -19,7 +20,7 @@ void ThreadScript::run()
         if (!parent->isStart) {
             break;
         }
-        Sleep(2000);
+        Sleep(parent->sb_script_sleep->value() * 100);
 
         if (!parent->print(parent->activeWindowHandle)) {
             parent->postAppendConsole("截图失败！停止脚本！");

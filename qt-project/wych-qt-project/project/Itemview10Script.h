@@ -42,6 +42,7 @@ public:
     // 窗口更新
     bool updateWindowInfo(HWND handleWindow);
     bool isStart = false;
+    class QSpinBox *sb_script_sleep;
 
 
     void postAppendConsole(const QString& msg);
@@ -76,22 +77,25 @@ private:
     void    clearScriptDetail();
     void    recursionScriptCheck(const QModelIndex& now);
     void    recursionScriptUnCheck(const QModelIndex& now);
+    void    recursionScriptCheckManual(const QModelIndex& nowIndex2);
 
     void    recursionScriptSave(QJsonObject      & json,
                                 const QModelIndex& now = QModelIndex());
     bool    recursionScriptSaveCheck(
         const QModelIndex& now = QModelIndex());
 
+    void    recursionScriptShow(QJsonObject  & json,
+                                QStandardItem *now = NULL);
 
-    void recursionScriptShow(QJsonObject  & json,
-                             QStandardItem *now = NULL);
+    void    updateScriptStatus(QStandardItem            *item,
+                               EventStatusGrid::GridType type);
 
-    void updateScriptStatus(QStandardItem            *item,
-                            EventStatusGrid::GridType type);
+    void    updateScriptCount(QStandardItem *item);
 
-    void postUpdateScriptStatus(QStandardItem            *item,
-                                EventStatusGrid::GridType type);
+    void    postUpdateScriptStatus(QStandardItem            *item,
+                                   EventStatusGrid::GridType type);
 
+    void    postUpdateScriptCount(QStandardItem *item);
 
     ThreadScript *threadScript;
 
@@ -241,6 +245,8 @@ private:
     class QButtonGroup *bg_scriptOperateType;
     class QRadioButton *rb_scriptOperateTypeClick;
     class QRadioButton *rb_scriptOperateTypeMove;
+    class QRadioButton *rb_scriptOperateTypeFocus;
+    class QRadioButton *rb_scriptOperateTypeWait;
 
     QLineEdit *export_Name;
     QLineEdit *export_Base;
@@ -295,6 +301,11 @@ private:
     QTabWidget *tabScriptWidget;
     QGroupBox *script2tGroupBox;
     QGroupBox *leftQWidgetGroupBox2;
+    QGroupBox *script3LayoutGroupBox1;
+    QGroupBox *script3LayoutGroupBox2;
+    QLabel *lb_scriptConditionType;
+    QLabel *lb_scriptOperateType;
+
     class QComboBox *ck_dpi;
 
     //    QGroupBox *script3GroupBox;
@@ -319,6 +330,7 @@ private:
     class QAction *action_removeScript;
     class QAction *action_testScript;
     class QAction *action_renameScript;
+    class QAction *action_selectScript;
 
     class QAction *action_addScriptDetail;
     class QAction *action_addRootScriptDetail;

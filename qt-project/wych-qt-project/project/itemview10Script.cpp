@@ -215,7 +215,7 @@ void Itemview10Script::initUI()
     scriptTableView = new QTreeView(this);
     scriptTableView->setTreePosition(2);
     scriptGridModel = new QStandardItemModel();
-    scriptGridModel->setHorizontalHeaderLabels({ "状态",  "名称",  "编号",  "类型", "信息",  "备注", "颜色" });
+    scriptGridModel->setHorizontalHeaderLabels({ "状态",  "名称",  "编号",  "类型",  "计数", "信息",  "备注" });
 
     scriptTableView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     scriptTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -376,13 +376,14 @@ void Itemview10Script::initUI()
     script3Layoutb1->setAlignment(Qt::AlignLeft);
     script3Layoutb2->setAlignment(Qt::AlignLeft);
     script3Layouti->setAlignment(Qt::AlignLeft);
+    script3Layout->setAlignment(Qt::AlignTop); // 注意要加
     script3Layout->addLayout(script3Layouta);
     script3Layout->addLayout(script3Layoutb);
     script3Layout->addLayout(script3Layoutb1);
     script3Layout->addLayout(script3Layoutb2);
 
 
-    auto script3LayoutGroupBox1 = new QGroupBox("像素点检测", this);
+    script3LayoutGroupBox1 = new QGroupBox("像素点检测", this);
     auto script3LayoutGroupBox1Layout = new QVBoxLayout();
     script3LayoutGroupBox1->setLayout(script3LayoutGroupBox1Layout);
     script3Layout->addWidget(script3LayoutGroupBox1);
@@ -404,6 +405,7 @@ void Itemview10Script::initUI()
     script3Layoutj->setAlignment(Qt::AlignLeft);
     script3Layoutk->setAlignment(Qt::AlignLeft);
     script3Layoutl->setAlignment(Qt::AlignLeft);
+    script3LayoutGroupBox1Layout->setAlignment(Qt::AlignTop);
     script3LayoutGroupBox1Layout->addLayout(script3Layoutc);
     script3LayoutGroupBox1Layout->addLayout(script3Layoutd);
     script3LayoutGroupBox1Layout->addLayout(script3Layoute);
@@ -415,7 +417,7 @@ void Itemview10Script::initUI()
     script3LayoutGroupBox1Layout->addLayout(script3Layoutj);
 
 
-    auto script3LayoutGroupBox2 = new QGroupBox("点击操作", this);
+    script3LayoutGroupBox2 = new QGroupBox("点击操作", this);
     auto script3LayoutGroupBox2Layout = new QVBoxLayout();
     script3LayoutGroupBox2->setLayout(script3LayoutGroupBox2Layout);
     script3Layout->addWidget(script3LayoutGroupBox2);
@@ -437,6 +439,7 @@ void Itemview10Script::initUI()
     script3LayoutGroupBox2Layout7->setAlignment(Qt::AlignLeft);
     script3LayoutGroupBox2Layout8->setAlignment(Qt::AlignLeft);
     script3LayoutGroupBox2Layout9->setAlignment(Qt::AlignLeft);
+    script3LayoutGroupBox2Layout->setAlignment(Qt::AlignTop);
     script3LayoutGroupBox2Layout->addLayout(script3LayoutGroupBox2Layout1);
     script3LayoutGroupBox2Layout->addLayout(script3LayoutGroupBox2Layout2);
     script3LayoutGroupBox2Layout->addLayout(script3LayoutGroupBox2Layout3);
@@ -593,8 +596,14 @@ void Itemview10Script::initUI()
     bg_scriptConditionType->addButton(rb_scriptConditionTypeOCR,        3);
 
     rb_scriptOperateTypeClick = new QRadioButton("点击");
+    rb_scriptOperateTypeMove = new QRadioButton("拖动");
+    rb_scriptOperateTypeFocus = new QRadioButton("激活窗体");
+    rb_scriptOperateTypeWait = new QRadioButton("等待");
     bg_scriptOperateType = new QButtonGroup(this);
     bg_scriptOperateType->addButton(rb_scriptOperateTypeClick, 1);
+    bg_scriptOperateType->addButton(rb_scriptOperateTypeMove,  2);
+    bg_scriptOperateType->addButton(rb_scriptOperateTypeFocus, 3);
+    bg_scriptOperateType->addButton(rb_scriptOperateTypeWait,  4);
 
 
     action_addRootScript = new QAction(tr("新增根节点"), this);
@@ -605,19 +614,24 @@ void Itemview10Script::initUI()
     action_removeScript = new QAction(tr("删除节点"), this);
     action_testScript = new QAction(tr("测试节点"), this);
     action_renameScript = new QAction(tr("重命名节点"), this);
+    action_selectScript = new QAction(tr("全选子节点"), this);
+
     menu_scriptContent = new QMenu(this);
     menu_scriptContent->addAction(action_testScript);
+    menu_scriptContent->addAction(action_selectScript);
     menu_scriptContent->addAction(action_addScript);
     menu_scriptContent->addAction(action_removeScript);
     menu_scriptContent->addAction(action_renameScript);
 
     menu_scriptContent2 = new QMenu(this);
     menu_scriptContent2->addAction(action_testScript);
+    menu_scriptContent2->addAction(action_selectScript);
     menu_scriptContent2->addAction(action_removeScript);
     menu_scriptContent2->addAction(action_renameScript);
 
 
     menu_scriptContent3 = new QMenu(this);
+    menu_scriptContent3->addAction(action_selectScript);
     menu_scriptContent3->addAction(action_addScript);
     menu_scriptContent3->addAction(action_removeScript);
     menu_scriptContent3->addAction(action_renameScript);
@@ -701,19 +715,31 @@ void Itemview10Script::initUI()
     rightQWidgetGroup1aLayout->addWidget(btnScriptStart);
     rightQWidgetGroup1aLayout->addWidget(ck_dpi);
 
+
+    sb_script_sleep = new QSpinBox();
+    sb_script_sleep->setMinimum(5);
+    sb_script_sleep->setMaximum(100);
+    sb_script_sleep->setSuffix(" x100 ms");
+    sb_script_sleep->setPrefix("延迟:");
+    sb_script_sleep->setValue(15);
+    rightQWidgetGroup1aLayout->addWidget(sb_script_sleep);
+
     script3Layouta->addWidget(new QLabel("脚本类型:", this),     0, Qt::AlignLeft);
     script3Layouta->addWidget(rb_scriptTypeCondition,        0, Qt::AlignLeft);
     script3Layouta->addWidget(rb_scriptTypeDeal,             0, Qt::AlignLeft);
     script3Layouta->addWidget(rb_scriptTypeConditionAndDeal, 0, Qt::AlignLeft);
 
-
-    script3Layoutb->addWidget(new QLabel("条件类型:", this),        0, Qt::AlignLeft);
+    lb_scriptConditionType = new QLabel("条件类型:", this);
+    script3Layoutb->addWidget(lb_scriptConditionType,           0, Qt::AlignLeft);
     script3Layoutb->addWidget(rb_scriptConditionTypePixel,      0, Qt::AlignLeft);
     script3Layoutb->addWidget(rb_scriptConditionTypeEdgeDetect, 0, Qt::AlignLeft);
     script3Layoutb->addWidget(rb_scriptConditionTypeOCR,        0, Qt::AlignLeft);
 
-    script3Layoutb1->addWidget(new QLabel("操作类型:", this), 0, Qt::AlignLeft);
+    lb_scriptOperateType = new QLabel("操作类型:", this);
+    script3Layoutb1->addWidget(lb_scriptOperateType,      0, Qt::AlignLeft);
     script3Layoutb1->addWidget(rb_scriptOperateTypeClick, 0, Qt::AlignLeft);
+    script3Layoutb1->addWidget(rb_scriptOperateTypeFocus, 0, Qt::AlignLeft);
+    script3Layoutb1->addWidget(rb_scriptOperateTypeWait,  0, Qt::AlignLeft);
 
 
     tb_check_remark = new QLineEdit(this);
@@ -1026,6 +1052,7 @@ void Itemview10Script::initConnect()
 
         scriptGridModel->setItem(count, 2, keyItem);
         scriptGridModel->setItem(count, 3, new QStandardItem(getScriptTypeName(type)));
+        scriptGridModel->setItem(count, 4, new QStandardItem(""));
 
         // 先隐藏
         // 明细表也更新
@@ -1127,6 +1154,7 @@ void Itemview10Script::initConnect()
             parentItem->setChild(rowCount, 1, new QStandardItem(name));
             parentItem->setChild(rowCount, 2, keyItem);
             parentItem->setChild(rowCount, 3, new QStandardItem(getScriptTypeName(type)));
+            parentItem->setChild(rowCount, 4, new QStandardItem(""));
 
             scriptTableView->expand(index);
         }
@@ -1139,6 +1167,12 @@ void Itemview10Script::initConnect()
         QString No =  selectedIdIndex.data().toString();
 
         if (activeFileNo != No) {
+            if (isStart) {
+                appendConsole(tr("请先暂停脚本！"));
+                return;
+            }
+
+
             clearScript();
             activeFileNo = No;
             activeFileStatus = selectedIdIndex.data(Qt::UserRole + 1).toInt();
@@ -1203,7 +1237,7 @@ void Itemview10Script::initConnect()
         key->setData(-1, Qt::UserRole + 1); // 设置状态
         scriptDetailGridModel->setItem(count, 1, key);
         scriptDetailGridModel->setItem(count, 2, new QStandardItem("待设置"));
-        scriptDetailGridModel->setItem(count, 3, new QStandardItem("无"));
+        scriptDetailGridModel->setItem(count, 3, new QStandardItem(""));
         scriptDetailGridModel->setItem(count, 4, new QStandardItem("无"));
         tabScriptWidget->setCurrentIndex(1);
         tabScriptWidget->setTabText(1, tr("脚本明细编辑 [编号：%1]").arg(count + 1));
@@ -1424,6 +1458,7 @@ void Itemview10Script::initConnect()
         json.insert("no",                       activeScriptDetailNo);
         json.insert("scriptType",               bg_scriptType->checkedId());
         json.insert("scriptConditionType",      bg_scriptConditionType->checkedId());
+        json.insert("scriptOperateType",        bg_scriptOperateType->checkedId());
 
         json.insert("check_position_x",         tb_check_position_x->text().toInt());
         json.insert("check_position_y",         tb_check_position_y->text().toInt());
@@ -1432,27 +1467,33 @@ void Itemview10Script::initConnect()
         json.insert("check_position_x_radio_v", tb_check_position_x_radio_v->text().toInt());
         json.insert("check_position_y_radio_v", tb_check_position_y_radio_v->text().toInt());
         json.insert("check_position_type",      bg_check_position_type->checkedId());
-        json.insert("check_position_r",         tb_check_position_r->text().toInt());
-        json.insert("check_position_g",         tb_check_position_g->text().toInt());
-        json.insert("check_position_b",         tb_check_position_b->text().toInt());
-        json.insert("check_position_a",         tb_check_position_a->text().toInt());
-        json.insert("check_position_r_up",      tb_check_position_r_up->text().toInt());
-        json.insert("check_position_g_up",      tb_check_position_g_up->text().toInt());
-        json.insert("check_position_b_up",      tb_check_position_b_up->text().toInt());
-        json.insert("check_position_a_up",      tb_check_position_a_up->text().toInt());
-        json.insert("check_position_r_down",    tb_check_position_r_down->text().toInt());
-        json.insert("check_position_g_down",    tb_check_position_g_down->text().toInt());
-        json.insert("check_position_b_down",    tb_check_position_b_down->text().toInt());
-        json.insert("check_position_a_down",    tb_check_position_a_down->text().toInt());
-        json.insert("check_position_down",      ck_check_rgb_down->isChecked());
-        json.insert("check_position_up",        ck_check_rgb_up->isChecked());
-        json.insert("check_print_width",        check_print_width);
-        json.insert("check_print_height",       check_print_height);
-        json.insert("check_remark",             tb_check_remark->text());
+        int r = tb_check_position_r->text().toInt();
+        int g = tb_check_position_g->text().toInt();
+        int b = tb_check_position_b->text().toInt();
+        int a = tb_check_position_a->text().toInt();
+        json.insert("check_position_r",      r);
+        json.insert("check_position_g",      g);
+        json.insert("check_position_b",      b);
+        json.insert("check_position_a",      a);
+        json.insert("check_position_r_up",   tb_check_position_r_up->text().toInt());
+        json.insert("check_position_g_up",   tb_check_position_g_up->text().toInt());
+        json.insert("check_position_b_up",   tb_check_position_b_up->text().toInt());
+        json.insert("check_position_a_up",   tb_check_position_a_up->text().toInt());
+        json.insert("check_position_r_down", tb_check_position_r_down->text().toInt());
+        json.insert("check_position_g_down", tb_check_position_g_down->text().toInt());
+        json.insert("check_position_b_down", tb_check_position_b_down->text().toInt());
+        json.insert("check_position_a_down", tb_check_position_a_down->text().toInt());
+        json.insert("check_position_down",   ck_check_rgb_down->isChecked());
+        json.insert("check_position_up",     ck_check_rgb_up->isChecked());
+        json.insert("check_print_width",     check_print_width);
+        json.insert("check_print_height",    check_print_height);
+        json.insert("check_remark",          tb_check_remark->text());
 
+        int xClick = tb_click_position_x->text().toInt();
+        int yClick = tb_click_position_y->text().toInt();
 
-        json.insert("click_position_x",         tb_click_position_x->text().toInt());
-        json.insert("click_position_y",         tb_click_position_y->text().toInt());
+        json.insert("click_position_x",         xClick);
+        json.insert("click_position_y",         yClick);
         json.insert("click_position_x_radio",   tb_click_position_x_radio->text());
         json.insert("click_position_y_radio",   tb_click_position_y_radio->text());
         json.insert("click_position_x_radio_v", tb_click_position_x_radio_v->text().toInt());
@@ -1472,11 +1513,35 @@ void Itemview10Script::initConnect()
         item0->setData(QColor(Qt::red), Qt::ForegroundRole);
 
         QStandardItem *item2 = scriptDetailGridModel->item(item->row(), 2);
+        QStandardItem *item3 = scriptDetailGridModel->item(item->row(), 3);
 
-        if (bg_scriptConditionType->checkedId() == 1) {
-            item2->setData(tr("像素点检测"), Qt::DisplayRole);
-        } else if (bg_scriptConditionType->checkedId() == 2) {
-            item2->setData(tr("图形边缘检测"), Qt::DisplayRole);
+        if (activeScriptType == 1) {
+            if (bg_scriptConditionType->checkedId() == 1) {
+                item2->setData(tr("像素点检测"), Qt::DisplayRole);
+                item3->setData(tr("■"),            Qt::DisplayRole);
+                item3->setData(QColor(r, g, b, a), Qt::ForegroundRole);
+            } else if (bg_scriptConditionType->checkedId() == 2) {
+                item2->setData(tr("图形边缘检测"), Qt::DisplayRole);
+            }
+        } else if (activeScriptType == 2) {
+            switch (bg_scriptOperateType->checkedId()) {
+            case 1:
+                item2->setData(tr("点击"), Qt::DisplayRole);
+                item3->setData(tr("[%1,%2]").arg(xClick).arg(yClick), Qt::DisplayRole);
+                break;
+
+            case 2:
+                item2->setData(tr("拖动"), Qt::DisplayRole);
+                break;
+
+            case 3:
+                item2->setData(tr("激活窗体"), Qt::DisplayRole);
+                break;
+
+            case 4:
+                item2->setData(tr("等待"), Qt::DisplayRole);
+                break;
+            }
         }
 
         QStandardItem *item4 = scriptDetailGridModel->item(item->row(), 4);
@@ -1691,16 +1756,69 @@ void Itemview10Script::initConnect()
                     int gCheck =  obj["check_position_g"].toInt();
                     int bCheck =  obj["check_position_b"].toInt();
                     int aCheck =  obj["check_position_a"].toInt();
+                    bool isCheckDown =  obj["check_position_down"].toBool();
+                    bool isCheckUp =  obj["check_position_up"].toBool();
 
                     // 检查像素
                     QColor color = pixmapWidget->getRgb(xCheck, yCheck);
                     QColor checkColor(rCheck, gCheck, bCheck, aCheck);
 
-                    if (color == checkColor) {
-                        continue;
+                    if (isCheckDown || isCheckUp) {
+                        int rCheckUp =  obj["check_position_r_up"].toInt();
+                        int gCheckUp =  obj["check_position_g_up"].toInt();
+                        int bCheckUp =  obj["check_position_b_up"].toInt();
+                        int aCheckUp =  obj["check_position_a_up"].toInt();
+                        int rCheckDown =  obj["check_position_r_down"].toInt();
+                        int gCheckDown =  obj["check_position_g_down"].toInt();
+                        int bCheckDown =  obj["check_position_b_down"].toInt();
+                        int aCheckDown =  obj["check_position_a_down"].toInt();
+
+                        int  rD = rCheck;
+                        int  gD = gCheck;
+                        int  bD = bCheck;
+                        int  aD = aCheck;
+                        int rU = rCheck;
+                        int gU = gCheck;
+                        int bU = bCheck;
+                        int aU = aCheck;
+
+                        if (isCheckDown) {
+                            rD = checkColor.red() - rCheckDown;
+                            gD = checkColor.green() - gCheckDown;
+                            bD = checkColor.blue() - bCheckDown;
+                            aD = checkColor.alpha() - aCheckDown;
+                        }
+
+                        if (isCheckUp) {
+                            rU = checkColor.red() + rCheckUp;
+                            gU = checkColor.green() + gCheckUp;
+                            bU = checkColor.blue() + bCheckUp;
+                            aU = checkColor.alpha() + aCheckUp;
+                        }
+
+                        if ((color.red() >= rD) && (color.red() <= rU) &&
+                            (color.green() >= gD) && (color.green() <= gU) &&
+                            (color.blue() >= bD) && (color.blue() <= bU) &&
+                            (color.alpha() >= aD) && (color.alpha() <= aU)) {
+                            continue;
+                        } else {
+                            appendConsole(tr("测试失败！第%1条脚本明细未通过！[%2,%4,%5,%6] != [%7-%11,%8-%12,%9-%13,%10-%14]").arg(i + 1)
+                                          .arg(color.red()).arg(color.green()).arg(color.blue()).arg(color.alpha())
+                                          .arg(rD).arg(gD).arg(bD).arg(aD)
+                                          .arg(rU).arg(gU).arg(bU).arg(aU)
+                                          );
+                            success = false;
+                        }
                     } else {
-                        appendConsole(tr("测试失败！第%1条脚本明细未通过！").arg(i + 1));
-                        success = false;
+                        if (color == checkColor) {
+                            continue;
+                        } else {
+                            appendConsole(tr("测试失败！第%1条脚本明细未通过！[%2,%4,%5,%6] != [%7,%8,%9,%10]").arg(i + 1)
+                                          .arg(color.red()).arg(color.green()).arg(color.blue()).arg(color.alpha())
+                                          .arg(checkColor.red()).arg(checkColor.green()).arg(checkColor.blue()).arg(checkColor.alpha())
+                                          );
+                            success = false;
+                        }
                     }
                 }
 
@@ -1780,6 +1898,15 @@ void Itemview10Script::initConnect()
             default:
                 break;
             }
+        }
+    });
+
+    connect(action_selectScript, &QAction::triggered, [this]() {
+        QModelIndex index = scriptTableView->currentIndex();
+        auto index2 = index.siblingAtColumn(2);
+
+        if (index2.isValid()) {
+            recursionScriptCheckManual(index2);
         }
     });
 
@@ -1973,6 +2100,7 @@ void Itemview10Script::recursionScriptShow(QJsonObject& json, QStandardItem *par
         parentItem->setChild(count, 1, new QStandardItem(name));
         parentItem->setChild(count, 2, keyItem);
         parentItem->setChild(count, 3, new QStandardItem(getScriptTypeName(scriptType)));
+        parentItem->setChild(count, 4, new QStandardItem(""));
 
         QJsonArray array = json["children"].toArray();
 
@@ -2095,28 +2223,72 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
                 int bCheck =  obj["check_position_b"].toInt();
                 int aCheck =  obj["check_position_a"].toInt();
 
+                bool isCheckDown =  obj["check_position_down"].toBool();
+                bool isCheckUp =  obj["check_position_up"].toBool();
+
                 // 检查像素
                 QColor color = pixmapWidget->getRgb(xCheck, yCheck);
                 QColor checkColor(rCheck, gCheck, bCheck, aCheck);
 
-                if (color == checkColor) {
-                    // 判断成功
-                    continue;
-                } else {
-                    // 判断失败
-                    //                    lastItem->setData("失败",            Qt::DisplayRole);
-                    //                    lastItem->setData(QColor(Qt::red), Qt::ForegroundRole);
-                    Sleep(sleep_failure * 100);
+                if (isCheckDown || isCheckUp) {
+                    int rCheckUp =  obj["check_position_r_up"].toInt();
+                    int gCheckUp =  obj["check_position_g_up"].toInt();
+                    int bCheckUp =  obj["check_position_b_up"].toInt();
+                    int aCheckUp =  obj["check_position_a_up"].toInt();
+                    int rCheckDown =  obj["check_position_r_down"].toInt();
+                    int gCheckDown =  obj["check_position_g_down"].toInt();
+                    int bCheckDown =  obj["check_position_b_down"].toInt();
+                    int aCheckDown =  obj["check_position_a_down"].toInt();
 
-                    //                    lastItem->setData("",                Qt::DisplayRole);
-                    //                    lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+                    int rD = rCheck;
+                    int gD = gCheck;
+                    int bD = bCheck;
+                    int aD = aCheck;
+                    int rU = rCheck;
+                    int gU = gCheck;
+                    int bU = bCheck;
+                    int aU = aCheck;
 
+                    if (isCheckDown) {
+                        rD = checkColor.red() - rCheckDown;
+                        gD = checkColor.green() - gCheckDown;
+                        bD = checkColor.blue() - bCheckDown;
+                        aD = checkColor.alpha() - aCheckDown;
+                    }
 
-                    postUpdateScriptStatus(lastItem, EventStatusGrid::Default);
+                    if (isCheckUp) {
+                        rU = checkColor.red() + rCheckUp;
+                        gU = checkColor.green() + gCheckUp;
+                        bU = checkColor.blue() + bCheckUp;
+                        aU = checkColor.alpha() + aCheckUp;
+                    }
 
-                    // 这里不能返回false;
-                    // 失败后直接跳出，不执行后续代码，也就是子节点
-                    return true;
+                    if ((color.red() >= rD) && (color.red() <= rU) &&
+                        (color.green() >= gD) && (color.green() <= gU) &&
+                        (color.blue() >= bD) && (color.blue() <= bU) &&
+                        (color.alpha() >= aD) && (color.alpha() <= aU)) {
+                        // 判断成功
+                        continue;
+                    } else {
+                        // 判断失败
+                        Sleep(sleep_failure * 100);
+                        postUpdateScriptStatus(lastItem, EventStatusGrid::Default);
+                        return true;
+                    }
+                }
+                else {
+                    if (color == checkColor) {
+                        // 判断成功
+                        continue;
+                    } else {
+                        // 判断失败
+                        Sleep(sleep_failure * 100);
+                        postUpdateScriptStatus(lastItem, EventStatusGrid::Default);
+
+                        // 这里不能返回false;
+                        // 失败后直接跳出，不执行后续代码，也就是子节点
+                        return true;
+                    }
                 }
             }
 
@@ -2127,6 +2299,7 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
 
             //            lastItem->setData("",                Qt::DisplayRole);
             //            lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
+            postUpdateScriptCount(lastItem);
             postUpdateScriptStatus(lastItem, EventStatusGrid::Success);
             break;
         }
@@ -2156,6 +2329,7 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
                 //                lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
 
                 postUpdateScriptStatus(lastItem, EventStatusGrid::Default);
+                postUpdateScriptCount(lastItem);
 
                 // 执行结束
                 if (return_deal == -1) return false;
@@ -2211,6 +2385,7 @@ bool Itemview10Script::recursionScriptStart(const QModelIndex& now) {
                     //                    lastItem->setData("",                Qt::DisplayRole);
                     //                    lastItem->setData(QColor(Qt::black), Qt::ForegroundRole);
                     postUpdateScriptStatus(lastItem, EventStatusGrid::Success);
+                    postUpdateScriptCount(lastItem);
 
                     // 执行结束
                     if (return_deal == -1) return false;
@@ -2299,6 +2474,27 @@ void Itemview10Script::recursionScriptUnCheck(const QModelIndex& now) {
                     item2->setData(Qt::Unchecked, Qt::CheckStateRole);
                     recursionScriptUnCheck(index2);
                 }
+            }
+        }
+    }
+}
+
+void Itemview10Script::recursionScriptCheckManual(const QModelIndex& nowIndex2) {
+    if (nowIndex2.isValid()) {
+        if (Qt::Unchecked == nowIndex2.data(Qt::CheckStateRole)) {
+            auto item2 = scriptGridModel->itemFromIndex(nowIndex2);
+            item2->setData(Qt::Checked, Qt::CheckStateRole);
+        }
+
+        auto nowIndex0 = nowIndex2.siblingAtColumn(0);
+
+        if (nowIndex0.isValid()) {
+            int count = scriptGridModel->rowCount(nowIndex0);
+
+            for (int i = 0; i < count; i++) {
+                auto index2 =  scriptGridModel->index(i, 2, nowIndex0);
+
+                recursionScriptCheckManual(index2);
             }
         }
     }
@@ -2436,19 +2632,70 @@ void Itemview10Script::buildScriptDetail() {
 
             scriptDetailGridModel->setItem(i, 0, new QStandardItem());
             scriptDetailGridModel->setItem(i, 1, keyItem);
-            scriptDetailGridModel->setItem(i, 3, new QStandardItem("无"));
+
+
             scriptDetailGridModel->setItem(i, 4, new QStandardItem(jsonObj["check_remark"].toString()));
 
-            int scriptConditionType = jsonObj["scriptConditionType"].toInt();
 
-            switch (scriptConditionType) {
-            case 1:
-                scriptDetailGridModel->setItem(i, 2, new QStandardItem("像素点检测"));
-                break;
+            if (activeScriptType == 1) {
+                int scriptConditionType = jsonObj["scriptConditionType"].toInt();
 
-            case 2:
-                scriptDetailGridModel->setItem(i, 2, new QStandardItem("图形边缘检测"));
-                break;
+                switch (scriptConditionType) {
+                case 1: {
+                    scriptDetailGridModel->setItem(i, 2, new QStandardItem("像素点检测"));
+
+                    int  rCheck =  jsonObj["check_position_r"].toInt();
+                    int  gCheck =  jsonObj["check_position_g"].toInt();
+                    int  bCheck =  jsonObj["check_position_b"].toInt();
+                    int  aCheck =  jsonObj["check_position_a"].toInt();
+                    auto item = new QStandardItem("■");
+                    item->setData(QColor(rCheck, gCheck, bCheck, aCheck), Qt::ForegroundRole);
+                    scriptDetailGridModel->setItem(i, 3, item);
+
+
+                    break;
+                }
+
+                case 2:
+                    scriptDetailGridModel->setItem(i, 2, new QStandardItem("图形边缘检测"));
+                    break;
+
+                default:
+                    scriptDetailGridModel->setItem(i, 2, new QStandardItem(""));
+                    scriptDetailGridModel->setItem(i, 3, new QStandardItem(""));
+                    break;
+                }
+            } else if (activeScriptType == 2) {
+                int scriptConditionType = jsonObj["scriptOperateType"].toInt();
+
+                switch (scriptConditionType) {
+                case 1: {
+                    int xClick =  jsonObj["click_position_x"].toInt();
+                    int yClick =  jsonObj["click_position_y"].toInt();
+
+                    scriptDetailGridModel->setItem(i, 2, new QStandardItem("点击"));
+                    auto item = new QStandardItem(tr("[%1,%2]").arg(xClick).arg(yClick));
+                    scriptDetailGridModel->setItem(i, 3, item);
+                    break;
+                }
+
+                case 2:
+                    scriptDetailGridModel->setItem(i, 2, new QStandardItem("拖动"));
+                    break;
+
+                case 3:
+                    scriptDetailGridModel->setItem(i, 2, new QStandardItem("窗口激活"));
+                    break;
+
+                case 4:
+                    scriptDetailGridModel->setItem(i, 2, new QStandardItem("等待"));
+                    break;
+
+                default:
+                    scriptDetailGridModel->setItem(i, 2, new QStandardItem("点击"));
+                    scriptDetailGridModel->setItem(i, 3, new QStandardItem(""));
+                    break;
+                }
             }
         }
     }
@@ -2505,9 +2752,6 @@ void Itemview10Script::clearScriptDetailEdit() {
 }
 
 void Itemview10Script::buildScriptDetailEdit() {
-    rb_scriptTypeCondition->setVisible(activeScriptType == 1 ? true : false);
-    rb_scriptTypeDeal->setVisible(activeScriptType == 2 ? true : false);
-    rb_scriptTypeConditionAndDeal->setVisible(activeScriptType == 3 ? true : false);
     rb_scriptTypeCondition->setCheckable(activeScriptType == 1 ? true : false);
     rb_scriptTypeDeal->setCheckable(activeScriptType == 2 ? true : false);
     rb_scriptTypeConditionAndDeal->setCheckable(activeScriptType == 3 ? true : false);
@@ -2515,12 +2759,6 @@ void Itemview10Script::buildScriptDetailEdit() {
     rb_scriptTypeDeal->setChecked(activeScriptType == 2 ? true : false);
     rb_scriptTypeConditionAndDeal->setChecked(activeScriptType == 3 ? true : false);
 
-
-    rb_scriptConditionTypePixel->setChecked(activeScriptDetailType == 1 ? true : false);
-    rb_scriptConditionTypeEdgeDetect->setChecked(activeScriptDetailType == 2 ? true : false);
-    rb_scriptConditionTypeOCR->setChecked(activeScriptDetailType == 3 ? true : false);
-    rb_scriptConditionTypeEdgeDetect->setCheckable(false);
-    rb_scriptConditionTypeOCR->setCheckable(false);
 
     ck_check_color_get->setChecked(true);
     ck_click_position_get->setChecked(true);
@@ -2535,9 +2773,67 @@ void Itemview10Script::buildScriptDetailEdit() {
         rb_scriptConditionTypePixel->setChecked(true);
     }
 
-    if ((activeScriptType == 1) || (activeScriptType == 3)) {
-        rb_scriptOperateTypeClick->setChecked(true);
+
+    switch (activeScriptType) {
+    case 1: {
+        rb_scriptTypeCondition->setVisible(true);
+        rb_scriptTypeDeal->setVisible(false);
+        rb_scriptTypeConditionAndDeal->setVisible(false);
+        rb_scriptTypeCondition->setChecked(true);
+
+        lb_scriptConditionType->setVisible(true);
+        rb_scriptConditionTypePixel->setVisible(true);
+        rb_scriptConditionTypeEdgeDetect->setVisible(true);
+        rb_scriptConditionTypeOCR->setVisible(true);
+        rb_scriptConditionTypeEdgeDetect->setCheckable(false);
+        rb_scriptConditionTypeOCR->setCheckable(false);
+        rb_scriptConditionTypePixel->setChecked(true);
+
+        lb_scriptOperateType->setVisible(false);
+        rb_scriptOperateTypeClick->setVisible(false);
+        rb_scriptOperateTypeFocus->setVisible(false);
+        rb_scriptOperateTypeWait->setVisible(false);
+
+        script3LayoutGroupBox1->show();
+        script3LayoutGroupBox2->hide();
+        break;
     }
+
+    case 2: {
+        rb_scriptTypeCondition->setVisible(false);
+        rb_scriptTypeDeal->setVisible(true);
+        rb_scriptTypeConditionAndDeal->setVisible(false);
+        rb_scriptTypeDeal->setChecked(true);
+
+
+        lb_scriptConditionType->setVisible(false);
+        rb_scriptConditionTypePixel->setVisible(false);
+        rb_scriptConditionTypeEdgeDetect->setVisible(false);
+        rb_scriptConditionTypeOCR->setVisible(false);
+
+
+        lb_scriptOperateType->setVisible(true);
+        rb_scriptOperateTypeClick->setVisible(true);
+        rb_scriptOperateTypeFocus->setVisible(true);
+        rb_scriptOperateTypeWait->setVisible(true);
+        rb_scriptOperateTypeClick->setChecked(true);
+
+        script3LayoutGroupBox1->hide();
+        script3LayoutGroupBox2->show();
+        break;
+    }
+
+    case 3: {
+        rb_scriptOperateTypeClick->setChecked(true);
+
+        break;
+    }
+
+    default: {
+        break;
+    }
+    }
+
 
     //    tabScriptWidget->setTabEnabled(1, true);
 }
@@ -2952,6 +3248,13 @@ void Itemview10Script::postUpdateScriptStatus(QStandardItem *item, EventStatusGr
     QApplication::postEvent(this, event);
 }
 
+void Itemview10Script::postUpdateScriptCount(QStandardItem *item)
+{
+    EventStatusGrid *event = new EventStatusGrid(item, qEventCountGridScript);
+
+    QApplication::postEvent(this, event);
+}
+
 void Itemview10Script::updateScriptStatus(QStandardItem *item, EventStatusGrid::GridType type) {
     switch (type) {
     case EventStatusGrid::Default:
@@ -2980,6 +3283,13 @@ void Itemview10Script::updateScriptStatus(QStandardItem *item, EventStatusGrid::
     }
 }
 
+void Itemview10Script::updateScriptCount(QStandardItem *item) {
+    auto item4 = scriptGridModel->itemFromIndex(scriptGridModel->indexFromItem(item).siblingAtColumn(4));
+    int  count = item4->data(Qt::DisplayRole).toInt();
+
+    item4->setData(count + 1, Qt::DisplayRole);
+}
+
 void Itemview10Script::customEvent(QEvent *e)
 {
     switch (e->type())
@@ -2988,15 +3298,25 @@ void Itemview10Script::customEvent(QEvent *e)
     {
         QStringEvent *event = dynamic_cast<QStringEvent *>(e);
         appendConsole(event->message);
+        e->accept();
+        break;
     }
 
     case qEventStatusGridScript:
     {
         EventStatusGrid *event = dynamic_cast<EventStatusGrid *>(e);
         updateScriptStatus(event->item, event->gridType);
-    }
         e->accept();
         break;
+    }
+
+    case qEventCountGridScript:
+    {
+        EventStatusGrid *event = dynamic_cast<EventStatusGrid *>(e);
+        updateScriptCount(event->item);
+        e->accept();
+        break;
+    }
 
     default:
         break;

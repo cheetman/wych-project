@@ -112,6 +112,9 @@ HWND CreateTopWindow(HWND SourceHwnd, void *WinProc) {
     GetClientRect(SourceHwnd, &Rect);
 
     // 创建窗口
+    // WS_EX_TOPMOST 该窗口应放置在所有非最顶层窗口上方，并且应保持其上方，即使窗口已停用也是如此。 若要添加或删除此样式，请使用 SetWindowPos 函数。
+    // WS_EX_TRANSPARENT 在绘制同一线程) 创建的窗口下方的同级 (之前，不应绘制窗口。 窗口显示为透明，因为已绘制基础同级窗口的位。若要在不使用这些限制的情况下实现透明度，请使用 SetWindowRgn 函数。
+    // WS_EX_LAYERED 窗口是分层 窗口。 如果窗口的 类样式 为 CS_OWNDC 或 CS_CLASSDC，则不能使用此样式。
     HWND newHwnd = CreateWindowEx(WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED, L" ", L" ", WS_POPUP, 1, 1, Rect.right, Rect.bottom, 0, 0, 0, 0);
 
     // 显示窗口

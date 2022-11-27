@@ -15,26 +15,18 @@
 
 #include "cpputil/singleton.h"
 
-class MainWindow : public QMainWindow
-{
-     SINGLETON_DECL(MainWindow)
-     Q_OBJECT
+class MainWindow : public QMainWindow {
+    SINGLETON_DECL(MainWindow)
+    Q_OBJECT
 
 public:
+
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
-//    static QString FtpFavorDirList;
-    void postMessage(const QString& msg);
-    void appendConsole(const QString& msg);
-    void writeConsole(const QString& msg);
 };
 
 
 #define g_mainwnd MainWindow::instance()
-
-
-
 
 
 #endif // MAINWINDOW_H

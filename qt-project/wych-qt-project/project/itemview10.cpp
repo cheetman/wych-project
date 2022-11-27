@@ -21,12 +21,19 @@ ItemView10::ItemView10(QWidget *parent) : QWidget(parent)
     itemView10PE = new ItemView10PE(this);
     itemview10Inject = new Itemview10Inject(this);
     itemview10Script = new Itemview10Script(this);
-    itemview10Script2 = new Itemview10Script(this);
 
-    tabWidget->addTab(itemView10PE,      tr("PE结构"));
-    tabWidget->addTab(itemview10Inject,  tr("注入"));
-    tabWidget->addTab(itemview10Script,  tr("脚本"));
-    tabWidget->addTab(itemview10Script2, tr("脚本2"));
+    tabWidget->addTab(itemView10PE,     tr("PE结构"));
+    tabWidget->addTab(itemview10Inject, tr("注入"));
+    tabWidget->addTab(itemview10Script, tr("脚本"));
+
+
+    QMessageBox::StandardButton button = QMessageBox::question(this, tr("提示"), QString(tr("2？")), QMessageBox::Yes | QMessageBox::No);
+
+    if (button == QMessageBox::Yes)
+    {
+        itemview10Script2 = new Itemview10Script(this);
+        tabWidget->addTab(itemview10Script2, tr("脚本2"));
+    }
 }
 
 void ItemView10::SetTabIndex(int index) {

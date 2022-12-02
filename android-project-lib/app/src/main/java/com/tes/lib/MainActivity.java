@@ -1,17 +1,17 @@
-package com.tes.project;
+package com.tes.lib;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.widget.TextView;
 
-import com.tes.project.databinding.ActivityMainBinding;
+import com.tes.lib.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
 
-    // Used to load the 'project' library on application startup.
+    // Used to load the 'lib' library on application startup.
     static {
-        System.loadLibrary("project");
+        System.loadLibrary("lib");
     }
 
     private ActivityMainBinding binding;
@@ -29,12 +29,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * A native method that is implemented by the 'project' native library,
+     * A native method that is implemented by the 'lib' native library,
      * which is packaged with this application.
      */
     public native String stringFromJNI();
-
-
-    public native String sendString(String string ,int a);
-
 }

@@ -14,16 +14,14 @@ project("wychlib")
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
-add_library( # Sets the name of the library.
-        wychlib
-
-        # Sets the library as a shared library.
-        SHARED
-
-        # Provides a relative path to your source file(s).
-        native-lib.cpp exportfunction.cpp )
+add_library(wychlib SHARED native-lib.cpp exportfunction.cpp )
+add_library(wychlib2 SHARED native-lib.cpp exportfunction.cpp )
+add_library(wychlibS STATIC native-lib.cpp exportfunction.cpp )
+#add_executable(wychlibE native-lib.cpp exportfunction.cpp )
 
 include_directories(src/main/cpp/)
+
+#message([SEND_ERROR | STATUS | FATAL_ERROR] “message to display” … )
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

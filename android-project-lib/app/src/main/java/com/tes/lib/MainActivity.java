@@ -11,7 +11,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Used to load the 'lib' library on application startup.
     static {
-        System.loadLibrary("lib");
+        System.loadLibrary("wychlib");
     }
 
     private ActivityMainBinding binding;

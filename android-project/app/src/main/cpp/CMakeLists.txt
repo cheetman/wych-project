@@ -12,14 +12,14 @@ set(my_lib_path C:/WorkMe/wych-project/android-project/app/libs)
 #set(my_lib_path ${CMAKE_SOURCE_DIR}/libs)
 
 #将第三方库作为动态库引用
-add_library(lib
+add_library(wychlib
         SHARED
         IMPORTED)
 
 #指定第三方库的绝对路径
-set_target_properties(lib
+set_target_properties(wychlib
         PROPERTIES IMPORTED_LOCATION
-        ${my_lib_path}/${ANDROID_ABI}/liblib.so)
+        ${my_lib_path}/${ANDROID_ABI}/libwychlib.so)
 
 
 # Declares and names the project.
@@ -62,7 +62,7 @@ find_library( # Sets the name of the path variable.
 
 target_link_libraries( # Specifies the target library.
         project
-        lib
+        wychlib
         # Links the target library to the log library
         # included in the NDK.
         ${log-lib})

@@ -48,6 +48,7 @@ Itemview10Script::~Itemview10Script()
 
 void Itemview10Script::initUI()
 {
+    //    this->setMouseTracking(true);
     auto layout = new QHBoxLayout(this);
 
     // 第一层
@@ -552,7 +553,11 @@ void Itemview10Script::initUI()
     //    ckScriptStart = new QCheckBox("启动脚本");
     btnScriptStart = new QPushButton("启动脚本");
     btnRefreshWindow = new QPushButton("刷新");
+    btnFindWindow = new testBtn("捕获");
     btnRefreshWindow->setFixedWidth(60);
+    btnFindWindow->setFixedWidth(60);
+    btnFindWindow->setMouseTracking(true);
+
     rb_printClient->setChecked(true);
     ck_dpi = new QComboBox();
     ck_dpi->addItem("缩放:100%", QVariant::fromValue(1.0f));
@@ -681,6 +686,7 @@ void Itemview10Script::initUI()
     window1Layouta->addWidget(new QLabel("句柄:"),   0, Qt::AlignLeft);
     window1Layouta->addWidget(tb_window_handle,    0, Qt::AlignLeft);
     window1Layouta->addWidget(btnRefreshWindow,    0, Qt::AlignLeft);
+    window1Layouta->addWidget(btnFindWindow,       0, Qt::AlignLeft);
 
     window1Layoutb->addWidget(new QLabel("窗口大小:", this), 0, Qt::AlignLeft);
     window1Layoutb->addWidget(tb_window_size,            0, Qt::AlignLeft);
@@ -3322,3 +3328,10 @@ void Itemview10Script::customEvent(QEvent *e)
         break;
     }
 }
+
+// void Itemview10Script::mouseMoveEvent(QMouseEvent *event) {
+//    int mouseX = event->x();
+//    int mouseY = event->y();
+
+//    qDebug() << mouseX << ":" << mouseY;
+// }

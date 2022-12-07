@@ -64,6 +64,23 @@ void PixmapWidget::paintEvent(QPaintEvent *event)
     painter.drawPixmap(0, 0, m_pixmap);
 
     switch (m_paintMode) {
+    case Rect: {
+        QVector<QLine> lines;
+        QPoint p1(mouseXBegin, mouseYBegin), p2(mouseXBegin, mouseYEnd), p3(mouseXEnd, mouseYEnd), p4(mouseXEnd, mouseYBegin);
+        QLine  line1(p1, p2);
+        QLine  line2(p2, p3);
+        QLine  line3(p3, p4);
+        QLine  line4(p4, p1);
+        lines.append(line1);
+        lines.append(line2);
+        lines.append(line3);
+        lines.append(line4);
+        painter.drawLines(lines);
+
+
+        break;
+    }
+
     case Border:
     {
         QVector<QLine> lines;
@@ -117,13 +134,21 @@ void PixmapWidget::leaveEvent(QEvent *event)
     }
 }
 
+void PixmapWidget::mouseReleaseEvent(QMouseEvent *event) {
+    mousePressed = false;
+}
+
 void PixmapWidget::mousePressEvent(QMouseEvent *event) {
     if (m_pixmap.isNull()) {
         return;
     }
+
+    mousePressed = true;
+
+
     this->setMouseTracking(false); // 关闭鼠标追踪
-    mouseX = event->x();
-    mouseY = event->y();
+    mouseYBegin =  mouseXBegin = mouseX = event->x();
+    mouseYEnd = mouseYBegin = mouseY = event->y();
     QColor color = m_image.pixel(mouseX, mouseY);
 
     //    if(event->button() == Qt::LeftButton){ //鼠标左键被点击
@@ -157,11 +182,17 @@ void PixmapWidget::mouseMoveEvent(QMouseEvent *event) {
     if (m_pixmap.isNull()) {
         return;
     }
+
     mouseX = event->x();
     mouseY = event->y();
 
-    // 绘制定位十字
-    m_paintMode = Tracking;
+    if (mousePressed) {
+        m_paintMode = Rect;
+        mouseYEnd = mouseY;
+        mouseXEnd = mouseX;
+    } else {
+        m_paintMode = Tracking;
+    }
     this->update();
 
     if (!m_image.valid(mouseX, mouseY)) {

@@ -16,11 +16,12 @@ public:
 
 protected:
 
-    void paintEvent(QPaintEvent *event);      // 绘制事件
-    void mousePressEvent(QMouseEvent *event); //鼠标点击事件
-    void mouseMoveEvent(QMouseEvent *event);  //鼠标移动事件
-    void enterEvent(QEvent *event);           //鼠标进入窗口事件
-    void leaveEvent(QEvent *event);           //鼠标离开窗口事件
+    void paintEvent(QPaintEvent *event);        // 绘制事件
+    void mousePressEvent(QMouseEvent *event);   //鼠标按下事件
+    void mouseMoveEvent(QMouseEvent *event);    //鼠标移动事件
+    void mouseReleaseEvent(QMouseEvent *event); //鼠标释放事件
+    void enterEvent(QEvent *event);             //鼠标进入窗口事件
+    void leaveEvent(QEvent *event);             //鼠标离开窗口事件
 
 private:
 
@@ -30,8 +31,11 @@ private:
     QBrush m_brush;    //
     QColor m_penColor; // 坐标，追踪十字的颜色
     int mouseX, mouseY;
+    int mouseXEnd, mouseYEnd;
+    int mouseXBegin, mouseYBegin;
     int m_scale = 1;
-    typedef enum { Border, Tracking } PaintMode;
+    bool mousePressed = false;
+    typedef enum { Border, Tracking, Rect } PaintMode;
     PaintMode m_paintMode;
 
 signals:

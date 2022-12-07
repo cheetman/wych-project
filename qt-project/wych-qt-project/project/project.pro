@@ -40,6 +40,7 @@ SOURCES += \
     components/scriptchecktypedialog.cpp \
     components/scripttypedialog.cpp \
     components/selectdialog.cpp \
+    components/testbtn.cpp \
     itemview10.cpp \
     itemview10Inject.cpp \
     itemview10Script.cpp \
@@ -73,6 +74,7 @@ HEADERS += \
     components/scriptchecktypedialog.h \
     components/scripttypedialog.h \
     components/selectdialog.h \
+    components/testbtn.h \
     events/customevent.h \
     events/eventstatusgrid.h \
     itemview10Inject.h \

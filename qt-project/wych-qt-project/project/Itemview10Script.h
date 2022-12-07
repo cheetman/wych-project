@@ -20,6 +20,7 @@
 #include "winapi.h"
 
 #include <components/pixmapwidget.h>
+#include <components/testbtn.h>
 #include <events/eventstatusgrid.h>
 
 #include <threads/threadscript.h>
@@ -270,6 +271,8 @@ private:
 
     QPushButton *btnScriptSave;
     QPushButton *btnRefreshWindow;
+    testBtn *btnFindWindow;
+
     QPushButton *btnScriptStart;
 
     QCheckBox *ckScriptStart;

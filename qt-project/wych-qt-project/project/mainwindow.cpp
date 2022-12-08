@@ -1,15 +1,23 @@
 
 #include "mainwindow.h"
 #include "events/customevent.h"
+#include "qftp.h"
+#include "itemview7.h"
+#include "itemview8.h"
+#include "itemview9.h"
 #include "itemview10.h"
+#include "itemview11.h"
 
-#include <ItemView11.h>
+
+int selfMainHwnd = 0;
 
 SINGLETON_IMPL(MainWindow)
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    selfMainHwnd = this->winId();
+
     // 读取配置
     //    auto settings = new QSettings("configs/setting.ini", QSettings::IniFormat);
     //    settings->beginGroup("QT");

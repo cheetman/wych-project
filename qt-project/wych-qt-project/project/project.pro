@@ -36,11 +36,11 @@ MAKE_LFLAGS += "/STACK:65536,4096"
 
 SOURCES += \
 #    itemview7.cpp \
+    components/capturebtn.cpp \
     components/pixmapwidget.cpp \
     components/scriptchecktypedialog.cpp \
     components/scripttypedialog.cpp \
     components/selectdialog.cpp \
-    components/testbtn.cpp \
     itemview10.cpp \
     itemview10Inject.cpp \
     itemview10Script.cpp \
@@ -70,11 +70,11 @@ SOURCES += \
 
 HEADERS += \
 #    itemview7.h \
+    components/capturebtn.h \
     components/pixmapwidget.h \
     components/scriptchecktypedialog.h \
     components/scripttypedialog.h \
     components/selectdialog.h \
-    components/testbtn.h \
     events/customevent.h \
     events/eventstatusgrid.h \
     itemview10Inject.h \

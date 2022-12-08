@@ -1,10 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "qftp.h"
-#include "itemview7.h"
-#include "itemview8.h"
-#include "itemview9.h"
 
 #include <QMainWindow>
 #include <QCheckBox>
@@ -15,6 +11,8 @@
 
 #include "cpputil/singleton.h"
 
+extern int selfMainHwnd;
+
 class MainWindow : public QMainWindow {
     SINGLETON_DECL(MainWindow)
     Q_OBJECT
@@ -23,6 +21,9 @@ public:
 
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    void get3();
+
+    //    HWND selfMainHwnd;
 };
 
 

@@ -2,6 +2,12 @@
 #include "mainwindow.h"
 #include "events/customevent.h"
 
+#include <QGroupBox>
+#include <QComboBox>
+#include <QTimer>
+#include <QHeaderView>
+#include <QtMath>
+
 
 ItemView9L4D2 *g_l4d2;
 

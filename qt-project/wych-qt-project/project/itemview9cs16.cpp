@@ -2,6 +2,12 @@
 #include "mainwindow.h"
 #include "events/customevent.h"
 
+#include <QComboBox>
+#include <QGroupBox>
+#include <QHeaderView>
+#include <QTimer>
+#include <QtMath>
+
 ItemView9CS16 *g_cs16;
 int fontSize = 1;
 

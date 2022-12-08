@@ -3,6 +3,11 @@
 #include "mainwindow.h"
 #include "events/customevent.h"
 
+#include <QGroupBox>
+#include <QHeaderView>
+#include <QTextCodec>
+#include <QTimer>
+
 // #pragma comment(lib, "libhv.lib")
 
 

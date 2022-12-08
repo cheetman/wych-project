@@ -553,10 +553,10 @@ void Itemview10Script::initUI()
     //    ckScriptStart = new QCheckBox("启动脚本");
     btnScriptStart = new QPushButton("启动脚本");
     btnRefreshWindow = new QPushButton("刷新");
-    btnFindWindow = new testBtn("捕获");
+    btnFindWindow = new CaptureBtn("捕获");
     btnRefreshWindow->setFixedWidth(60);
     btnFindWindow->setFixedWidth(60);
-    btnFindWindow->setMouseTracking(true);
+
 
     rb_printClient->setChecked(true);
     ck_dpi = new QComboBox();
@@ -2046,6 +2046,10 @@ void Itemview10Script::initConnect()
 
     connect(btnConsoleClear, &QPushButton::clicked, [this]() {
         clearConsole();
+    });
+
+    connect(btnFindWindow, &CaptureBtn::hwndEvent, [this](HWND hwnd) {
+        updateWindowInfo(hwnd);
     });
 }
 

@@ -2,6 +2,12 @@
 #include "mainwindow.h"
 #include "events/customevent.h"
 
+#include <QGroupBox>
+#include <QComboBox>
+#include <QTimer>
+#include <QHeaderView>
+#include <QtMath>
+
 ItemView9CSGO *g_csgo;
 
 ItemView9CSGO::ItemView9CSGO(QWidget *parent)

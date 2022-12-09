@@ -65,6 +65,9 @@ protected:
 
 private:
 
+    bool drawWindowFrame(HWND);
+    bool eraseWindowFrame(HWND);
+
     bool    readConfigDefaultHWND(QString process,
                                   int    *HWND);
     bool    writeConfigDefaultHWND(QString process,

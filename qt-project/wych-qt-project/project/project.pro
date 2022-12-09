@@ -43,6 +43,7 @@ SOURCES += \
     components/selectdialog.cpp \
     itemview10.cpp \
     itemview10Inject.cpp \
+    itemview10ProcessStatus.cpp \
     itemview10Script.cpp \
     itemview10pe.cpp \
     itemview11.cpp \
@@ -79,6 +80,7 @@ HEADERS += \
     events/eventstatusgrid.h \
     itemview10Inject.h \
     itemview10.h \
+    itemview10ProcessStatus.h \
     itemview10Script.h \
     itemview10pe.h \
     itemview11.h \

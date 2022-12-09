@@ -79,7 +79,7 @@ void Itemview10Inject::initUI()
 
     // 第二层(中间列)
 
-    auto centerQWidgetGroupBox2 = new QGroupBox("进程状态", centerQWidget);
+    auto centerQWidgetGroupBox2 = new QGroupBox("窗口状态", centerQWidget);
     auto centerQWidgetGroupBox2Layout = new QGridLayout(centerQWidgetGroupBox2);
     centerQWidgetLayout->addWidget(centerQWidgetGroupBox2);
 

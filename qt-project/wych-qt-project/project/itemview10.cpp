@@ -8,6 +8,7 @@
 #include "itemview10Inject.h"
 #include "itemview10Script.h"
 #include "itemview10pe.h"
+#include "itemview10ProcessStatus.h"
 
 
 ItemView10::ItemView10(QWidget *parent) : QWidget(parent)
@@ -21,6 +22,7 @@ ItemView10::ItemView10(QWidget *parent) : QWidget(parent)
     itemView10PE = new ItemView10PE(this);
     itemview10Inject = new Itemview10Inject(this);
     itemview10Script = new Itemview10Script(this);
+    itemview10ProcessStatus = new Itemview10ProcessStatus(this);
 
     tabWidget->addTab(itemView10PE,     tr("PE结构"));
     tabWidget->addTab(itemview10Inject, tr("注入"));
@@ -34,6 +36,9 @@ ItemView10::ItemView10(QWidget *parent) : QWidget(parent)
         itemview10Script2 = new Itemview10Script(this);
         tabWidget->addTab(itemview10Script2, tr("脚本2"));
     }
+
+
+    tabWidget->addTab(itemview10ProcessStatus, tr("进程查看"));
 }
 
 void ItemView10::SetTabIndex(int index) {

@@ -25,6 +25,11 @@
 #include <threads/threadscript.h>
 
 
+typedef int  (*__stdcall SysMsgCallBack)(int, WPARAM, LPARAM);
+typedef  void (*SetSysMsgCall)(SysMsgCallBack);
+typedef  void (*SetHook)(int);
+
+
 class Itemview10ProcessStatus : public QWidget {
     Q_OBJECT
 
@@ -48,6 +53,9 @@ public:
     void postAppendConsole(const QString& msg);
     HWND activeWindowHandle = 0;
 
+
+    static int __stdcall MysysMsgCallBack(int, WPARAM, LPARAM);
+
 protected:
 
     void         initUI();
@@ -60,6 +68,13 @@ protected:
     //    static unsigned __stdcall RefreshScript(void *param);
 
 private:
+
+    HMODULE g_moduleMessage;
+    HHOOK g_messageHook = NULL;
+    HOOKPROC hkSysMsgProc;
+    SetSysMsgCall hkSetSysMsgCall;
+    SetHook hkSetHook;
+
 
     bool drawWindowFrame(HWND);
     bool eraseWindowFrame(HWND);

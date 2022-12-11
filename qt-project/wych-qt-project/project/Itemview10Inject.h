@@ -151,6 +151,7 @@ private:
     class QAction *action_toScript;
     class QAction *action_toScript2;
     class QAction *action_toScript3;
+    class QAction *action_toStatus;
 
     //    wchar_t *FilePath = new wchar_t[260];
     //    LPVOID pFileBuffer = NULL;

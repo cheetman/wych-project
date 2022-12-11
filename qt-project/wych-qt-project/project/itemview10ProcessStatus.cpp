@@ -249,16 +249,160 @@ void Itemview10ProcessStatus::initUI()
 
     layout->addWidget(leftQWidget);
 
+    g_moduleMessage = LoadLibrary(TEXT("C:\\WorkMe\\wych-csharp-project\\Debug\\HookMessageDll.dll"));
+
+    if (g_moduleMessage)
+    {
+        hkSysMsgProc = (HOOKPROC)GetProcAddress(g_moduleMessage, "sysMsgProc");
+
+        if (hkSysMsgProc == NULL) {
+            qDebug() << "hkSysMsgProc LastError" << GetLastError();
+        }
+
+        hkSetHook = (SetHook)GetProcAddress(g_moduleMessage, "SetHook");
+
+        if (hkSetHook == NULL) {
+            qDebug() << "SetHook LastError" << GetLastError();
+        }
+
+
+        hkSetSysMsgCall = (SetSysMsgCall)GetProcAddress(g_moduleMessage, "setSysMsgCall");
+    }
+
+    hkSetSysMsgCall((SysMsgCallBack)MysysMsgCallBack);
+
 
     // 这行必须放下面
 }
 
+int __stdcall Itemview10ProcessStatus::MysysMsgCallBack(int    nCode,
+                                                        WPARAM wParam,
+                                                        LPARAM lParam) {
+    qDebug() << "nCode:" << nCode << "wParam:" << wParam << "lParam:" << lParam;
+    return 1;
+}
+
 void Itemview10ProcessStatus::initConnect()
 {
+    // 事件 - 启动hook
+    connect(btnMessageHookStart, &QPushButton::clicked, [this]() {
+        if (g_messageHook) {
+            //                    UnhookWindowsHookEx(g_messageHook);
+            return;
+        }
+
+        if (windowInfo.HandleWindow) {
+            // 获取线程id
+            DWORD dwThreadId = GetWindowThreadProcessId(windowInfo.HandleWindow, NULL);
+            hkSetHook(dwThreadId);
+            return;
+
+            g_messageHook = SetWindowsHookEx(WH_MOUSE, hkSysMsgProc, g_moduleMessage, dwThreadId);
+
+            if (g_messageHook == NULL) {
+                qDebug() << "LastError" << GetLastError() << "hkSysMsgProc" << hkSysMsgProc;
+                qDebug() << "g_moduleMessage" << g_moduleMessage << "dwThreadId" << dwThreadId;
+                qDebug() << "setSysMsgCall" << hkSetSysMsgCall;
+            }
+        }
+    });
+
     // 事件 - 刷新窗口
     connect(btnRefreshWindow, &QPushButton::clicked, [this]() {
         updateWindowInfo(windowInfo.HandleWindow);
     });
+
+
+    // 事件 - 窗口表双击
+    connect(tvWindows, &QTreeView::doubleClicked, [this](const QModelIndex& current) {
+        // auto rowIndex = WindowsGridModel->itemFromIndex(current)->row();
+
+
+        bool ok;
+        auto currentHandleV = current.sibling(current.row(), 1).data().toString();
+        auto currentHandle = currentHandleV.toInt(&ok, 16);
+
+        // 打勾
+        QList<QStandardItem *>items =  imWindows->findItems("✔", Qt::MatchExactly  | Qt::MatchRecursive, 0);
+
+        if (items.count() == 1) {
+            auto *firstItem = items.first();
+            firstItem->setData("", Qt::DisplayRole);
+        }
+        auto item0 = imWindows->itemFromIndex(current.siblingAtColumn(0));
+        item0->setData("✔", Qt::DisplayRole);
+
+        // 打勾
+
+        if (ok) {
+            updateWindowInfo((HWND)currentHandle);
+        }
+    });
+}
+
+bool Itemview10ProcessStatus::buildProcess(DWORD pid) {
+    BOOL success = WinAPI::get_process_info(pid, &processInfo);
+
+    if (success) {
+        success = WinAPI::get_window_main(pid, &windowInfo);
+
+        if (success) {
+            tb_process_name->setText(tr("[%1] %2 ").arg(pid).arg(QString::fromWCharArray(processInfo.PName)));
+            tb_window_name->setText(QString::fromWCharArray(windowInfo.TitleName));
+            tb_window_handle->setText(QString::number((intptr_t)(windowInfo.HandleWindow), 16).toUpper());
+            tb_window_handle2->setText(QString::number((intptr_t)(windowInfo.HandleWindow), 16).toUpper());
+            tb_window_size->setText(tr("[ %1 x %2 ]").arg(windowInfo.WindowRect.right - windowInfo.WindowRect.left).arg(windowInfo.WindowRect.bottom - windowInfo.WindowRect.top));
+            tb_window_position->setText(tr("(%1,%2),(%3,%4)").arg(windowInfo.WindowRect.left).arg(windowInfo.WindowRect.top).arg(windowInfo.WindowRect.right).arg(windowInfo.WindowRect.bottom));
+            tb_window2_size->setText(tr("[ %1 x %2 ]").arg(windowInfo.ClientRect.right - windowInfo.ClientRect.left).arg(windowInfo.ClientRect.bottom - windowInfo.ClientRect.top));
+            tb_window2_position->setText(tr("(%1,%2),(%3,%4)").arg(windowInfo.ClientToScreen.x).arg(windowInfo.ClientToScreen.y).arg(windowInfo.ClientToScreen.x + windowInfo.ClientRect.right).arg(windowInfo.ClientToScreen.y + windowInfo.ClientRect.bottom));
+
+
+            imWindows->setItem(0, 0, new QStandardItem(""));
+            imWindows->setItem(0, 1, new QStandardItem(QString::number((intptr_t)(windowInfo.HandleWindow), 16).toUpper()));
+            imWindows->setItem(0, 2, new QStandardItem(QString::number(0)));
+            imWindows->setItem(0, 3, new QStandardItem(QString::fromWCharArray(windowInfo.TitleName)));
+            imWindows->setItem(0, 4, new QStandardItem(QString::fromWCharArray(windowInfo.ClassName)));
+
+
+            // 子窗口
+            std::vector<WIN32_WINDOW_INFO> children;
+            success = WinAPI::get_window_child(windowInfo.HandleWindow, children);
+
+            for (std::vector<WIN32_WINDOW_INFO>::iterator iter = children.begin(); iter != children.end(); ++iter) {
+                int index = std::distance(children.begin(), iter) + 1;
+
+                QString itemHandle = QString::number((intptr_t)(iter->HandleParentWindow), 16).toUpper();
+
+                QList<QStandardItem *> parents =  imWindows->findItems(itemHandle, Qt::MatchExactly  | Qt::MatchRecursive, 1);
+
+                if (parents.count() == 1) {
+                    QStandardItem *rowItem = parents.first();
+
+                    // 只能这么转
+                    QModelIndex index1 =  imWindows->indexFromItem(rowItem);
+                    QModelIndex index0 =  index1.siblingAtColumn(0);
+                    QStandardItem *item0 = imWindows->itemFromIndex(index0);
+
+                    int rowCount = item0->rowCount();
+                    item0->setChild(rowCount, 1, new QStandardItem(QString::number((intptr_t)(iter->HandleWindow), 16).toUpper()));
+
+                    //                    rowItem->setChild(0, 1, new QStandardItem(itemHandle));
+                    item0->setChild(rowCount, 3, new QStandardItem(QString::fromWCharArray(iter->TitleName)));
+                    item0->setChild(rowCount, 4, new QStandardItem(QString::fromWCharArray(iter->ClassName)));
+                    item0->setChild(rowCount, 2, new QStandardItem(QString::number(index)));
+                    item0->setChild(rowCount, 0, new QStandardItem(""));
+                }
+            }
+
+
+            tvWindows->expandAll();
+
+            imWindows->item(0)->setData("✔", Qt::DisplayRole);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool Itemview10ProcessStatus::updateWindowInfo(HWND handleWindow) {

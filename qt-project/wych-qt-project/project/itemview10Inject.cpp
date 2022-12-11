@@ -10,6 +10,7 @@
 #include "utils.h"
 #include "itemview10Inject.h"
 #include "itemview10Script.h"
+#include "itemview10ProcessStatus.h"
 #include "itemview10.h"
 
 
@@ -294,9 +295,11 @@ void Itemview10Inject::initUI()
 
     action_toScript = new QAction(tr("跳转到脚本"), this);
     action_toScript2 = new QAction(tr("跳转到脚本2"), this);
+    action_toStatus = new QAction(tr("查看进程状态"), this);
     menu_rightClick = new QMenu(this);
     menu_rightClick->addAction(action_toScript);
     menu_rightClick->addAction(action_toScript2);
+    menu_rightClick->addAction(action_toStatus);
 }
 
 BOOL  CALLBACK enum_windows_callback(HWND handle, LPARAM lParam)
@@ -932,6 +935,30 @@ void Itemview10Inject::initConnect()
 
         if (success) {
             parent->SetTabIndex(3);
+        }
+    });
+
+    connect(action_toStatus, &QAction::triggered, [this]() {
+        auto rowIndex = processTableView->currentIndex().row();
+
+        if (rowIndex < 0) {
+            return;
+        }
+
+        auto isWindow =  processGridModel->item(rowIndex, 0)->text();
+
+        if (isWindow.isEmpty()) {
+            appendConsole(tr("该进程没有窗口！"));
+            return;
+        }
+
+
+        auto pid =  processGridModel->item(rowIndex, 2)->text().toInt();
+
+        auto success = parent->itemview10ProcessStatus->buildProcess((DWORD)pid);
+
+        if (success) {
+            parent->SetTabIndex(4);
         }
     });
 }

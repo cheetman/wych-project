@@ -24,6 +24,12 @@ public:
     void get3();
 
     //    HWND selfMainHwnd;
+
+private:
+
+    virtual bool nativeEvent(const QByteArray& eventType,
+                             void             *message,
+                             long             *result);
 };
 
 

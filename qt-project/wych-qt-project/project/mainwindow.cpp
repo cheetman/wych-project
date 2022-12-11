@@ -52,3 +52,23 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {}
+
+
+bool MainWindow::nativeEvent(const QByteArray& eventType,
+                             void             *message,
+                             long             *result) {
+    if (eventType == "windows_generic_MSG") // windows平台
+    {
+        MSG *msg = reinterpret_cast<MSG *>(message);
+
+        if (msg->message > WM_USER + 100) // 消息类型
+        {
+            qDebug() << "message: " << msg->message;
+            qDebug() << "lParam: " << msg->lParam;
+            qDebug() << "wParam: " << msg->wParam;
+        }
+    }
+
+
+    return QWidget::nativeEvent(eventType, message, result); // 交给Qt处理
+}

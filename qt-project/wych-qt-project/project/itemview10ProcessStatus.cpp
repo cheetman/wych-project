@@ -33,12 +33,14 @@
 #include "components/pixmapwidget.h"
 #include "components/scripttypedialog.h"
 #include "events/customevent.h"
-#include <events/eventstatusgrid.h>
+#include "events/eventwinmessage.h"
 
+Itemview10ProcessStatus *g_itemview10ProcessStatus;
 
 Itemview10ProcessStatus::Itemview10ProcessStatus(QWidget *parent)
     : QWidget{parent}
 {
+    g_itemview10ProcessStatus = this;
     initUI();
     initConnect();
 }
@@ -253,23 +255,24 @@ void Itemview10ProcessStatus::initUI()
 
     if (g_moduleMessage)
     {
-        hkSysMsgProc = (HOOKPROC)GetProcAddress(g_moduleMessage, "sysMsgProc");
+        hkMouseProc = (HOOKPROC)GetProcAddress(g_moduleMessage, "MouseProc");
 
-        if (hkSysMsgProc == NULL) {
-            qDebug() << "hkSysMsgProc LastError" << GetLastError();
+        if (hkMouseProc == NULL) {
+            qDebug() << "函数：MouseProc获取失败！ LastError" << GetLastError();
         }
 
-        hkSetHook = (SetHook)GetProcAddress(g_moduleMessage, "SetHook");
+        //        hkSetHook = (SetHook)GetProcAddress(g_moduleMessage, "SetHook");
 
-        if (hkSetHook == NULL) {
-            qDebug() << "SetHook LastError" << GetLastError();
-        }
+        //        if (hkSetHook == NULL) {
+        //            qDebug() << "SetHook LastError" << GetLastError();
+        //        }
 
 
-        hkSetSysMsgCall = (SetSysMsgCall)GetProcAddress(g_moduleMessage, "setSysMsgCall");
+        // 没用
+        //        hkSetSysMsgCall = (SetSysMsgCall)GetProcAddress(g_moduleMessage, "setSysMsgCall");
     }
 
-    hkSetSysMsgCall((SysMsgCallBack)MysysMsgCallBack);
+    //    hkSetSysMsgCall((SysMsgCallBack)MysysMsgCallBack);
 
 
     // 这行必须放下面
@@ -287,22 +290,23 @@ void Itemview10ProcessStatus::initConnect()
     // 事件 - 启动hook
     connect(btnMessageHookStart, &QPushButton::clicked, [this]() {
         if (g_messageHook) {
-            //                    UnhookWindowsHookEx(g_messageHook);
+            UnhookWindowsHookEx(g_messageHook);
             return;
         }
 
         if (windowInfo.HandleWindow) {
             // 获取线程id
             DWORD dwThreadId = GetWindowThreadProcessId(windowInfo.HandleWindow, NULL);
-            hkSetHook(dwThreadId);
-            return;
 
-            g_messageHook = SetWindowsHookEx(WH_MOUSE, hkSysMsgProc, g_moduleMessage, dwThreadId);
+            //            hkSetHook(dwThreadId);
+            //            return;
+
+
+            g_messageHook = SetWindowsHookEx(WH_MOUSE, hkMouseProc, g_moduleMessage, dwThreadId);
 
             if (g_messageHook == NULL) {
-                qDebug() << "LastError" << GetLastError() << "hkSysMsgProc" << hkSysMsgProc;
+                qDebug() << "LastError" << GetLastError() << "hkSysMsgProc" << hkMouseProc;
                 qDebug() << "g_moduleMessage" << g_moduleMessage << "dwThreadId" << dwThreadId;
-                qDebug() << "setSysMsgCall" << hkSetSysMsgCall;
             }
         }
     });
@@ -508,6 +512,76 @@ void Itemview10ProcessStatus::postAppendConsole(const QString& msg)
     QApplication::postEvent(this, event);
 }
 
+// void Itemview10ProcessStatus::postAppendMessageText(EventWinMessage *event) {
+//    EventWinMessage *event2 = new EventWinMessage(qEventMouseProc, 1, 1);
+
+
+//    QApplication::postEvent(this, event2);
+// }
+
+
+void Itemview10ProcessStatus::buildMessageText(QEvent::Type type, EventWinMessage *event) {
+    switch (type) {
+    case qEventMouseProc:
+    {
+        // 不能用LPMOUSEHOOKSTRUCT。。。。 也不能用LOWORD HIWORD
+        PMOUSEHOOKSTRUCT lParam = (PMOUSEHOOKSTRUCT)event->lParam;
+
+        QString mouseType;
+
+        switch (event->wParam) {
+        case WM_LBUTTONDOWN:
+            mouseType = "左键按下";
+            break;
+
+        case WM_LBUTTONUP:
+            mouseType = "左键释放";
+            break;
+
+        case WM_RBUTTONDOWN:
+            mouseType = "右键按下";
+            break;
+
+        case WM_RBUTTONUP:
+            mouseType = "右键释放";
+            break;
+
+        case WM_MOUSEMOVE:
+            mouseType = "移动";
+            break;
+
+        default:
+            mouseType = "未知" + QString::number(event->wParam, 16);
+            break;
+        }
+
+        qDebug() << mouseType;
+        qDebug() << lParam->pt.x;
+        qDebug() << lParam->pt.y;
+        qDebug() << lParam->hwnd;
+
+        QString msg = tr("[鼠标] %1 坐标：(%2,%3) hwnd：%4").arg(mouseType).arg(lParam->pt.x).arg(lParam->pt.y).arg(QString::number(UINT(lParam->hwnd), 16));
+        appendMessageText(msg);
+        break;
+    }
+    }
+}
+
+void Itemview10ProcessStatus::appendMessageText(const QString& msg) {
+    QString text = QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ");
+
+    text += msg;
+
+    //    if (text.back() != '\n') {
+    //        text += "\n";
+    //    }
+    edtMessage->appendPlainText(text);
+    QTextCursor cursor = edtMessage->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    edtMessage->setTextCursor(cursor);
+    edtMessage->repaint();
+}
+
 void Itemview10ProcessStatus::appendConsole(const QString& msg)
 {
     QString text = edtMsg->toPlainText();
@@ -599,30 +673,16 @@ void Itemview10ProcessStatus::customEvent(QEvent *e)
         break;
     }
 
-    case qEventStatusGridScript:
+    case qEventMouseProc:
     {
-        EventStatusGrid *event = dynamic_cast<EventStatusGrid *>(e);
-        updateScriptStatus(event->item, event->gridType);
+        EventWinMessage *event = dynamic_cast<EventWinMessage *>(e);
+        buildMessageText(e->type(), event);
         e->accept();
         break;
     }
 
-    case qEventCountGridScript:
-    {
-        EventStatusGrid *event = dynamic_cast<EventStatusGrid *>(e);
-        updateScriptCount(event->item);
-        e->accept();
-        break;
-    }
 
     default:
         break;
     }
 }
-
-// void Itemview10ProcessStatus::mouseMoveEvent(QMouseEvent *event) {
-//    int mouseX = event->x();
-//    int mouseY = event->y();
-
-//    qDebug() << mouseX << ":" << mouseY;
-// }

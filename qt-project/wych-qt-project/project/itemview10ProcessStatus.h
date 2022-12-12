@@ -56,6 +56,10 @@ public:
 
     static int __stdcall MysysMsgCallBack(int, WPARAM, LPARAM);
 
+    //    void postAppendMessageText(class EventWinMessage *event);
+
+    void appendMessageText(const QString&);
+
 protected:
 
     void         initUI();
@@ -71,10 +75,11 @@ private:
 
     HMODULE g_moduleMessage;
     HHOOK g_messageHook = NULL;
-    HOOKPROC hkSysMsgProc;
+    HOOKPROC hkMouseProc;
     SetSysMsgCall hkSetSysMsgCall;
     SetHook hkSetHook;
 
+    void buildMessageText(QEvent::Type, class EventWinMessage *);
 
     bool drawWindowFrame(HWND);
     bool eraseWindowFrame(HWND);
@@ -358,4 +363,5 @@ private:
 signals:
 };
 
+extern Itemview10ProcessStatus *g_itemview10ProcessStatus;
 #endif // Itemview10ProcessStatus_H

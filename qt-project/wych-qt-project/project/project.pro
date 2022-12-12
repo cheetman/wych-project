@@ -78,6 +78,7 @@ HEADERS += \
     components/selectdialog.h \
     events/customevent.h \
     events/eventstatusgrid.h \
+    events/eventwinmessage.h \
     itemview10Inject.h \
     itemview10.h \
     itemview10ProcessStatus.h \

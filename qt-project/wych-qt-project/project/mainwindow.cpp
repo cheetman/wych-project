@@ -7,6 +7,8 @@
 #include "itemview9.h"
 #include "itemview10.h"
 #include "itemview11.h"
+#include "events/eventwinmessage.h"
+#include "itemview10ProcessStatus.h"
 
 
 int selfMainHwnd = 0;
@@ -38,7 +40,8 @@ MainWindow::MainWindow(QWidget *parent)
 
         //    tabWidget->addTab(new ItemView7(this), tr("7.视频播放器(FTP)"));
         tabWidget->addTab(new ItemView9(this),  tr("9.游戏辅助测试"));
-        tabWidget->addTab(new ItemView10(this), tr("10.底层测试"));
+        itemView10 = new ItemView10(this);
+        tabWidget->addTab(itemView10,           tr("10.底层测试"));
         tabWidget->addTab(new ItemView11(this), tr("11.安卓底层测试"));
     }
 
@@ -48,6 +51,17 @@ MainWindow::MainWindow(QWidget *parent)
     mainLayout->addWidget(tabWidget);
     this->setCentralWidget(widget);
     setWindowTitle(tr("CheatmanTools v0.5"));
+
+
+    auto g_MainWnd = FindWindow(NULL, L"AssemblyTestWindows");
+
+    if (g_MainWnd) {
+        // 鼠标
+        if (!ChangeWindowMessageFilterEx((HWND)selfMainHwnd, WM_USER + 0x101, MSGFLT_ALLOW, NULL)) {
+            int err = GetLastError();
+            qDebug() << "GetLastError：" << err;
+        }
+    }
 }
 
 MainWindow::~MainWindow()
@@ -61,11 +75,40 @@ bool MainWindow::nativeEvent(const QByteArray& eventType,
     {
         MSG *msg = reinterpret_cast<MSG *>(message);
 
-        if (msg->message > WM_USER + 100) // 消息类型
+        if (msg->message > WM_USER + 0x100) // 消息类型
         {
-            qDebug() << "message: " << msg->message;
-            qDebug() << "lParam: " << msg->lParam;
-            qDebug() << "wParam: " << msg->wParam;
+            WPARAM wParam = msg->wParam;
+            LPARAM lParam = msg->lParam;
+
+
+            //            LPMOUSEHOOKSTRUCT lParam2 = (LPMOUSEHOOKSTRUCT)lParam;
+
+
+            //            qDebug() << "A x" << lParam2->pt.x << "y" <<  lParam2->pt.y;
+            //            qDebug() << "B x" << LOWORD(lParam) << "y" <<  HIWORD(lParam);
+
+
+            //            qDebug() << "message:0x" << QString::number(msg->message, 16) << " wParam:0x" << QString::number(wParam, 16) << " lParam:0x" <<
+            // QString::number(lParam, 16);
+
+            switch (msg->message) {
+            // 鼠标
+            case WM_USER + 0x101: {
+                EventWinMessage *event = new EventWinMessage(qEventMouseProc, wParam, lParam);
+
+                // 这么调用居然不行
+                // QApplication::postEvent(itemView10->itemview10ProcessStatus, event);
+
+                if (g_itemview10ProcessStatus) {
+                    QApplication::postEvent(g_itemview10ProcessStatus, event);
+                }
+
+                // 处理完成
+                return true;
+
+                break;
+            }
+            }
         }
     }
 

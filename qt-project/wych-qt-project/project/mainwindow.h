@@ -24,6 +24,7 @@ public:
     void get3();
 
     //    HWND selfMainHwnd;
+    class ItemView10 *itemView10;
 
 private:
 

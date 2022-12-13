@@ -290,7 +290,11 @@ void Itemview10ProcessStatus::initConnect()
     // 事件 - 启动hook
     connect(btnMessageHookStart, &QPushButton::clicked, [this]() {
         if (g_messageHook) {
-            UnhookWindowsHookEx(g_messageHook);
+            if (!UnhookWindowsHookEx(g_messageHook)) {
+                qDebug() << "UnhookWindowsHookEx LastError" << GetLastError();
+            } else {
+                g_messageHook = NULL;
+            }
             return;
         }
 
@@ -524,12 +528,13 @@ void Itemview10ProcessStatus::buildMessageText(QEvent::Type type, EventWinMessag
     switch (type) {
     case qEventMouseProc:
     {
-        // 不能用LPMOUSEHOOKSTRUCT。。。。 也不能用LOWORD HIWORD
-        PMOUSEHOOKSTRUCT lParam = (PMOUSEHOOKSTRUCT)event->lParam;
+        //不能用LPMOUSEHOOKSTRUCT。。。。 也不能用LOWORD HIWORD
+        WPARAM *wParam =  (WPARAM *)(event->data + sizeof(int));
+        PMOUSEHOOKSTRUCT lParam = (PMOUSEHOOKSTRUCT)(event->data + sizeof(int) + sizeof(WPARAM));
 
         QString mouseType;
 
-        switch (event->wParam) {
+        switch (*wParam) {
         case WM_LBUTTONDOWN:
             mouseType = "左键按下";
             break;
@@ -551,7 +556,7 @@ void Itemview10ProcessStatus::buildMessageText(QEvent::Type type, EventWinMessag
             break;
 
         default:
-            mouseType = "未知" + QString::number(event->wParam, 16);
+            mouseType = "未知" + QString::number(*wParam, 16);
             break;
         }
 

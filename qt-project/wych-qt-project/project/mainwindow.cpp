@@ -57,7 +57,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     if (g_MainWnd) {
         // 鼠标
-        if (!ChangeWindowMessageFilterEx((HWND)selfMainHwnd, WM_USER + 0x101, MSGFLT_ALLOW, NULL)) {
+        //        if (!ChangeWindowMessageFilterEx((HWND)selfMainHwnd, WM_USER + 0x101, MSGFLT_ALLOW, NULL)) {
+        //            int err = GetLastError();
+        //            qDebug() << "GetLastError：" << err;
+        //        }
+
+        if (!ChangeWindowMessageFilterEx((HWND)selfMainHwnd, WM_COPYDATA, MSGFLT_ALLOW, NULL)) {
             int err = GetLastError();
             qDebug() << "GetLastError：" << err;
         }
@@ -75,41 +80,68 @@ bool MainWindow::nativeEvent(const QByteArray& eventType,
     {
         MSG *msg = reinterpret_cast<MSG *>(message);
 
-        if (msg->message > WM_USER + 0x100) // 消息类型
-        {
+
+        if (msg->message == WM_COPYDATA) {
             WPARAM wParam = msg->wParam;
-            LPARAM lParam = msg->lParam;
 
 
-            //            LPMOUSEHOOKSTRUCT lParam2 = (LPMOUSEHOOKSTRUCT)lParam;
+            PCOPYDATASTRUCT cdsMessageDataStruct = (PCOPYDATASTRUCT)msg->lParam;
 
+            if (!cdsMessageDataStruct || (sizeof(cdsMessageDataStruct) == 0)) return false;
 
-            //            qDebug() << "A x" << lParam2->pt.x << "y" <<  lParam2->pt.y;
-            //            qDebug() << "B x" << LOWORD(lParam) << "y" <<  HIWORD(lParam);
+            int type =  *(int *)(cdsMessageDataStruct->lpData);
 
-
-            //            qDebug() << "message:0x" << QString::number(msg->message, 16) << " wParam:0x" << QString::number(wParam, 16) << " lParam:0x" <<
-            // QString::number(lParam, 16);
-
-            switch (msg->message) {
-            // 鼠标
-            case WM_USER + 0x101: {
-                EventWinMessage *event = new EventWinMessage(qEventMouseProc, wParam, lParam);
-
-                // 这么调用居然不行
-                // QApplication::postEvent(itemView10->itemview10ProcessStatus, event);
+            switch (type) {
+            case 101:
+                EventWinMessage *event = new EventWinMessage(qEventMouseProc, cdsMessageDataStruct->lpData, 100);
 
                 if (g_itemview10ProcessStatus) {
                     QApplication::postEvent(g_itemview10ProcessStatus, event);
                 }
-
-                // 处理完成
-                return true;
-
-                break;
             }
-            }
+
+
+            // 处理完成
+            return true;
         }
+
+
+        //        if (msg->message > WM_USER + 0x100) // 消息类型
+        //        {
+        //            WPARAM wParam = msg->wParam;
+        //            LPARAM lParam = msg->lParam;
+
+
+        //            //            LPMOUSEHOOKSTRUCT lParam2 = (LPMOUSEHOOKSTRUCT)lParam;
+
+
+        //            //            qDebug() << "A x" << lParam2->pt.x << "y" <<  lParam2->pt.y;
+        //            //            qDebug() << "B x" << LOWORD(lParam) << "y" <<  HIWORD(lParam);
+
+
+        //            //            qDebug() << "message:0x" << QString::number(msg->message, 16) << " wParam:0x" << QString::number(wParam, 16) << " lParam:0x"
+        // <<
+        //            // QString::number(lParam, 16);
+
+        //            switch (msg->message) {
+        //            // 鼠标
+        //            case WM_USER + 0x101: {
+        //                EventWinMessage *event = new EventWinMessage(qEventMouseProc, wParam, lParam);
+
+        //                // 这么调用居然不行
+        //                // QApplication::postEvent(itemView10->itemview10ProcessStatus, event);
+
+        //                if (g_itemview10ProcessStatus) {
+        //                    QApplication::postEvent(g_itemview10ProcessStatus, event);
+        //                }
+
+        //                // 处理完成
+        //                return true;
+
+        //                break;
+        //            }
+        //            }
+        //        }
     }
 
 

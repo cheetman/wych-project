@@ -170,11 +170,12 @@ void Itemview10ProcessStatus::initUI()
     gbMessageButtonLayout3->addWidget(tb_window2_position,                       0, Qt::AlignLeft);
 
 
-    btnMessageHookStart = new QPushButton("钩子", this);
+    btnMouseHookStart = new QPushButton("鼠标钩子", this);
+    btnMessageHookStart = new QPushButton("消息钩子", this);
 
 
+    gbMessageButtonLayout4->addWidget(  btnMouseHookStart, 0, Qt::AlignLeft);
     gbMessageButtonLayout4->addWidget(btnMessageHookStart, 0, Qt::AlignLeft);
-
 
     auto gbWindows = new QGroupBox("窗口明细", this);
     auto gbWindowsLayout = new QHBoxLayout(this);
@@ -258,7 +259,15 @@ void Itemview10ProcessStatus::initUI()
         hkMouseProc = (HOOKPROC)GetProcAddress(g_moduleMessage, "MouseProc");
 
         if (hkMouseProc == NULL) {
+            appendConsole(tr("函数MouseProc获取失败！ LastError: %1").arg(GetLastError()));
             qDebug() << "函数：MouseProc获取失败！ LastError" << GetLastError();
+        }
+
+        hkMessageProc = (HOOKPROC)GetProcAddress(g_moduleMessage, "MessageProc");
+
+        if (hkMessageProc == NULL) {
+            appendConsole(tr("函数MessageProc获取失败！ LastError: %1").arg(GetLastError()));
+            qDebug() << "函数：MessageProc获取失败！ LastError" << GetLastError();
         }
 
         //        hkSetHook = (SetHook)GetProcAddress(g_moduleMessage, "SetHook");
@@ -288,12 +297,14 @@ int __stdcall Itemview10ProcessStatus::MysysMsgCallBack(int    nCode,
 void Itemview10ProcessStatus::initConnect()
 {
     // 事件 - 启动hook
-    connect(btnMessageHookStart, &QPushButton::clicked, [this]() {
+    connect(btnMouseHookStart, &QPushButton::clicked, [this]() {
         if (g_messageHook) {
             if (!UnhookWindowsHookEx(g_messageHook)) {
+                appendConsole(tr("UnhookWindowsHookEx LastError: %1").arg(GetLastError()));
                 qDebug() << "UnhookWindowsHookEx LastError" << GetLastError();
             } else {
                 g_messageHook = NULL;
+                btnMouseHookStart->setText("鼠标钩子");
             }
             return;
         }
@@ -302,15 +313,42 @@ void Itemview10ProcessStatus::initConnect()
             // 获取线程id
             DWORD dwThreadId = GetWindowThreadProcessId(windowInfo.HandleWindow, NULL);
 
-            //            hkSetHook(dwThreadId);
-            //            return;
-
-
             g_messageHook = SetWindowsHookEx(WH_MOUSE, hkMouseProc, g_moduleMessage, dwThreadId);
 
             if (g_messageHook == NULL) {
+                appendConsole(tr("hkMouseProc LastError: %1").arg(GetLastError()));
                 qDebug() << "LastError" << GetLastError() << "hkSysMsgProc" << hkMouseProc;
                 qDebug() << "g_moduleMessage" << g_moduleMessage << "dwThreadId" << dwThreadId;
+            } else {
+                btnMouseHookStart->setText("关闭钩子");
+            }
+        }
+    });
+
+    connect(btnMessageHookStart, &QPushButton::clicked, [this]() {
+        if (g_messageHook) {
+            if (!UnhookWindowsHookEx(g_messageHook)) {
+                appendConsole(tr("UnhookWindowsHookEx LastError: %1").arg(GetLastError()));
+                qDebug() << "UnhookWindowsHookEx LastError" << GetLastError();
+            } else {
+                g_messageHook = NULL;
+                btnMessageHookStart->setText("消息钩子");
+            }
+            return;
+        }
+
+        if (windowInfo.HandleWindow) {
+            // 获取线程id
+            DWORD dwThreadId = GetWindowThreadProcessId(windowInfo.HandleWindow, NULL);
+
+            g_messageHook = SetWindowsHookEx(WH_GETMESSAGE, hkMessageProc, g_moduleMessage, dwThreadId);
+
+            if (g_messageHook == NULL) {
+                appendConsole(tr("hkMessageProc！ LastError: %1").arg(GetLastError()));
+                qDebug() << "LastError" << GetLastError() << "hkSysMsgProc" << hkMessageProc;
+                qDebug() << "g_moduleMessage" << g_moduleMessage << "dwThreadId" << dwThreadId;
+            } else {
+                btnMessageHookStart->setText("关闭钩子");
             }
         }
     });
@@ -543,6 +581,10 @@ void Itemview10ProcessStatus::buildMessageText(QEvent::Type type, EventWinMessag
             mouseType = "左键释放";
             break;
 
+        case WM_LBUTTONDBLCLK:
+            mouseType = "左键双击";
+            break;
+
         case WM_RBUTTONDOWN:
             mouseType = "右键按下";
             break;
@@ -551,22 +593,205 @@ void Itemview10ProcessStatus::buildMessageText(QEvent::Type type, EventWinMessag
             mouseType = "右键释放";
             break;
 
+        case WM_RBUTTONDBLCLK:
+            mouseType = "右键双击";
+            break;
+
+        case WM_MBUTTONDOWN:
+            mouseType = "中键按下";
+            break;
+
+        case WM_MBUTTONUP:
+            mouseType = "中键释放";
+            break;
+
+        case WM_MBUTTONDBLCLK:
+            mouseType = "中键双击";
+            break;
+
+        case WM_MOUSEWHEEL:
+            mouseType = "滚轮";
+            break;
+
         case WM_MOUSEMOVE:
             mouseType = "移动";
             break;
+
+        case WM_NCLBUTTONDOWN:
+            mouseType = "NC左键按下";
+            break;
+
+        case WM_NCLBUTTONUP:
+            mouseType = "NC左键释放";
+            break;
+
+        case WM_NCLBUTTONDBLCLK:
+            mouseType = "NC左键双击";
+            break;
+
+        case WM_NCRBUTTONDOWN:
+            mouseType = "NC右键按下";
+            break;
+
+        case WM_NCRBUTTONUP:
+            mouseType = "NC右键释放";
+            break;
+
+        case WM_NCRBUTTONDBLCLK:
+            mouseType = "NC右键双击";
+            break;
+
+        case WM_NCMBUTTONDOWN:
+            mouseType = "NC中键按下";
+            break;
+
+        case WM_NCMBUTTONUP:
+            mouseType = "NC中键释放";
+            break;
+
+
+        case WM_NCMBUTTONDBLCLK:
+            mouseType = "NC中键双击";
+            break;
+
+
+        case WM_NCMOUSEMOVE:
+            mouseType = "NC移动";
+            break;
+
 
         default:
             mouseType = "未知" + QString::number(*wParam, 16);
             break;
         }
 
-        qDebug() << mouseType;
-        qDebug() << lParam->pt.x;
-        qDebug() << lParam->pt.y;
-        qDebug() << lParam->hwnd;
+        //        qDebug() << mouseType;
+        //        qDebug() << lParam->pt.x;
+        //        qDebug() << lParam->pt.y;
+        //        qDebug() << lParam->hwnd;
 
-        QString msg = tr("[鼠标] %1 坐标：(%2,%3) hwnd：%4").arg(mouseType).arg(lParam->pt.x).arg(lParam->pt.y).arg(QString::number(UINT(lParam->hwnd), 16));
+        QString msg = tr("[鼠标] %1 坐标：(%2,%3) hwnd：%4 命中测试值：%5")
+                      .arg(mouseType).arg(lParam->pt.x).arg(lParam->pt.y)
+                      .arg(  QString::number(UINT(lParam->hwnd), 16))
+                      .arg(   lParam->wHitTestCode);
         appendMessageText(msg);
+        break;
+    }
+
+    case qEventMessageMouseProc:
+    {
+        char *p = event->data;
+
+        HWND   *hwnd =  (HWND *)(p += sizeof(int));
+        UINT   *msg =  (UINT *)(p += sizeof(HWND));
+        WPARAM *wParam =  (WPARAM *)(p += sizeof(UINT));
+        int    *x =  (int *)(p += sizeof(int));
+        int    *y =  (int *)(p += sizeof(int));
+
+
+        QString mouseType;
+
+        switch (*msg) {
+        case WM_LBUTTONDOWN:
+            mouseType = "左键按下";
+            break;
+
+        case WM_LBUTTONUP:
+            mouseType = "左键释放";
+            break;
+
+        case WM_LBUTTONDBLCLK:
+            mouseType = "左键双击";
+            break;
+
+        case WM_RBUTTONDOWN:
+            mouseType = "右键按下";
+            break;
+
+        case WM_RBUTTONUP:
+            mouseType = "右键释放";
+            break;
+
+        case WM_RBUTTONDBLCLK:
+            mouseType = "右键双击";
+            break;
+
+        case WM_MBUTTONDOWN:
+            mouseType = "中键按下";
+            break;
+
+        case WM_MBUTTONUP:
+            mouseType = "中键释放";
+            break;
+
+        case WM_MBUTTONDBLCLK:
+            mouseType = "中键双击";
+            break;
+
+        case WM_MOUSEWHEEL:
+            mouseType = "滚轮";
+            break;
+
+        case WM_MOUSEMOVE:
+            mouseType = "移动";
+            break;
+
+        case WM_NCLBUTTONDOWN:
+            mouseType = "NC左键按下";
+            break;
+
+        case WM_NCLBUTTONUP:
+            mouseType = "NC左键释放";
+            break;
+
+        case WM_NCLBUTTONDBLCLK:
+            mouseType = "NC左键双击";
+            break;
+
+        case WM_NCRBUTTONDOWN:
+            mouseType = "NC右键按下";
+            break;
+
+        case WM_NCRBUTTONUP:
+            mouseType = "NC右键释放";
+            break;
+
+        case WM_NCRBUTTONDBLCLK:
+            mouseType = "NC右键双击";
+            break;
+
+        case WM_NCMBUTTONDOWN:
+            mouseType = "NC中键按下";
+            break;
+
+        case WM_NCMBUTTONUP:
+            mouseType = "NC中键释放";
+            break;
+
+
+        case WM_NCMBUTTONDBLCLK:
+            mouseType = "NC中键双击";
+            break;
+
+
+        case WM_NCMOUSEMOVE:
+            mouseType = "NC移动";
+            break;
+
+
+        default:
+            mouseType = "未知" + QString::number(*wParam, 16);
+            break;
+        }
+
+
+        QString text = tr("[消息-鼠标] %1 坐标：(%2,%3) hwnd：%4 wParam：%5")
+                       .arg(mouseType)
+                       .arg(        *x)
+                       .arg(        *y)
+                       .arg(  QString::number(UINT(*hwnd), 16))
+                       .arg(  QString::number(UINT(*wParam), 16));
+        appendMessageText(text);
         break;
     }
     }
@@ -577,9 +802,6 @@ void Itemview10ProcessStatus::appendMessageText(const QString& msg) {
 
     text += msg;
 
-    //    if (text.back() != '\n') {
-    //        text += "\n";
-    //    }
     edtMessage->appendPlainText(text);
     QTextCursor cursor = edtMessage->textCursor();
     cursor.movePosition(QTextCursor::End);
@@ -589,18 +811,14 @@ void Itemview10ProcessStatus::appendMessageText(const QString& msg) {
 
 void Itemview10ProcessStatus::appendConsole(const QString& msg)
 {
-    QString text = edtMsg->toPlainText();
+    QString text = QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ");
 
-    text += QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ");
-
-    //    text += QDateTime::currentDateTime().toString("[yyyy-MM-dd
-    // hh:mm:ss.zzz] ");
     text += msg;
-
-    if (text.back() != '\n') {
-        text += "\n";
-    }
-    writeConsole(text);
+    edtMsg->appendPlainText(text);
+    QTextCursor cursor = edtMsg->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    edtMsg->setTextCursor(cursor);
+    edtMsg->repaint();
 }
 
 void Itemview10ProcessStatus::writeConsole(const QString& msg)
@@ -679,6 +897,7 @@ void Itemview10ProcessStatus::customEvent(QEvent *e)
     }
 
     case qEventMouseProc:
+    case qEventMessageMouseProc:
     {
         EventWinMessage *event = dynamic_cast<EventWinMessage *>(e);
         buildMessageText(e->type(), event);

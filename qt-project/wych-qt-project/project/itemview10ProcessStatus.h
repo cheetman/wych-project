@@ -75,7 +75,8 @@ private:
 
     HMODULE g_moduleMessage;
     HHOOK g_messageHook = NULL;
-    HOOKPROC hkMouseProc;
+    HOOKPROC hkMouseProc = NULL;
+    HOOKPROC hkMessageProc = NULL;
     SetSysMsgCall hkSetSysMsgCall;
     SetHook hkSetHook;
 
@@ -256,6 +257,7 @@ private:
     QPushButton *btnScriptAddRoot;
 
     QPushButton *btnRefreshWindow;
+    QPushButton *btnMouseHookStart;
     QPushButton *btnMessageHookStart;
     CaptureBtn *btnFindWindow;
 

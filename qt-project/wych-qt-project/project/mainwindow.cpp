@@ -91,13 +91,11 @@ bool MainWindow::nativeEvent(const QByteArray& eventType,
 
             int type =  *(int *)(cdsMessageDataStruct->lpData);
 
-            switch (type) {
-            case 101:
-                EventWinMessage *event = new EventWinMessage(qEventMouseProc, cdsMessageDataStruct->lpData, 100);
 
-                if (g_itemview10ProcessStatus) {
-                    QApplication::postEvent(g_itemview10ProcessStatus, event);
-                }
+            EventWinMessage *event = new EventWinMessage((QEvent::Type)(QEvent::User + type), cdsMessageDataStruct->lpData, 100);
+
+            if (g_itemview10ProcessStatus) {
+                QApplication::postEvent(g_itemview10ProcessStatus, event);
             }
 
 

@@ -65,6 +65,7 @@ protected:
     void         initUI();
     void         initConnect();
     void         clearConsole();
+    void         clearMessageText();
     void         appendConsole(const QString& msg);
     void         writeConsole(const QString& msg);
     virtual void customEvent(QEvent *e);
@@ -75,6 +76,7 @@ private:
 
     HMODULE g_moduleMessage;
     HHOOK g_messageHook = NULL;
+    HHOOK g_mouseHook = NULL;
     HOOKPROC hkMouseProc = NULL;
     HOOKPROC hkMessageProc = NULL;
     SetSysMsgCall hkSetSysMsgCall;
@@ -259,6 +261,7 @@ private:
     QPushButton *btnRefreshWindow;
     QPushButton *btnMouseHookStart;
     QPushButton *btnMessageHookStart;
+    QPushButton *btnShowStyle;
     CaptureBtn *btnFindWindow;
 
 

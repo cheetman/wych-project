@@ -23,6 +23,7 @@
 #include <events/eventstatusgrid.h>
 
 #include <threads/threadscript.h>
+#include <threads/threadwindowhide.h>
 
 
 typedef int  (*__stdcall SysMsgCallBack)(int, WPARAM, LPARAM);
@@ -60,6 +61,13 @@ public:
 
     void appendMessageText(const QString&);
 
+    bool hideWindow(HWND hwnd);
+    bool showWindow(HWND hwnd);
+
+    uint hideStatus = 0;
+    HWND lasthwnd = 0;
+    WIN32_WINDOW_INFO lastWindowInfo = { 0 };
+
 protected:
 
     void         initUI();
@@ -74,6 +82,11 @@ protected:
 
 private:
 
+    LONG lastX = 0;
+
+    // 0：默认 1：隐藏了 2：轮询隐藏 3：正在取消
+
+
     HMODULE g_moduleMessage;
     HHOOK g_messageHook = NULL;
     HHOOK g_mouseHook = NULL;
@@ -83,6 +96,9 @@ private:
     SetHook hkSetHook;
 
     void buildMessageText(QEvent::Type, class EventWinMessage *);
+
+    void showWindowStyle(HWND handleWindow);
+
 
     bool drawWindowFrame(HWND);
     bool eraseWindowFrame(HWND);
@@ -111,7 +127,7 @@ private:
 
     void postUpdateScriptCount(QStandardItem *item);
 
-    ThreadScript *threadScript;
+    class ThreadWindowHide *threadWindowHide;
 
 
     WIN32_PROCESS_INFO processInfo = {
@@ -262,8 +278,9 @@ private:
     QPushButton *btnMouseHookStart;
     QPushButton *btnMessageHookStart;
     QPushButton *btnShowStyle;
+    QPushButton *btnHideWindow;
     CaptureBtn *btnFindWindow;
-
+    QCheckBox *ckHideWindow;
 
     QCheckBox *ckScriptStart;
     QCheckBox *ckConsoleEnable;

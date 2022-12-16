@@ -28,14 +28,15 @@ ItemView10::ItemView10(QWidget *parent) : QWidget(parent)
     tabWidget->addTab(itemview10Script, tr("脚本"));
 
 
-    QMessageBox::StandardButton button = QMessageBox::question(this, tr("提示"), QString(tr("2？")), QMessageBox::Yes | QMessageBox::No);
+    //    QMessageBox::StandardButton button = QMessageBox::question(this, tr("提示"), QString(tr("2？")), QMessageBox::Yes | QMessageBox::No);
 
-    if (button == QMessageBox::Yes)
-    {
-        itemview10Script2 = new Itemview10Script(this);
-        itemview10ProcessStatus = new Itemview10ProcessStatus(this);
-        tabWidget->addTab(itemview10Script2, tr("脚本2"));
-    }
+    //    if (button == QMessageBox::Yes)
+    //    {
+    itemview10Script2 = new Itemview10Script(this);
+    itemview10ProcessStatus = new Itemview10ProcessStatus(this);
+    tabWidget->addTab(itemview10Script2, tr("脚本2"));
+
+    //    }
 
 
     tabWidget->addTab(itemview10ProcessStatus, tr("进程查看"));

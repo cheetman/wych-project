@@ -332,8 +332,8 @@ void Itemview10Script::initUI()
     saScriptLayout2->addWidget(sb_script_sleep_failure, 0, Qt::AlignLeft);
     saScriptLayout3->addWidget(new QLabel("执行后延迟："), 0, Qt::AlignLeft);
     saScriptLayout3->addWidget(sb_script_sleep_deal, 0, Qt::AlignLeft);
-    saScriptLayout4->addWidget(new QLabel("执行成功后退回层数(-1：重新开始 0：继续执行)："), 0, Qt::AlignLeft);
-    saScriptLayout4->addWidget(sb_script_return_deal,                    0, Qt::AlignLeft);
+    saScriptLayout4->addWidget(new QLabel("执行成功后退回层数(-1：结束 0：继续 >0 没做完)："), 0, Qt::AlignLeft);
+    saScriptLayout4->addWidget(sb_script_return_deal,                       0, Qt::AlignLeft);
 
 
     auto splitterRightDown = new QSplitter(Qt::Vertical, this);
@@ -543,7 +543,9 @@ void Itemview10Script::initUI()
     ckConsoleEnable->setChecked(true);
     btnConsoleClear = new QPushButton("清空控制台");
     btnWindowPrint = new QPushButton("截图");
+    btnWindowPrint2 = new QPushButton("截图");
     btnWindowPrint->setFixedWidth(60);
+    btnWindowPrint2->setFixedWidth(60);
     rb_printWindow = new QRadioButton("窗口截图");
     rb_printClient = new QRadioButton("内容截图");
     btnScriptAdd = new QPushButton("新增脚本");
@@ -669,6 +671,7 @@ void Itemview10Script::initUI()
     leftQWidgetGroup1aLayout->addWidget(tb_process_name,     0, Qt::AlignLeft);
     leftQWidgetGroup1aLayout->addWidget(new QLabel("窗口句柄:"), 0, Qt::AlignLeft);
     leftQWidgetGroup1aLayout->addWidget(tb_window_handle2,   0, Qt::AlignLeft);
+    leftQWidgetGroup1aLayout->addWidget(btnWindowPrint2,     0, Qt::AlignLeft);
 
 
     leftQWidgetGroup1bLayout->addWidget(new QLabel("鼠标坐标:", this), 0, Qt::AlignLeft);
@@ -897,16 +900,16 @@ void Itemview10Script::initUI()
     }
 
     // 获取dpi
-    dpi_window =  WinAPI::get_window_dpi();
+    //    dpi_window =  WinAPI::get_window_dpi();
 
-    int count = ck_dpi->count();
+    //    int count = ck_dpi->count();
 
-    for (int i = 0; i < count; i++) {
-        if (dpi_window ==  ck_dpi->itemData(i).toFloat()) {
-            ck_dpi->setCurrentIndex(i);
-            break;
-        }
-    }
+    //    for (int i = 0; i < count; i++) {
+    //        if (dpi_window ==  ck_dpi->itemData(i).toFloat()) {
+    //            ck_dpi->setCurrentIndex(i);
+    //            break;
+    //        }
+    //    }
 
     threadScript = new ThreadScript(this);
     threadScript->setParent(this);
@@ -1952,6 +1955,8 @@ void Itemview10Script::initConnect()
         auto currentHandleV = current.sibling(current.row(), 1).data().toString();
         auto currentHandle = currentHandleV.toInt(&ok, 16);
 
+        QString currentClassNameV = current.sibling(current.row(), 4).data().toString();
+
         // 打勾
         QList<QStandardItem *>items =  WindowsGridModel->findItems("✔", Qt::MatchExactly  | Qt::MatchRecursive, 0);
 
@@ -1970,7 +1975,7 @@ void Itemview10Script::initConnect()
             setPixmap();
 
             // 保存配置
-            writeConfigDefaultHWND(QString::fromWCharArray(processInfo.PName), currentHandle);
+            writeConfigDefaultHWND(QString::fromWCharArray(processInfo.PName), currentClassNameV);
         }
     });
 
@@ -2044,12 +2049,22 @@ void Itemview10Script::initConnect()
     });
 
 
+    // 截图
+    connect(btnWindowPrint2, &QPushButton::clicked, [this]() {
+        print(windowInfo.HandleWindow);
+        setPixmap();
+    });
+
+
     connect(btnConsoleClear, &QPushButton::clicked, [this]() {
         clearConsole();
     });
 
     connect(btnFindWindow, &CaptureBtn::hwndEvent, [this](HWND hwnd) {
-        updateWindowInfo(hwnd);
+        if (updateWindowInfo(hwnd)) {
+            print(windowInfo.HandleWindow);
+            setPixmap();
+        }
     });
 }
 
@@ -2938,31 +2953,58 @@ bool Itemview10Script::buildProcess(DWORD pid) {
 
 
             WindowsTableView->expandAll();
+            WindowsGridModel->item(0)->setData("✔", Qt::DisplayRole);
 
             // 取一下缓存
-            int  defaultHWND;
-            bool success = readConfigDefaultHWND(QString::fromWCharArray(processInfo.PName), &defaultHWND);
+            //            int  defaultHWND;
+            QString defaultClassName;
+            bool    success = readConfigDefaultHWND(QString::fromWCharArray(processInfo.PName), defaultClassName);
 
             if (success) {
-                if (defaultHWND != (int)windowInfo.HandleWindow) {
-                    updateWindowInfo((HWND)defaultHWND);
-                    print(windowInfo.HandleWindow);
-                    setPixmap();
-                    QString itemHandle = QString::number((intptr_t)(defaultHWND), 16).toUpper();
-                    QList<QStandardItem *> items =  WindowsGridModel->findItems(itemHandle, Qt::MatchExactly  | Qt::MatchRecursive, 1);
+                // if (defaultHWND != (int)windowInfo.HandleWindow) {
+                //                updateWindowInfo((HWND)defaultHWND);
+                //                print(windowInfo.HandleWindow);
+                //                setPixmap();
+                //                QString itemHandle = QString::number((intptr_t)(defaultHWND), 16).toUpper();
 
-                    if (items.count() == 1) {
+
+                QList<QStandardItem *> items =  WindowsGridModel->findItems(defaultClassName, Qt::MatchExactly  | Qt::MatchRecursive, 4);
+
+                if (items.count() == 1) {
+                    int defaultHWND = WindowsGridModel->indexFromItem(items.first()).siblingAtColumn(1).data().toString().toInt(NULL, 16);
+
+                    if (defaultHWND) {
+                        if ((HWND)defaultHWND != windowInfo.HandleWindow) {
+                            updateWindowInfo((HWND)defaultHWND);
+                        }
                         auto item0 = WindowsGridModel->itemFromIndex(WindowsGridModel->indexFromItem(items.first()).siblingAtColumn(0));
                         item0->setData("✔", Qt::DisplayRole);
+                        WindowsGridModel->item(0)->setData("", Qt::DisplayRole);
                     }
-                    return true;
                 }
+
+                // }
+
+                //                if (defaultHWND != (int)windowInfo.HandleWindow) {
+                //                    updateWindowInfo((HWND)defaultHWND);
+                //                    print(windowInfo.HandleWindow);
+                //                    setPixmap();
+                //                    QString itemHandle = QString::number((intptr_t)(defaultHWND), 16).toUpper();
+                //                    QList<QStandardItem *> items =  WindowsGridModel->findItems(itemHandle, Qt::MatchExactly  | Qt::MatchRecursive, 1);
+
+                //                    if (items.count() == 1) {
+                //                        auto item0 = WindowsGridModel->itemFromIndex(WindowsGridModel->indexFromItem(items.first()).siblingAtColumn(0));
+                //                        item0->setData("✔", Qt::DisplayRole);
+                //                    }
+                //                    return true;
+                //                }
             }
 
 
             print(windowInfo.HandleWindow);
             setPixmap();
-            WindowsGridModel->item(0)->setData("✔", Qt::DisplayRole);
+
+
             return true;
         }
     }
@@ -3133,7 +3175,7 @@ void Itemview10Script::setPixmap() {
     leftQWidgetGroupBox2->setTitle(tr("截图 [%1x%2]").arg(pixmapSize.width()).arg(pixmapSize.height()));
 }
 
-bool Itemview10Script::readConfigDefaultHWND(QString process, int *HWND)
+bool Itemview10Script::readConfigDefaultHWND(const QString& process, QString& className)
 {
     QFile file(tr("./configs/defaultHWND.json"));
 
@@ -3161,11 +3203,11 @@ bool Itemview10Script::readConfigDefaultHWND(QString process, int *HWND)
     if (!json.contains(process)) {
         return false;
     }
-    *HWND = json[process].toInt();
+    className = json[process].toString();
     return true;
 }
 
-bool Itemview10Script::writeConfigDefaultHWND(QString process, int HWND)
+bool Itemview10Script::writeConfigDefaultHWND(const QString& process, const  QString& className)
 {
     QDir dir(tr("./configs/"));
 
@@ -3199,7 +3241,7 @@ bool Itemview10Script::writeConfigDefaultHWND(QString process, int HWND)
     }
 
 
-    json[process] = HWND;
+    json[process] = className;
 
     document.setObject(json);
     QByteArray jsonStr = document.toJson(QJsonDocument::Compact);

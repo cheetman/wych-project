@@ -33,17 +33,5 @@ void ThreadScript::run()
     }
 
 
-    //    for (int i = 0; i <= 100; i++)
-    //    {
-    //        QThread::msleep(100);
-    //        qDebug() << tr("%1 :").arg(i);
-    //        parent->postAppendConsole(tr("%1 :").arg(i));
-
-    //        if (!parent->isStart) {
-    //            break;
-    //        }
-    //    }
-
-
     emit scriptFinished();
 }

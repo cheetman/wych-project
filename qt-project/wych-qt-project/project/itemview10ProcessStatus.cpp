@@ -88,26 +88,60 @@ void Itemview10ProcessStatus::initUI()
     auto leftQWidgetLayout = new QVBoxLayout(leftQWidget);
 
     // 第二层
-    auto leftQWidgetGroupBox1 = new QGroupBox("状态", this);
 
-    leftQWidgetLayout->addWidget(leftQWidgetGroupBox1);
+
+    auto topSplitter = new QSplitter(Qt::Horizontal, this);
+
+
+    auto top1QGroupBox = new QGroupBox("状态", this);
+
+    auto top1QGroupBoxLayout = new QVBoxLayout();
+    auto top1QGroupBoxLayout1 = new QHBoxLayout();
+    auto top1QGroupBoxLayout2 = new QHBoxLayout();
+    auto top1QGroupBoxLayout3 = new QHBoxLayout();
+    auto top1QGroupBoxLayout4 = new QHBoxLayout();
+    auto top1QGroupBoxLayout5 = new QHBoxLayout();
+    top1QGroupBoxLayout->setAlignment(Qt::AlignTop);
+    top1QGroupBoxLayout1->setAlignment(Qt::AlignLeft);
+    top1QGroupBoxLayout2->setAlignment(Qt::AlignLeft);
+    top1QGroupBoxLayout3->setAlignment(Qt::AlignLeft);
+    top1QGroupBoxLayout4->setAlignment(Qt::AlignLeft);
+    top1QGroupBoxLayout5->setAlignment(Qt::AlignLeft);
+    top1QGroupBox->setLayout(top1QGroupBoxLayout);
+    top1QGroupBoxLayout->addLayout(top1QGroupBoxLayout1);
+    top1QGroupBoxLayout->addLayout(top1QGroupBoxLayout2);
+    top1QGroupBoxLayout->addLayout(top1QGroupBoxLayout3);
+    top1QGroupBoxLayout->addLayout(top1QGroupBoxLayout4);
+    top1QGroupBoxLayout->addLayout(top1QGroupBoxLayout5);
+
+    topSplitter->addWidget(top1QGroupBox);
+
+
+    auto top2QGroupBox = new QGroupBox("控制台设置2", this);
+    auto top2QGroupBoxLayout = new QVBoxLayout(this);
+    auto top2QGroupBoxLayout1 = new QHBoxLayout(this);
+    auto top2QGroupBoxLayout2 = new QHBoxLayout(this);
+    top2QGroupBoxLayout->addLayout(top2QGroupBoxLayout1);
+    top2QGroupBoxLayout->addLayout(top2QGroupBoxLayout2);
+    top2QGroupBox->setLayout(top2QGroupBoxLayout);
+
+    ckConsoleEnable = new QCheckBox("启动控制台");
+    ckConsoleEnable->setChecked(true);
+    btnConsoleClear = new QPushButton("清空控制台");
+    edtMsg = new QPlainTextEdit();
+    edtMsg->setFixedHeight(150);
+    edtMsg->setReadOnly(true);
+
+    top2QGroupBoxLayout1->addWidget(ckConsoleEnable);
+    top2QGroupBoxLayout1->addWidget(btnConsoleClear);
+    top2QGroupBoxLayout2->addWidget(edtMsg);
+
+
+    topSplitter->addWidget(top2QGroupBox);
+
+
+    leftQWidgetLayout->addWidget(topSplitter);
     leftQWidgetLayout->setAlignment(Qt::AlignTop);
-    auto layout_l_1_m = new QVBoxLayout();
-    auto leftQWidgetGroup1aLayout = new QHBoxLayout();
-    auto leftQWidgetGroup1bLayout = new QHBoxLayout();
-    auto leftQWidgetGroup1cLayout = new QHBoxLayout();
-    auto leftQWidgetGroup1dLayout = new QHBoxLayout();
-    auto leftQWidgetGroup1eLayout = new QHBoxLayout();
-    leftQWidgetGroup1aLayout->setAlignment(Qt::AlignLeft);
-    leftQWidgetGroup1bLayout->setAlignment(Qt::AlignLeft);
-    leftQWidgetGroup1cLayout->setAlignment(Qt::AlignLeft);
-    leftQWidgetGroup1dLayout->setAlignment(Qt::AlignLeft);
-    leftQWidgetGroupBox1->setLayout(layout_l_1_m);
-    layout_l_1_m->addLayout(leftQWidgetGroup1aLayout);
-    layout_l_1_m->addLayout(leftQWidgetGroup1bLayout);
-    layout_l_1_m->addLayout(leftQWidgetGroup1cLayout);
-    layout_l_1_m->addLayout(leftQWidgetGroup1dLayout);
-    layout_l_1_m->addLayout(leftQWidgetGroup1eLayout);
 
 
     leftQWidgetGroupBox2 = new QGroupBox("进程信息", this);
@@ -119,17 +153,23 @@ void Itemview10ProcessStatus::initUI()
     auto tabWidget = new QTabWidget(this);
     auto tabMessage = new QWidget(tabWidget);
     auto tabMessageLayout = new QHBoxLayout(this);
-    auto tabMessage1Layout = new QVBoxLayout(this);
+
+    //    auto tabMessage1Layout = new QVBoxLayout(this);
     auto tabMessage2Layout = new QVBoxLayout(this);
-    tabMessageLayout->addLayout(tabMessage1Layout);
-    tabMessageLayout->addLayout(tabMessage2Layout);
+    auto tabMessageSplitter = new QSplitter(Qt::Horizontal, this);
+    tabMessageLayout->addWidget(tabMessageSplitter);
+
+    //    tabMessageLayout->addLayout(tabMessage1Layout);
+    //    tabMessageLayout->addLayout(tabMessage2Layout);
+    auto tabMessageSplitterWidget2 = new QWidget(this);
+    tabMessageSplitterWidget2->setLayout(tabMessage2Layout);
     tabMessage->setLayout(tabMessageLayout);
     tabWidget->addTab(tabMessage, tr("消息捕获"));
 
 
     edtMessage = new QPlainTextEdit();
     edtMessage->setReadOnly(true);
-    tabMessage1Layout->addWidget(edtMessage);
+    tabMessageSplitter->addWidget(edtMessage);
 
     auto gbMessageButton = new QGroupBox("操作", this);
     auto gbMessageButtonLayout = new QVBoxLayout(this);
@@ -174,11 +214,17 @@ void Itemview10ProcessStatus::initUI()
     btnMouseHookStart = new QPushButton("鼠标钩子", this);
     btnMessageHookStart = new QPushButton("消息钩子", this);
     btnShowStyle = new QPushButton("查看窗口样式", this);
+    btnHideWindow = new QPushButton("隐藏窗口", this);
+    ckHideWindow = new QCheckBox("轮询");
 
+    //    ckHideWindow->setCheckState(Qt::Checked);
 
+    gbMessageButtonLayout4->addWidget(       btnShowStyle, 0, Qt::AlignLeft);
     gbMessageButtonLayout4->addWidget(  btnMouseHookStart, 0, Qt::AlignLeft);
     gbMessageButtonLayout4->addWidget(btnMessageHookStart, 0, Qt::AlignLeft);
-    gbMessageButtonLayout4->addWidget(       btnShowStyle, 0, Qt::AlignLeft);
+
+    gbMessageButtonLayout5->addWidget(btnHideWindow, 0, Qt::AlignLeft);
+    gbMessageButtonLayout5->addWidget( ckHideWindow, 0, Qt::AlignLeft);
 
     auto gbWindows = new QGroupBox("窗口明细", this);
     auto gbWindowsLayout = new QHBoxLayout(this);
@@ -198,22 +244,13 @@ void Itemview10ProcessStatus::initUI()
     tvWindows->setModel(imWindows);
     gbWindowsLayout->addWidget(tvWindows);
 
+    tabMessageSplitter->addWidget(tabMessageSplitterWidget2);
 
     tabMessage2Layout->addWidget(gbMessageButton);
     tabMessage2Layout->addWidget(      gbWindows);
 
 
     leftQWidgetGroup1Layout2->addWidget(tabWidget);
-
-
-    auto leftQWidgetGroupBox3 = new QGroupBox("控制台设置", this);
-    auto leftQWidgetGroup1Layout3 = new QHBoxLayout(leftQWidgetGroupBox3);
-    leftQWidgetLayout->addWidget(leftQWidgetGroupBox3);
-
-    edtMsg = new QPlainTextEdit();
-    edtMsg->setFixedHeight(150);
-    edtMsg->setReadOnly(true);
-    leftQWidgetLayout->addWidget(edtMsg);
 
 
     // 第一层 (中间列)
@@ -238,24 +275,17 @@ void Itemview10ProcessStatus::initUI()
     // 第四层(窗口明细)
 
 
-    ckConsoleEnable = new QCheckBox("启动控制台");
-    ckConsoleEnable->setChecked(true);
-    btnConsoleClear = new QPushButton("清空控制台");
-
-
-    leftQWidgetGroup1aLayout->addWidget(              new QLabel("进程名称:"), 0, Qt::AlignLeft);
-    leftQWidgetGroup1aLayout->addWidget(  tb_process_name,                 0, Qt::AlignLeft);
-    leftQWidgetGroup1aLayout->addWidget(              new QLabel("窗口句柄:"), 0, Qt::AlignLeft);
-    leftQWidgetGroup1aLayout->addWidget(tb_window_handle2,                 0, Qt::AlignLeft);
-
-
-    leftQWidgetGroup1Layout3->addWidget(ckConsoleEnable);
-    leftQWidgetGroup1Layout3->addWidget(btnConsoleClear);
+    top1QGroupBoxLayout1->addWidget(              new QLabel("进程名称:"), 0, Qt::AlignLeft);
+    top1QGroupBoxLayout1->addWidget(  tb_process_name,                 0, Qt::AlignLeft);
+    top1QGroupBoxLayout1->addWidget(              new QLabel("窗口句柄:"), 0, Qt::AlignLeft);
+    top1QGroupBoxLayout1->addWidget(tb_window_handle2,                 0, Qt::AlignLeft);
 
 
     layout->addWidget(leftQWidget);
 
-    g_moduleMessage = LoadLibrary(TEXT("C:\\WorkMe\\wych-csharp-project\\Debug\\HookMessageDll.dll"));
+    //    g_moduleMessage = LoadLibrary(TEXT("C:\\WorkMe\\wych-csharp-project\\Debug\\HookMessageDll.dll"));
+    //    g_moduleMessage = LoadLibrary(TEXT("C:\\WorkMe\\wych-csharp-project\\Release\\HookMessageDll.dll"));
+    g_moduleMessage = LoadLibrary(TEXT("HookMessageDll.dll"));
 
     if (g_moduleMessage)
     {
@@ -282,12 +312,15 @@ void Itemview10ProcessStatus::initUI()
 
         // 没用
         //        hkSetSysMsgCall = (SetSysMsgCall)GetProcAddress(g_moduleMessage, "setSysMsgCall");
+    } else {
+        appendConsole(tr("钩子DLL加载失败！ LastError: %1").arg(GetLastError()));
     }
 
     //    hkSetSysMsgCall((SysMsgCallBack)MysysMsgCallBack);
 
 
-    // 这行必须放下面
+    threadWindowHide = new ThreadWindowHide(this);
+    threadWindowHide->setParent(this);
 }
 
 int __stdcall Itemview10ProcessStatus::MysysMsgCallBack(int    nCode,
@@ -297,145 +330,142 @@ int __stdcall Itemview10ProcessStatus::MysysMsgCallBack(int    nCode,
     return 1;
 }
 
+bool Itemview10ProcessStatus::showWindow(HWND hwnd) {
+    long style = GetWindowLong(hwnd, GWL_EXSTYLE);
+
+    if (style & WS_EX_TOOLWINDOW) {
+        style &= ~(WS_EX_TOOLWINDOW);
+        style |= WS_EX_APPWINDOW;
+        SetWindowLong(hwnd, GWL_EXSTYLE, style);
+
+
+        WIN32_WINDOW_INFO windowInfo = { 0 };
+        BOOL success = WinAPI::get_window_info(hwnd, &windowInfo);
+
+        if (success) {
+            // 确认下是不是我拖的
+            if (windowInfo.WindowRect.right == 0) {
+                int w =  windowInfo.WindowRect.right -  windowInfo.WindowRect.left;
+                int h =  windowInfo.WindowRect.bottom -  windowInfo.WindowRect.top;
+
+                // 稍微修正一下
+                if (lastX < 0) {
+                    lastX = 10;
+                }
+
+                BOOL result = MoveWindow(hwnd, lastX, windowInfo.WindowRect.top, w, h, true);
+
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+}
+
+bool Itemview10ProcessStatus::hideWindow(HWND hwnd) {
+    long style = GetWindowLong(hwnd, GWL_EXSTYLE);
+
+    qDebug() << hwnd;
+
+    style &= ~(WS_EX_APPWINDOW);
+    style |= WS_EX_TOOLWINDOW;
+    SetWindowLong(hwnd, GWL_EXSTYLE, style);
+
+
+    WIN32_WINDOW_INFO windowInfo = { 0 };
+    bool success = WinAPI::get_window_info(hwnd, &windowInfo);
+    int  w =  windowInfo.WindowRect.right -  windowInfo.WindowRect.left;
+    int  h =  windowInfo.WindowRect.bottom -  windowInfo.WindowRect.top;
+
+    qDebug() << w;
+    qDebug() << h;
+
+    // 应该是已经被我隐藏了
+    if (windowInfo.WindowRect.right == 0) {
+        return true;
+    }
+
+    BOOL result = MoveWindow(hwnd, -w, windowInfo.WindowRect.top, w, h, true);
+
+    lastX = windowInfo.WindowRect.left;
+
+    if (windowInfo.WindowRect.right <= 0) {
+        lastX = 10;
+    }
+    qDebug() << result;
+    return true;
+}
+
 void Itemview10ProcessStatus::initConnect()
 {
-    // 事件 - 启动hook
+    connect(btnFindWindow, &CaptureBtn::hwndEvent, [this](HWND hwnd) {
+        if (updateWindowInfo(hwnd)) {
+            showWindowStyle(windowInfo.HandleWindow);
+        }
+    });
+
+    // 事件 - 线程通知
+    connect(threadWindowHide, &ThreadWindowHide::threadFinished, [this]() {
+        btnHideWindow->setText(tr("隐藏窗口"));
+        hideStatus = 0;
+    });
+
+
+    // 事件 -
+    connect(btnHideWindow, &QPushButton::clicked, [this]() {
+        if (hideStatus == 1) {
+            if (!IsWindow(lasthwnd)) {
+                appendConsole(tr("被隐藏的程序已退出！"));
+                btnHideWindow->setText("隐藏窗口");
+                hideStatus = 0;
+                return;
+            }
+
+            if (showWindow(lasthwnd)) {
+                btnHideWindow->setText("隐藏窗口");
+                appendConsole(tr("窗口已还原！"));
+                hideStatus = 0;
+            } else {
+                appendConsole(tr("还原失败！"));
+                btnHideWindow->setText("隐藏窗口");
+                hideStatus = 0;
+            }
+        } else if (hideStatus == 0) {
+            if (!IsWindow(windowInfo.HandleWindow)) {
+                appendConsole(tr("窗口不存在！"));
+                return;
+            }
+            HWND hwnd = GetAncestor(windowInfo.HandleWindow, GA_ROOT);
+
+            if (ckHideWindow->isChecked()) {
+                WIN32_WINDOW_INFO windowInfo = { 0 };
+                bool success = WinAPI::get_window_info(hwnd, &lastWindowInfo);
+                lasthwnd = hwnd;
+                btnHideWindow->setText("正在隐藏中..");
+                hideStatus = 2;
+                threadWindowHide->start();
+            } else {
+                if (hideWindow(hwnd)) {
+                    hideStatus = 1;
+                    lasthwnd = hwnd;
+                    btnHideWindow->setText("还原窗口");
+                    appendConsole(tr("窗口已隐藏！"));
+                }
+            }
+        }
+        else if (hideStatus == 2) {
+            btnHideWindow->setText("正在取消中..");
+            hideStatus = 3;
+        }
+    });
+
+    // 事件 -
     connect(btnShowStyle, &QPushButton::clicked, [this]() {
         if (windowInfo.HandleWindow) {
             qDebug() << windowInfo.HandleWindow;
 
-            clearMessageText();
-            LONG l_GWL_STYLE = GetWindowLongPtr(windowInfo.HandleWindow, GWL_STYLE);
-            appendMessageText(tr("Style: %1").arg(QString::number(l_GWL_STYLE, 2)));
-            int index = 1;
-
-            if (l_GWL_STYLE & WS_POPUP) {
-// 此样式不能与 WS_CHILD样式一 起使用。
-                appendMessageText(tr("%2 0x%1L WS_POPUP 窗口是弹出窗口。").arg(QString::number(WS_POPUP, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_STYLE & WS_CHILD) {
-// 具有此样式的窗口不能有菜单栏。 此样式不能与 WS_POPUP样式一 起使用。
-                appendMessageText(tr("%2 0x%1L WS_CHILD 窗口是子窗口。").arg(QString::number(WS_CHILD, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_STYLE & WS_CAPTION) {
-                appendMessageText(tr("%2 0x%1L WS_CAPTION 窗口具有标题栏 (包括 WS_BORDER 样式) 。").arg(QString::number(WS_CAPTION, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_STYLE & WS_CLIPCHILDREN) {
-                appendMessageText(tr("%2 0x%1L WS_CLIPCHILDREN 在父窗口中绘制时，排除子窗口占用的区域。 创建父窗口时会使用此样式。").arg(QString::number(WS_CLIPCHILDREN, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_STYLE & WS_MAXIMIZEBOX) {
-                appendMessageText(tr("%2 0x%1L WS_MAXIMIZEBOX 窗口具有最大化按钮。").arg(QString::number(WS_MAXIMIZEBOX, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_STYLE & WS_MINIMIZEBOX) {
-                appendMessageText(tr("%2 0x%1L WS_MINIMIZEBOX 窗口具有最小化按钮。").arg(QString::number(WS_MINIMIZEBOX, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_STYLE & WS_SIZEBOX) {
-                appendMessageText(tr("%2 0x%1L WS_SIZEBOX 窗口具有大小调整边框。 与 WS_THICKFRAME 样式相同。").arg(QString::number(WS_SIZEBOX, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_STYLE & WS_SYSMENU) {
-                appendMessageText(tr("%2 0x%1L WS_SYSMENU 窗口的标题栏上有一个窗口菜单。 还必须指定 WS_CAPTION 样式。").arg(QString::number(WS_SYSMENU, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_STYLE & WS_BORDER) {
-                appendMessageText(tr("%2 0x%1L WS_BORDER 窗口具有细线边框。").arg(QString::number(WS_BORDER, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_STYLE & WS_DLGFRAME) {
-                appendMessageText(tr("%2 0x%1L WS_BORDER 窗口具有通常与对话框一起使用的样式边框。").arg(QString::number(WS_DLGFRAME, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_STYLE & WS_CLIPSIBLINGS) {
-// 也就是说，当特定子窗口收到 WM_PAINT 消息时， WS_CLIPSIBLINGS 样式会将所有其他重叠子窗口剪辑到要更新的子窗口区域。 如果未指定 WS_CLIPSIBLINGS 并且子窗口重叠，则当在子窗口的工作区内绘制时，可以在相邻子窗口的工作区内绘制。
-                appendMessageText(tr("%2 0x%1L WS_CLIPSIBLINGS 将子窗口相对于彼此剪裁;").arg(QString::number(WS_CLIPSIBLINGS, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_STYLE & WS_VISIBLE) {
-// 可以使用 ShowWindow 或 SetWindowPos 函数打开和关闭此样式。
-                appendMessageText(tr("%2 0x%1L WS_VISIBLE 窗口最初可见。").arg(QString::number(WS_VISIBLE, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-
-            LONG l_GWL_EXSTYLE = GetWindowLongPtr(windowInfo.HandleWindow, GWL_EXSTYLE);
-            appendMessageText(tr("StyleEx: %1").arg(QString::number(l_GWL_EXSTYLE, 2)));
-            index = 1;
-
-            if (l_GWL_EXSTYLE & WS_EX_TOPMOST) {
-// 即使窗口已停用也是如此。 若要添加或删除此样式，请使用 SetWindowPos 函数。
-                appendMessageText(tr("%2 0x%1L WS_EX_TOPMOST 该窗口应放置在所有非最顶层窗口上方，并且应保持其上方。").arg(QString::number(WS_EX_TOPMOST, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_EXSTYLE & WS_EX_TRANSPARENT) {
-// 也就是说透明度跟WS_EX_TRANSPARENT没关系，它所做的只是事件穿过窗口，操作后面的窗口（窗口像是透明的，不起作用）
-// 若要在不使用这些限制的情况下实现透明度，请使用 SetWindowRgn 函数。
-                appendMessageText(tr("%2 0x%1L WS_EX_TRANSPARENT 在窗口下方（由同一个线程创建）的兄弟姐妹被绘制之前，不应该对窗口进行绘制。窗口显示为透明，因为底层兄弟窗口的位已经被绘制。").arg(QString::number(WS_EX_TRANSPARENT, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_EXSTYLE & WS_EX_COMPOSITED) {
-//  从下到上绘制顺序允许后代窗口具有半透明 (alpha) 和透明度 (颜色键) 效果，但前提是后代窗口还设置了WS_EX_TRANSPARENT位。 双缓冲允许不闪烁地绘制窗口及其后代。 如果窗口的 类样式 为 CS_OWNDC 或 CS_CLASSDC，则不能使用此样式。
-                appendMessageText(tr("%2 0x%1L WS_EX_COMPOSITED 使用双缓冲按从下到上绘制顺序绘制窗口的所有后代。").arg(QString::number(WS_EX_COMPOSITED, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_EXSTYLE & WS_EX_WINDOWEDGE) {
-                appendMessageText(tr("%2 0x%1L WS_EX_WINDOWEDGE 窗口具有带有凸起边缘的边框。").arg(QString::number(WS_EX_WINDOWEDGE, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_EXSTYLE & WS_EX_ACCEPTFILES) {
-                appendMessageText(tr("%2 0x%1L WS_EX_ACCEPTFILES 窗口接受拖放文件。").arg(QString::number(WS_EX_ACCEPTFILES, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_EXSTYLE & WS_EX_LAYERED) {
-// https://learn.microsoft.com/zh-cn/windows/win32/winmsg/window-features
-                appendMessageText(tr("%2 0x%1L WS_EX_LAYERED 窗口是分层窗口。").arg(QString::number(WS_EX_LAYERED, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_EXSTYLE & WS_EX_CLIENTEDGE) {
-                appendMessageText(tr("%2 0x%1L WS_EX_CLIENTEDGE 窗口有一个边框，带有沉没边缘。").arg(QString::number(WS_EX_CLIENTEDGE, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_EXSTYLE & WS_EX_STATICEDGE) {
-                appendMessageText(tr("%2 0x%1L WS_EX_STATICEDGE 该窗口具有一个三维边框样式，用于不接受用户输入的项目。").arg(QString::number(WS_EX_STATICEDGE, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GWL_EXSTYLE & WS_EX_APPWINDOW) {
-                appendMessageText(tr("%2 0x%1L WS_EX_APPWINDOW 当窗口可见时，将顶级窗口强制到任务栏上。").arg(QString::number(WS_EX_APPWINDOW, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            LONG l_GCL_STYLE = GetClassLongPtr(windowInfo.HandleWindow, GCL_STYLE);
-            appendMessageText(tr("StyleClass: %1").arg(QString::number(l_GCL_STYLE, 2)));
-            index = 1;
-
-            if (l_GCL_STYLE & CS_VREDRAW) {
-                appendMessageText(tr("%2 0x%1L CS_VREDRAW 如果移动或大小调整更改工作区的高度，则重新绘制整个窗口。").arg(QString::number(CS_VREDRAW, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GCL_STYLE & CS_HREDRAW) {
-                appendMessageText(tr("%2 0x%1L CS_HREDRAW 如果移动或大小调整更改了工作区的宽度，则重新绘制整个窗口。").arg(QString::number(CS_HREDRAW, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GCL_STYLE & CS_DBLCLKS) {
-                appendMessageText(tr("%2 0x%1L CS_DBLCLKS 当用户双击鼠标位于属于该类的窗口中时，将双击消息发送到窗口过程。").arg(QString::number(CS_DBLCLKS, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GCL_STYLE & CS_NOCLOSE) {
-                appendMessageText(tr("%2 0x%1L CS_NOCLOSE 如果移动或大小调整更改了工作区的宽度，则重新绘制整个窗口。").arg(QString::number(CS_NOCLOSE, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GCL_STYLE & CS_PARENTDC) {
-//  具有 CS_PARENTDC 样式位的窗口从系统的设备上下文缓存接收常规设备上下文。 它不会为子级提供父级的设备上下文或设备上下文设置。 指定 CS_PARENTDC 可增强应用程序的性能。
-                appendMessageText(tr("%2 0x%1L CS_PARENTDC 将子窗口的剪裁矩形设置为父窗口的剪裁矩形，以便子窗口可以绘制父窗口。可增强应用程序的性能。").arg(QString::number(CS_PARENTDC, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
-
-            if (l_GCL_STYLE & CS_GLOBALCLASS) {
-//  有关详细信息，请参阅 “关于窗口类”的“应用程序全局类”部分。
-                appendMessageText(tr("%2 0x%1L CS_GLOBALCLASS 指示窗口类是应用程序全局类。").arg(QString::number(CS_GLOBALCLASS, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
-            }
+            showWindowStyle(windowInfo.HandleWindow);
         }
     });
 
@@ -588,6 +618,9 @@ bool Itemview10ProcessStatus::buildProcess(DWORD pid) {
             tvWindows->expandAll();
 
             imWindows->item(0)->setData("✔", Qt::DisplayRole);
+
+
+            showWindowStyle(windowInfo.HandleWindow);
             return true;
         }
     }
@@ -705,6 +738,145 @@ void Itemview10ProcessStatus::postAppendConsole(const QString& msg)
 //    QApplication::postEvent(this, event2);
 // }
 
+void Itemview10ProcessStatus::showWindowStyle(HWND handleWindow) {
+    clearMessageText();
+    LONG l_GWL_STYLE = GetWindowLongPtr(handleWindow, GWL_STYLE);
+    appendMessageText(tr("Style: %1").arg(QString::number(l_GWL_STYLE, 2)));
+    int index = 1;
+
+    if (l_GWL_STYLE & WS_POPUP) {
+        // 此样式不能与 WS_CHILD样式一 起使用。
+        appendMessageText(tr("%2 0x%1L WS_POPUP 窗口是弹出窗口。").arg(QString::number(WS_POPUP, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_STYLE & WS_CHILD) {
+        // 具有此样式的窗口不能有菜单栏。 此样式不能与 WS_POPUP样式一 起使用。
+        appendMessageText(tr("%2 0x%1L WS_CHILD 窗口是子窗口。").arg(QString::number(WS_CHILD, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_STYLE & WS_CAPTION) {
+        appendMessageText(tr("%2 0x%1L WS_CAPTION 窗口具有标题栏 (包括 WS_BORDER 样式) 。").arg(QString::number(WS_CAPTION, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_STYLE & WS_CLIPCHILDREN) {
+        appendMessageText(tr("%2 0x%1L WS_CLIPCHILDREN 在父窗口中绘制时，排除子窗口占用的区域。 创建父窗口时会使用此样式。").arg(QString::number(WS_CLIPCHILDREN, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_STYLE & WS_MAXIMIZEBOX) {
+        appendMessageText(tr("%2 0x%1L WS_MAXIMIZEBOX 窗口具有最大化按钮。").arg(QString::number(WS_MAXIMIZEBOX, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_STYLE & WS_MINIMIZEBOX) {
+        appendMessageText(tr("%2 0x%1L WS_MINIMIZEBOX 窗口具有最小化按钮。").arg(QString::number(WS_MINIMIZEBOX, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_STYLE & WS_SIZEBOX) {
+        appendMessageText(tr("%2 0x%1L WS_SIZEBOX 窗口具有大小调整边框。 与 WS_THICKFRAME 样式相同。").arg(QString::number(WS_SIZEBOX, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_STYLE & WS_SYSMENU) {
+        appendMessageText(tr("%2 0x%1L WS_SYSMENU 窗口的标题栏上有一个窗口菜单。 还必须指定 WS_CAPTION 样式。").arg(QString::number(WS_SYSMENU, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_STYLE & WS_BORDER) {
+        appendMessageText(tr("%2 0x%1L WS_BORDER 窗口具有细线边框。").arg(QString::number(WS_BORDER, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_STYLE & WS_DLGFRAME) {
+        appendMessageText(tr("%2 0x%1L WS_BORDER 窗口具有通常与对话框一起使用的样式边框。").arg(QString::number(WS_DLGFRAME, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_STYLE & WS_CLIPSIBLINGS) {
+        // 也就是说，当特定子窗口收到 WM_PAINT 消息时， WS_CLIPSIBLINGS 样式会将所有其他重叠子窗口剪辑到要更新的子窗口区域。 如果未指定 WS_CLIPSIBLINGS 并且子窗口重叠，则当在子窗口的工作区内绘制时，可以在相邻子窗口的工作区内绘制。
+        appendMessageText(tr("%2 0x%1L WS_CLIPSIBLINGS 将子窗口相对于彼此剪裁;").arg(QString::number(WS_CLIPSIBLINGS, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_STYLE & WS_VISIBLE) {
+        // 可以使用 ShowWindow 或 SetWindowPos 函数打开和关闭此样式。
+        appendMessageText(tr("%2 0x%1L WS_VISIBLE 窗口最初可见。").arg(QString::number(WS_VISIBLE, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+
+    LONG l_GWL_EXSTYLE = GetWindowLongPtr(handleWindow, GWL_EXSTYLE);
+    appendMessageText(tr("StyleEx: %1").arg(QString::number(l_GWL_EXSTYLE, 2)));
+    index = 1;
+
+    if (l_GWL_EXSTYLE & WS_EX_TOPMOST) {
+        // 即使窗口已停用也是如此。 若要添加或删除此样式，请使用 SetWindowPos 函数。
+        appendMessageText(tr("%2 0x%1L WS_EX_TOPMOST 该窗口应放置在所有非最顶层窗口上方，并且应保持其上方。").arg(QString::number(WS_EX_TOPMOST, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_EXSTYLE & WS_EX_TRANSPARENT) {
+        // 也就是说透明度跟WS_EX_TRANSPARENT没关系，它所做的只是事件穿过窗口，操作后面的窗口（窗口像是透明的，不起作用）
+        // 若要在不使用这些限制的情况下实现透明度，请使用 SetWindowRgn 函数。
+        appendMessageText(tr("%2 0x%1L WS_EX_TRANSPARENT 在窗口下方（由同一个线程创建）的兄弟姐妹被绘制之前，不应该对窗口进行绘制。窗口显示为透明，因为底层兄弟窗口的位已经被绘制。").arg(QString::number(WS_EX_TRANSPARENT, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_EXSTYLE & WS_EX_COMPOSITED) {
+        //  从下到上绘制顺序允许后代窗口具有半透明 (alpha) 和透明度 (颜色键) 效果，但前提是后代窗口还设置了WS_EX_TRANSPARENT位。 双缓冲允许不闪烁地绘制窗口及其后代。 如果窗口的 类样式 为 CS_OWNDC 或 CS_CLASSDC，则不能使用此样式。
+        appendMessageText(tr("%2 0x%1L WS_EX_COMPOSITED 使用双缓冲按从下到上绘制顺序绘制窗口的所有后代。").arg(QString::number(WS_EX_COMPOSITED, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_EXSTYLE & WS_EX_WINDOWEDGE) {
+        appendMessageText(tr("%2 0x%1L WS_EX_WINDOWEDGE 窗口具有带有凸起边缘的边框。").arg(QString::number(WS_EX_WINDOWEDGE, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_EXSTYLE & WS_EX_ACCEPTFILES) {
+        appendMessageText(tr("%2 0x%1L WS_EX_ACCEPTFILES 窗口接受拖放文件。").arg(QString::number(WS_EX_ACCEPTFILES, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_EXSTYLE & WS_EX_LAYERED) {
+        // https://learn.microsoft.com/zh-cn/windows/win32/winmsg/window-features
+        appendMessageText(tr("%2 0x%1L WS_EX_LAYERED 窗口是分层窗口。").arg(QString::number(WS_EX_LAYERED, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_EXSTYLE & WS_EX_CLIENTEDGE) {
+        appendMessageText(tr("%2 0x%1L WS_EX_CLIENTEDGE 窗口有一个边框，带有沉没边缘。").arg(QString::number(WS_EX_CLIENTEDGE, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_EXSTYLE & WS_EX_STATICEDGE) {
+        appendMessageText(tr("%2 0x%1L WS_EX_STATICEDGE 该窗口具有一个三维边框样式，用于不接受用户输入的项目。").arg(QString::number(WS_EX_STATICEDGE, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_EXSTYLE & WS_EX_APPWINDOW) {
+        appendMessageText(tr("%2 0x%1L WS_EX_APPWINDOW 当窗口可见时，将顶级窗口强制到任务栏上。").arg(QString::number(WS_EX_APPWINDOW, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GWL_EXSTYLE & WS_EX_TOOLWINDOW) {
+        // 工具窗口具有短于普通标题栏的标题栏和使用较小的字体绘制的窗口标题。 工具窗口不会显示在任务栏中，也不会显示在用户按下 Alt+TAB 时出现的对话框中。 如果工具窗口有系统菜单，则其图标不会显示在标题栏上。 但是，可以通过右键单击或键入 Alt+SPACE 来显示系统菜单。
+        appendMessageText(tr("%2 0x%1L WS_EX_TOOLWINDOW 该窗口旨在用作浮动工具栏。").arg(QString::number(WS_EX_TOOLWINDOW, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    LONG l_GCL_STYLE = GetClassLongPtr(handleWindow, GCL_STYLE);
+    appendMessageText(tr("StyleClass: %1").arg(QString::number(l_GCL_STYLE, 2)));
+    index = 1;
+
+    if (l_GCL_STYLE & CS_VREDRAW) {
+        appendMessageText(tr("%2 0x%1L CS_VREDRAW 如果移动或大小调整更改工作区的高度，则重新绘制整个窗口。").arg(QString::number(CS_VREDRAW, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GCL_STYLE & CS_HREDRAW) {
+        appendMessageText(tr("%2 0x%1L CS_HREDRAW 如果移动或大小调整更改了工作区的宽度，则重新绘制整个窗口。").arg(QString::number(CS_HREDRAW, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GCL_STYLE & CS_DBLCLKS) {
+        appendMessageText(tr("%2 0x%1L CS_DBLCLKS 当用户双击鼠标位于属于该类的窗口中时，将双击消息发送到窗口过程。").arg(QString::number(CS_DBLCLKS, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GCL_STYLE & CS_NOCLOSE) {
+        appendMessageText(tr("%2 0x%1L CS_NOCLOSE 如果移动或大小调整更改了工作区的宽度，则重新绘制整个窗口。").arg(QString::number(CS_NOCLOSE, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GCL_STYLE & CS_PARENTDC) {
+        //  具有 CS_PARENTDC 样式位的窗口从系统的设备上下文缓存接收常规设备上下文。 它不会为子级提供父级的设备上下文或设备上下文设置。 指定 CS_PARENTDC 可增强应用程序的性能。
+        appendMessageText(tr("%2 0x%1L CS_PARENTDC 将子窗口的剪裁矩形设置为父窗口的剪裁矩形，以便子窗口可以绘制父窗口。可增强应用程序的性能。").arg(QString::number(CS_PARENTDC, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+
+    if (l_GCL_STYLE & CS_GLOBALCLASS) {
+        //  有关详细信息，请参阅 “关于窗口类”的“应用程序全局类”部分。
+        appendMessageText(tr("%2 0x%1L CS_GLOBALCLASS 指示窗口类是应用程序全局类。").arg(QString::number(CS_GLOBALCLASS, 16), 8, QLatin1Char('0')).arg(QString::number(index++), 2, QLatin1Char('0')));
+    }
+}
 
 void Itemview10ProcessStatus::buildMessageText(QEvent::Type type, EventWinMessage *event) {
     switch (type) {

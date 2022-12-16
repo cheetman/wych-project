@@ -68,10 +68,10 @@ private:
     bool drawWindowFrame(HWND);
     bool eraseWindowFrame(HWND);
 
-    bool    readConfigDefaultHWND(QString process,
-                                  int    *HWND);
-    bool    writeConfigDefaultHWND(QString process,
-                                   int     HWND);
+    bool    readConfigDefaultHWND(const QString& process,
+                                  QString      & className);
+    bool    writeConfigDefaultHWND(const QString& process,
+                                   const QString& className);
 
     QString getScriptTypeName(int type);
     void    buildScriptDetailEdit();
@@ -269,6 +269,7 @@ private:
     QPushButton *btnStart;
     QPushButton *btnConsoleClear;
     QPushButton *btnWindowPrint;
+    QPushButton *btnWindowPrint2;
     QPushButton *btnScriptAdd;
     QPushButton *btnScriptAddRoot;
 

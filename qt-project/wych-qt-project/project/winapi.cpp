@@ -443,6 +443,10 @@ BOOL get_window_info(HWND handle, PWIN32_WINDOW_INFO result) {
         return FALSE;
     }
 
+    if (!IsWindow(handle)) {
+        return FALSE;
+    }
+
     result->HandleWindow = handle;
     GetWindowRect(result->HandleWindow, &result->WindowRect);
     GetClientRect(result->HandleWindow, &result->ClientRect);

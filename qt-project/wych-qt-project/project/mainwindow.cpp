@@ -50,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent)
     auto     mainLayout = new QVBoxLayout(widget);
     mainLayout->addWidget(tabWidget);
     this->setCentralWidget(widget);
-    setWindowTitle(tr("CheatmanTools v0.5"));
+    setWindowTitle(tr("WychTools v0.6"));
 
 
     auto g_MainWnd = FindWindow(NULL, L"AssemblyTestWindows");

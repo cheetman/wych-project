@@ -64,6 +64,7 @@ SOURCES += \
     qurlinfo.cpp \
     tcpserver.cpp \
     threads/threadscript.cpp \
+    threads/threadwindowhide.cpp \
     utils.cpp \
     vlclib.cpp \
     winapi.cpp \
@@ -102,6 +103,7 @@ HEADERS += \
     tcpserver.h \
     test2.h \
     threads/threadscript.h \
+    threads/threadwindowhide.h \
     utils.h \
     vlclib.h \
     winapi.h \

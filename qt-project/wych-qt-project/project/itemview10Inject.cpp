@@ -109,11 +109,13 @@ void Itemview10Inject::initUI()
     auto exportTabTabWidgetLayout = new QVBoxLayout(tab);
     auto tab2 = new QWidget(tabTabWidget);
     auto importTabTabWidgetLayout = new QVBoxLayout(tab2);
-    auto tab3 = new QWidget(tabTabWidget);
-    auto relocationTabTabWidgetLayout = new QVBoxLayout(tab3);
+
+    //    auto tab3 = new QWidget(tabTabWidget);
+    //    auto relocationTabTabWidgetLayout = new QVBoxLayout(tab3);
     tabTabWidget->addTab(tab,  tr("模块"));
     tabTabWidget->addTab(tab2, tr("窗口"));
-    tabTabWidget->addTab(tab3, tr("重定位表"));
+
+    //    tabTabWidget->addTab(tab3, tr("重定位表"));
     rightQWidgetGroupBox1Layout->addWidget(tabTabWidget);
     rightQWidgetLayout->addWidget(rightQWidgetGroupBox1);
 
@@ -157,32 +159,32 @@ void Itemview10Inject::initUI()
 
 
     // 第四层(重定位)
-    auto relocationTabTabWidgetGroupBox = new QGroupBox("区段", tab3);
-    relocationTabTabWidgetLayout->addWidget(relocationTabTabWidgetGroupBox);
-    relocationTabTabWidgetLayout->setAlignment(Qt::AlignTop);
-    auto relocationTabTabWidgetGroupBoxLayout = new QGridLayout(relocationTabTabWidgetGroupBox);
-    relocationTabTabWidgetGroupBox->setFixedHeight(250);
-    relocationTableView = new QTableView(this);
-    relocationGridModel = new QStandardItemModel();
-    relocationGridModel->setHorizontalHeaderLabels({  "所属节",  "RVA", "数量", "大小(字节)" });
-    relocationTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    relocationTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    relocationTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    relocationTableView->setModel(relocationGridModel);
-    relocationTabTabWidgetGroupBoxLayout->addWidget(relocationTableView);
+    //    auto relocationTabTabWidgetGroupBox = new QGroupBox("区段", tab3);
+    //    relocationTabTabWidgetLayout->addWidget(relocationTabTabWidgetGroupBox);
+    //    relocationTabTabWidgetGroupBox->setAlignment(Qt::AlignTop);
+    //    auto relocationTabTabWidgetGroupBoxLayout = new QGridLayout(relocationTabTabWidgetGroupBox);
+    //    relocationTabTabWidgetGroupBox->setFixedHeight(250);
+    //    relocationTableView = new QTableView(this);
+    //    relocationGridModel = new QStandardItemModel();
+    //    relocationGridModel->setHorizontalHeaderLabels({  "所属节",  "RVA", "数量", "大小(字节)" });
+    //    relocationTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    //    relocationTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    //    relocationTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    //    relocationTableView->setModel(relocationGridModel);
+    //    relocationTabTabWidgetGroupBoxLayout->addWidget(relocationTableView);
 
-    auto relocationTabTabWidgetGroupBox2 = new QGroupBox("块", tab3);
-    relocationTabTabWidgetLayout->addWidget(relocationTabTabWidgetGroupBox2);
-    relocationTabTabWidgetLayout->setAlignment(Qt::AlignTop);
-    auto relocationTabTabWidgetGroupBoxLayout2 = new QGridLayout(relocationTabTabWidgetGroupBox2);
-    relocation2TableView = new QTableView(this);
-    relocation2GridModel = new QStandardItemModel();
-    relocation2GridModel->setHorizontalHeaderLabels({  "RVA",  "FOA" });
-    relocation2TableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    relocation2TableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    relocation2TableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    relocation2TableView->setModel(relocation2GridModel);
-    relocationTabTabWidgetGroupBoxLayout2->addWidget(relocation2TableView);
+    //    auto relocationTabTabWidgetGroupBox2 = new QGroupBox("块", tab3);
+    //    relocationTabTabWidgetLayout->addWidget(relocationTabTabWidgetGroupBox2);
+    //    relocationTabTabWidgetLayout->setAlignment(Qt::AlignTop);
+    //    auto relocationTabTabWidgetGroupBoxLayout2 = new QGridLayout(relocationTabTabWidgetGroupBox2);
+    //    relocation2TableView = new QTableView(this);
+    //    relocation2GridModel = new QStandardItemModel();
+    //    relocation2GridModel->setHorizontalHeaderLabels({  "RVA",  "FOA" });
+    //    relocation2TableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    //    relocation2TableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    //    relocation2TableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    //    relocation2TableView->setModel(relocation2GridModel);
+    //    relocationTabTabWidgetGroupBoxLayout2->addWidget(relocation2TableView);
 
 
     // 第四层(窗口)

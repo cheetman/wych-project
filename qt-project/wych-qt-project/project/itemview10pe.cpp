@@ -172,7 +172,8 @@ void ItemView10PE::initUI()
     importTabTabWidgetLayout->addWidget(importTabTabWidgetGroupBox3);
     importTabTabWidgetLayout->setAlignment(Qt::AlignTop);
     auto importTabTabWidgetGroupBoxLayout3 = new QHBoxLayout(importTabTabWidgetGroupBox3);
-    importTabTabWidgetGroupBox3->setFixedHeight(60);
+
+    //    importTabTabWidgetGroupBox3->setFixedHeight(60);
     btnImportAdd = new QPushButton("新增DLL");
     importTabTabWidgetGroupBoxLayout3->addWidget(btnImportAdd);
 

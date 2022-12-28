@@ -60,6 +60,7 @@ public:
     //    void postAppendMessageText(class EventWinMessage *event);
 
     void appendMessageText(const QString&);
+    void appendNetText(const QString&);
 
     bool hideWindow(HWND hwnd);
     bool showWindow(HWND hwnd);
@@ -74,6 +75,7 @@ protected:
     void         initConnect();
     void         clearConsole();
     void         clearMessageText();
+    void         clearNetText();
     void         appendConsole(const QString& msg);
     void         writeConsole(const QString& msg);
     virtual void customEvent(QEvent *e);
@@ -274,9 +276,13 @@ private:
     QPushButton *btnScriptAdd;
     QPushButton *btnScriptAddRoot;
 
+    QPushButton *btnNetStatus;
+
     QPushButton *btnRefreshWindow;
     QPushButton *btnMouseHookStart;
     QPushButton *btnMessageHookStart;
+    QPushButton *btnKeyboardHookStart;
+    QPushButton *btnApiHookStart;
     QPushButton *btnShowStyle;
     QPushButton *btnHideWindow;
     CaptureBtn *btnFindWindow;
@@ -288,6 +294,7 @@ private:
 
     QPlainTextEdit *edtMsg;
     QPlainTextEdit *edtMessage;
+    QPlainTextEdit *edtNet;
 
     QStandardItemModel *processGridModel;
     QTableView *processTableView;

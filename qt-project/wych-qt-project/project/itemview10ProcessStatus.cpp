@@ -1,4 +1,7 @@
 
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
 
 #include <QTextCodec>
 #include <QDateTime>
@@ -35,6 +38,9 @@
 #include "components/scripttypedialog.h"
 #include "events/customevent.h"
 #include "events/eventwinmessage.h"
+
+#define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
+#define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
 Itemview10ProcessStatus *g_itemview10ProcessStatus;
 
@@ -153,20 +159,44 @@ void Itemview10ProcessStatus::initUI()
     auto tabWidget = new QTabWidget(this);
     auto tabMessage = new QWidget(tabWidget);
     auto tabMessageLayout = new QHBoxLayout(this);
+    auto tabNet = new QWidget(tabWidget);
+    auto tabNetLayout = new QHBoxLayout(this);
 
-    //    auto tabMessage1Layout = new QVBoxLayout(this);
     auto tabMessage2Layout = new QVBoxLayout(this);
     auto tabMessageSplitter = new QSplitter(Qt::Horizontal, this);
     tabMessageLayout->addWidget(tabMessageSplitter);
 
-    //    tabMessageLayout->addLayout(tabMessage1Layout);
-    //    tabMessageLayout->addLayout(tabMessage2Layout);
+
+    auto tabNetSplitter = new QSplitter(Qt::Horizontal, this);
+    tabNetLayout->addWidget(tabNetSplitter);
+
     auto tabMessageSplitterWidget2 = new QWidget(this);
     tabMessageSplitterWidget2->setLayout(tabMessage2Layout);
+
     tabMessage->setLayout(tabMessageLayout);
+    tabNet->setLayout(tabNetLayout);
+
     tabWidget->addTab(tabMessage, tr("消息捕获"));
+    tabWidget->addTab(    tabNet, tr("网络状态"));
+
+    // 网络状态
 
 
+    edtNet = new QPlainTextEdit();
+    edtNet->setReadOnly(true);
+    tabNetSplitter->addWidget(edtNet);
+
+    auto gbNetButton = new QGroupBox("操作", this);
+    auto gbNetButtonLayout = new QVBoxLayout(this);
+    gbNetButton->setLayout(gbNetButtonLayout);
+
+
+    btnNetStatus = new QPushButton("显示端口", this);
+    gbNetButtonLayout->addWidget(btnNetStatus, 0, Qt::AlignLeft);
+    tabNetSplitter->addWidget(gbNetButton);
+
+
+    // 消息状态
     edtMessage = new QPlainTextEdit();
     edtMessage->setReadOnly(true);
     tabMessageSplitter->addWidget(edtMessage);
@@ -213,15 +243,19 @@ void Itemview10ProcessStatus::initUI()
 
     btnMouseHookStart = new QPushButton("鼠标钩子", this);
     btnMessageHookStart = new QPushButton("消息钩子", this);
+    btnKeyboardHookStart = new QPushButton("键盘钩子(未实现)", this);
+    btnApiHookStart = new QPushButton("Api钩子", this);
     btnShowStyle = new QPushButton("查看窗口样式", this);
     btnHideWindow = new QPushButton("隐藏窗口", this);
     ckHideWindow = new QCheckBox("轮询");
 
     //    ckHideWindow->setCheckState(Qt::Checked);
 
-    gbMessageButtonLayout4->addWidget(       btnShowStyle, 0, Qt::AlignLeft);
-    gbMessageButtonLayout4->addWidget(  btnMouseHookStart, 0, Qt::AlignLeft);
-    gbMessageButtonLayout4->addWidget(btnMessageHookStart, 0, Qt::AlignLeft);
+    gbMessageButtonLayout4->addWidget(        btnShowStyle, 0, Qt::AlignLeft);
+    gbMessageButtonLayout4->addWidget(   btnMouseHookStart, 0, Qt::AlignLeft);
+    gbMessageButtonLayout4->addWidget( btnMessageHookStart, 0, Qt::AlignLeft);
+    gbMessageButtonLayout4->addWidget(btnKeyboardHookStart, 0, Qt::AlignLeft);
+    gbMessageButtonLayout4->addWidget(     btnApiHookStart, 0, Qt::AlignLeft);
 
     gbMessageButtonLayout5->addWidget(btnHideWindow, 0, Qt::AlignLeft);
     gbMessageButtonLayout5->addWidget( ckHideWindow, 0, Qt::AlignLeft);
@@ -284,7 +318,9 @@ void Itemview10ProcessStatus::initUI()
     layout->addWidget(leftQWidget);
 
     //    g_moduleMessage = LoadLibrary(TEXT("C:\\WorkMe\\wych-csharp-project\\Debug\\HookMessageDll.dll"));
+
     //    g_moduleMessage = LoadLibrary(TEXT("C:\\WorkMe\\wych-csharp-project\\Release\\HookMessageDll.dll"));
+
     g_moduleMessage = LoadLibrary(TEXT("HookMessageDll.dll"));
 
     if (g_moduleMessage)
@@ -399,6 +435,168 @@ bool Itemview10ProcessStatus::hideWindow(HWND hwnd) {
 
 void Itemview10ProcessStatus::initConnect()
 {
+    connect(btnNetStatus, &QPushButton::clicked, [this]() {
+        clearNetText();
+
+        // Declare and initialize variables
+        PMIB_TCPTABLE2 pTcpTable;
+        ULONG ulSize = 0;
+        DWORD dwRetVal = 0;
+
+        char szLocalAddr[128];
+        char szRemoteAddr[128];
+
+        struct in_addr IpAddr;
+
+        int i;
+
+        pTcpTable = (MIB_TCPTABLE2 *)MALLOC(sizeof(MIB_TCPTABLE2));
+
+        if (pTcpTable == NULL) {
+            printf("Error allocating memory\n");
+            return 1;
+        }
+
+        ulSize = sizeof(MIB_TCPTABLE);
+
+        // Make an initial call to GetTcpTable2 to
+        // get the necessary size into the ulSize variable
+        if ((dwRetVal = GetTcpTable2(pTcpTable, &ulSize, TRUE)) ==
+            ERROR_INSUFFICIENT_BUFFER) {
+            FREE(pTcpTable);
+            pTcpTable = (MIB_TCPTABLE2 *)MALLOC(ulSize);
+
+            if (pTcpTable == NULL) {
+                printf("Error allocating memory\n");
+                return 1;
+            }
+        }
+
+        // Make a second call to GetTcpTable2 to get
+        // the actual data we require
+        if ((dwRetVal = GetTcpTable2(pTcpTable, &ulSize, TRUE)) == NO_ERROR) {
+            //            printf("\tNumber of entries: %d\n", (int)pTcpTable->dwNumEntries);
+
+            for (i = 0; i < (int)pTcpTable->dwNumEntries; i++) {
+                if (processInfo.PID == pTcpTable->table[i].dwOwningPid) {
+                    QString status = tr("TCP[%1] State: %2 - ").arg(i).arg(pTcpTable->table[i].dwState);
+
+                    switch (pTcpTable->table[i].dwState) {
+                    case MIB_TCP_STATE_CLOSED:
+                        status += "CLOSED";
+                        break;
+
+                    case MIB_TCP_STATE_LISTEN:
+                        status += ("LISTEN");
+                        break;
+
+                    case MIB_TCP_STATE_SYN_SENT:
+                        status += ("SYN-SENT");
+                        break;
+
+                    case MIB_TCP_STATE_SYN_RCVD:
+                        status += ("SYN-RECEIVED");
+                        break;
+
+                    case MIB_TCP_STATE_ESTAB:
+                        status += ("ESTABLISHED");
+                        break;
+
+                    case MIB_TCP_STATE_FIN_WAIT1:
+                        status += ("FIN-WAIT-1");
+                        break;
+
+                    case MIB_TCP_STATE_FIN_WAIT2:
+                        status += ("FIN-WAIT-2");
+                        break;
+
+                    case MIB_TCP_STATE_CLOSE_WAIT:
+                        status += ("CLOSE-WAIT");
+                        break;
+
+                    case MIB_TCP_STATE_CLOSING:
+                        status += ("CLOSING");
+                        break;
+
+                    case MIB_TCP_STATE_LAST_ACK:
+                        status += ("LAST-ACK");
+                        break;
+
+                    case MIB_TCP_STATE_TIME_WAIT:
+                        status += ("TIME-WAIT");
+                        break;
+
+                    case MIB_TCP_STATE_DELETE_TCB:
+                        status += ("DELETE-TCB");
+                        break;
+
+                    default:
+                        status += ("UNKNOWN dwState value");
+                        break;
+                    }
+                    IpAddr.S_un.S_addr = (u_long)pTcpTable->table[i].dwLocalAddr;
+                    strcpy_s(szLocalAddr, sizeof(szLocalAddr), inet_ntoa(IpAddr));
+
+//                    printf( "\tTCP[%d] Local Addr: %s\n", i, szLocalAddr);
+//                    printf("\tTCP[%d] Local Port: %d \n", i,
+//                           ntohs((u_short)pTcpTable->table[i].dwLocalPort));
+
+                    IpAddr.S_un.S_addr = (u_long)pTcpTable->table[i].dwRemoteAddr;
+                    strcpy_s(szRemoteAddr, sizeof(szRemoteAddr), inet_ntoa(IpAddr));
+
+                    //                    printf("\tTCP[%d] Remote Addr: %s\n", i, szRemoteAddr);
+//                    printf("\tTCP[%d] Remote Port: %d\n", i,
+//                           ntohs((u_short)pTcpTable->table[i].dwRemotePort));
+
+                    printf("\tTCP[%d] Offload State: %ld - ", i,
+                           pTcpTable->table[i].dwOffloadState);
+
+                    switch (pTcpTable->table[i].dwOffloadState) {
+                    case TcpConnectionOffloadStateInHost:
+                        printf("Owned by the network stack and not offloaded \n");
+                        break;
+
+                    case TcpConnectionOffloadStateOffloading:
+                        printf("In the process of being offloaded\n");
+                        break;
+
+                    case TcpConnectionOffloadStateOffloaded:
+                        printf("Offloaded to the network interface control\n");
+                        break;
+
+                    case TcpConnectionOffloadStateUploading:
+                        printf("In the process of being uploaded back to the network stack \n");
+                        break;
+
+                    default:
+                        printf("UNKNOWN Offload state value\n");
+                        break;
+                    }
+
+
+                    QString msg = tr("Local:%1:%2 Remote:%3:%4 %5")
+                                  .arg( szLocalAddr)
+                                  .arg(       ntohs((u_short)pTcpTable->table[i].dwLocalPort))
+                                  .arg(szRemoteAddr)
+                                  .arg(       ntohs((u_short)pTcpTable->table[i].dwRemotePort))
+                                  .arg(      status);
+
+                    appendNetText(msg);
+                }
+            }
+        } else {
+            printf("\tGetTcpTable2 failed with %d\n", dwRetVal);
+            FREE(pTcpTable);
+            return 1;
+        }
+
+        if (pTcpTable != NULL) {
+            FREE(pTcpTable);
+            pTcpTable = NULL;
+        }
+    });
+
+
     connect(btnFindWindow, &CaptureBtn::hwndEvent, [this](HWND hwnd) {
         if (updateWindowInfo(hwnd)) {
             showWindowStyle(windowInfo.HandleWindow);
@@ -1346,6 +1544,18 @@ void Itemview10ProcessStatus::appendMessageText(const QString& msg) {
     edtMessage->repaint();
 }
 
+void Itemview10ProcessStatus::appendNetText(const QString& msg) {
+    QString text = QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ");
+
+    text += msg;
+
+    edtNet->appendPlainText(text);
+    QTextCursor cursor = edtNet->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    edtNet->setTextCursor(cursor);
+    edtNet->repaint();
+}
+
 void Itemview10ProcessStatus::appendConsole(const QString& msg)
 {
     QString text = QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ");
@@ -1368,6 +1578,11 @@ void Itemview10ProcessStatus::writeConsole(const QString& msg)
     cursor.movePosition(QTextCursor::End);
     edtMsg->setTextCursor(cursor);
     edtMsg->repaint();
+}
+
+void Itemview10ProcessStatus::clearNetText()
+{
+    edtNet->clear();
 }
 
 void Itemview10ProcessStatus::clearMessageText()

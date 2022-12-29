@@ -2,11 +2,13 @@ package com.tes.project;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.os.Bundle;
 import android.os.Process;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,6 +60,16 @@ public class MainActivity extends AppCompatActivity {
 //        toast.show();
 
 
+
+
+        // init
+        binding.btnFiles.setOnClickListener(view -> {
+
+            Intent intent = new Intent(this, FilesActivity.class);
+            startActivity(intent);
+
+
+        });
 
     }
 

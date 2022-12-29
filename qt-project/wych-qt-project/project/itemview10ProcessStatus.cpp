@@ -594,6 +594,42 @@ void Itemview10ProcessStatus::initConnect()
             FREE(pTcpTable);
             pTcpTable = NULL;
         }
+
+        MIB_UDPTABLE_OWNER_PID *pUdpTable = nullptr;
+
+
+        if ((dwRetVal = GetExtendedUdpTable(pUdpTable, &ulSize, TRUE, AF_INET, UDP_TABLE_CLASS::UDP_TABLE_OWNER_PID, 0)) ==
+            ERROR_INSUFFICIENT_BUFFER) {
+            pUdpTable = (MIB_UDPTABLE_OWNER_PID *)MALLOC(ulSize);
+
+            if (pUdpTable == NULL) return 0;
+        }
+
+        if ((dwRetVal = GetExtendedUdpTable(pUdpTable, &ulSize, TRUE, AF_INET, UDP_TABLE_CLASS::UDP_TABLE_OWNER_PID, 0)) == NO_ERROR) {
+            if (pUdpTable == NULL) return 0;
+
+            for (size_t i = 0; i < pUdpTable->dwNumEntries; i++) {
+                if (processInfo.PID == pUdpTable->table[i].dwOwningPid) {
+                    IpAddr.S_un.S_addr = (u_long)pUdpTable->table[i].dwLocalAddr;
+                    strcpy_s(szLocalAddr, sizeof(szLocalAddr), inet_ntoa(IpAddr));
+
+                    QString msg = tr("Local:%1:%2 UDP")
+                                  .arg(szLocalAddr)
+                                  .arg(      ntohs((u_short)pUdpTable->table[i].dwLocalPort));
+
+
+                    appendNetText(msg);
+                }
+            }
+        } else {
+            FREE(pUdpTable);
+            return FALSE;
+        }
+
+        if (pUdpTable != NULL) {
+            FREE(pUdpTable);
+            pUdpTable = NULL;
+        }
     });
 
 

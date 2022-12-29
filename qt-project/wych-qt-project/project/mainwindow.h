@@ -8,6 +8,8 @@
 #include <QVBoxLayout>
 #include <QDateTime>
 #include <QApplication>
+#include <QSystemTrayIcon>
+#include <QMenu>
 
 #include "cpputil/singleton.h"
 
@@ -31,6 +33,8 @@ private:
     virtual bool nativeEvent(const QByteArray& eventType,
                              void             *message,
                              long             *result);
+    QSystemTrayIcon *systemTray;
+    QMenu systemTrayMenu;
 };
 
 

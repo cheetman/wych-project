@@ -12,6 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AndroidProject"
         tools:targetApi="31">
+        <activity android:name=".FilesActivity" />
         <activity
             android:name=".MainActivity"
             android:exported="true">

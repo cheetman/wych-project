@@ -67,6 +67,14 @@ MainWindow::MainWindow(QWidget *parent)
             qDebug() << "GetLastError：" << err;
         }
     }
+
+
+    //    systemTrayMenu.addAction(ui->actionExit);
+    //    systemTray = new QSystemTrayIcon(this);
+    //    systemTray->setIcon(QIcon(":/favicon.ico"));
+    //    systemTray->setToolTip(QApplication::applicationName());
+    //    systemTray->setContextMenu(&systemTrayMenu);
+    //    systemTray->show();
 }
 
 MainWindow::~MainWindow()

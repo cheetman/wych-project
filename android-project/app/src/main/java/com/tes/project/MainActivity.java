@@ -7,6 +7,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Process;
 import android.view.View;
 import android.widget.TextView;
@@ -64,6 +65,13 @@ public class MainActivity extends AppCompatActivity {
 
         // init
         binding.btnFiles.setOnClickListener(view -> {
+
+
+
+           var ff =  Environment.getExternalStorageDirectory().getAbsolutePath();
+
+            var f  =   Environment.getExternalStorageDirectory().listFiles();
+
 
             Intent intent = new Intent(this, FilesActivity.class);
             startActivity(intent);

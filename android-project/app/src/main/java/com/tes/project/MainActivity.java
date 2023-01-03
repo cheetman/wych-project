@@ -2,6 +2,9 @@ package com.tes.project;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -16,6 +19,14 @@ import android.widget.Toast;
 import com.tes.project.databinding.ActivityMainBinding;
 import com.tes.project.utils.WychUtils;
 
+import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.OnNeverAskAgain;
+import permissions.dispatcher.OnPermissionDenied;
+import permissions.dispatcher.OnShowRationale;
+import permissions.dispatcher.PermissionRequest;
+import permissions.dispatcher.RuntimePermissions;
+
+@RuntimePermissions
 public class MainActivity extends AppCompatActivity {
 
     // Used to load the 'project' library on application startup.
@@ -67,19 +78,64 @@ public class MainActivity extends AppCompatActivity {
         binding.btnFiles.setOnClickListener(view -> {
 
 
+            MainActivityPermissionsDispatcher.showFileWithPermissionCheck(this);
+            //showFile();
 
-           var ff =  Environment.getExternalStorageDirectory().getAbsolutePath();
-
-            var f  =   Environment.getExternalStorageDirectory().listFiles();
-
-
-            Intent intent = new Intent(this, FilesActivity.class);
-            startActivity(intent);
 
 
         });
 
     }
+
+
+    @NeedsPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+    public void showFile(){
+
+
+
+
+//        var ff =  Environment.getExternalStorageDirectory().getAbsolutePath();
+//
+//        var f  =   Environment.getExternalStorageDirectory().listFiles();
+
+
+        Intent intent = new Intent(this, FilesActivity.class);
+        startActivity(intent);
+
+    }
+
+    @OnShowRationale(Manifest.permission.READ_EXTERNAL_STORAGE)
+    public void  showRationaleForStorage(PermissionRequest request) {
+       new AlertDialog.Builder(this)
+               .setMessage("提示用户为何开启此权限")
+                       .setPositiveButton("知道了", new DialogInterface.OnClickListener() {
+                           @Override
+                           public void onClick(DialogInterface dialogInterface, int i) {
+                               request.proceed();
+                           }
+                       }).show();
+
+    }
+
+
+    @OnPermissionDenied(Manifest.permission.READ_EXTERNAL_STORAGE)
+    public void   onStorageDenied() {
+        Toast.makeText(this, "fffff2",Toast.LENGTH_SHORT).show();
+    }
+
+    @OnNeverAskAgain(Manifest.permission.READ_EXTERNAL_STORAGE)
+    public void   onStorageNeverAskAgain() {
+        Toast.makeText(this, "fffff3", Toast.LENGTH_SHORT).show();
+    }
+
+
+    @Override
+    public  void onRequestPermissionsResult(int requestCode, String[] permissions,int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        // NOTE: delegate the permission handling to generated function
+        MainActivityPermissionsDispatcher.onRequestPermissionsResult(this,requestCode,grantResults);
+    }
+
 
     /**
      * A native method that is implemented by the 'project' native library,

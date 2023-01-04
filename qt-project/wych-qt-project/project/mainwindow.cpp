@@ -2,6 +2,7 @@
 #include "mainwindow.h"
 #include "events/customevent.h"
 #include "qftp.h"
+#include "itemview6.h"
 #include "itemview7.h"
 #include "itemview8.h"
 #include "itemview9.h"
@@ -36,7 +37,8 @@ MainWindow::MainWindow(QWidget *parent)
     {
         tabWidget->addTab(new ItemView10(this), tr("10.底层测试"));
     } else {
-        tabWidget->addTab(new ItemView8(this),  tr("6.视频播放器(WebDav)"));
+        tabWidget->addTab(new ItemView6(this),  tr("6.网络测试"));
+        tabWidget->addTab(new ItemView8(this),  tr("8.视频播放器(WebDav)"));
 
         //    tabWidget->addTab(new ItemView7(this), tr("7.视频播放器(FTP)"));
         tabWidget->addTab(new ItemView9(this),  tr("9.游戏辅助测试"));

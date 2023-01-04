@@ -1,6 +1,6 @@
 #include "itemview11.h"
 
-#include <ItemView11Cmd.h>
+#include <itemview11cmd.h>
 #include <QHBoxLayout>
 #include <QTabWidget>
 

@@ -1,5 +1,5 @@
-#ifndef ITEMVIEW9TCP_H
-#define ITEMVIEW9TCP_H
+#ifndef ITEMVIEW6TCP_H
+#define ITEMVIEW6TCP_H
 
 #include <QWidget>
 #include <QLabel>
@@ -15,27 +15,31 @@
 #include "hv.h"
 #include "evpp/TcpServer.h"
 
-class ItemView9Tcp : public QWidget
-{
+class ItemView6Tcp : public QWidget {
     Q_OBJECT
-public:
-    explicit ItemView9Tcp(QWidget *parent = nullptr);
-    ~ItemView9Tcp();
 
-    bool start(int port, const char* host = "0.0.0.0");
+public:
+
+    explicit ItemView6Tcp(QWidget *parent = nullptr);
+    ~ItemView6Tcp();
+
+    bool start(int         port,
+               const char *host = "0.0.0.0");
     void stop();
 
 protected:
-    void initUI();
-    void initConnect();
-    void postMessage(const QString& msg);
-    void clearConsole();
 
-    void appendConsole(const QString& msg);
-    void writeConsole(const QString& msg);
-    virtual void customEvent(QEvent* e);
+    void         initUI();
+    void         initConnect();
+    void         postMessage(const QString& msg);
+    void         clearConsole();
+
+    void         appendConsole(const QString& msg);
+    void         writeConsole(const QString& msg);
+    virtual void customEvent(QEvent *e);
 
 private:
+
     QLineEdit *edtHost;
     QLineEdit *edtPort;
     QPushButton *btnStartStop;
@@ -52,7 +56,6 @@ private:
     QTableView *infoTableView;
 
 signals:
-
 };
 
-#endif // ITEMVIEW9TCP_H
+#endif // ITEMVIEW6TCP_H

@@ -1,7 +1,6 @@
 
 #include "itemview9.h"
 #include "utils.h"
-#include "itemview9tcp.h"
 #include "itemview9cs16.h"
 #include "itemview9css.h"
 #include "itemview9csgo.h"
@@ -263,7 +262,7 @@ ItemView9::ItemView9(QWidget *parent) : QWidget(parent)
     qHBoxLayout4->addWidget(infoTableView4);
 
 
-    tabWidget->addTab(new ItemView9Tcp(this), tr("Tcp测试"));
+    //    tabWidget->addTab(new ItemView9Tcp(this), tr("Tcp测试"));
 
 
     //    _beginthread(start, 0, NULL);

@@ -1,4 +1,4 @@
-#include "itemview9tcp.h"
+#include "itemview6tcphv.h"
 
 #include "mainwindow.h"
 #include "events/customevent.h"
@@ -11,7 +11,7 @@
 // #pragma comment(lib, "libhv.lib")
 
 
-ItemView9Tcp::ItemView9Tcp(QWidget *parent)
+ItemView6TcpHv::ItemView6TcpHv(QWidget *parent)
     : QWidget{parent}
 {
     server = nullptr;
@@ -19,12 +19,12 @@ ItemView9Tcp::ItemView9Tcp(QWidget *parent)
     initConnect();
 }
 
-ItemView9Tcp::~ItemView9Tcp()
+ItemView6TcpHv::~ItemView6TcpHv()
 {
     stop();
 }
 
-void ItemView9Tcp::initUI()
+void ItemView6TcpHv::initUI()
 {
     auto layout = new QHBoxLayout(this);
     auto leftQWidget = new QWidget(this);
@@ -99,7 +99,7 @@ void ItemView9Tcp::initUI()
     layout->addWidget(rightQWidget);
 }
 
-void ItemView9Tcp::initConnect()
+void ItemView6TcpHv::initConnect()
 {
     connect(btnConsoleClear, &QPushButton::clicked, [this]() {
         clearConsole();
@@ -178,7 +178,7 @@ void ItemView9Tcp::initConnect()
     clientTimer->start(2000);
 }
 
-bool ItemView9Tcp::start(int port, const char *host)
+bool ItemView6TcpHv::start(int port, const char *host)
 {
     server = new hv::TcpServer;
     int listenfd = server->createsocket(port, host);
@@ -222,24 +222,24 @@ bool ItemView9Tcp::start(int port, const char *host)
     return true;
 }
 
-void ItemView9Tcp::stop()
+void ItemView6TcpHv::stop()
 {
     SAFE_DELETE(server);
 }
 
-void ItemView9Tcp::clearConsole()
+void ItemView6TcpHv::clearConsole()
 {
     edtMsg->clear();
 }
 
-void ItemView9Tcp::postMessage(const QString& msg)
+void ItemView6TcpHv::postMessage(const QString& msg)
 {
     QStringEvent *event = new QStringEvent(msg);
 
     QApplication::postEvent(this, event);
 }
 
-void ItemView9Tcp::appendConsole(const QString& msg)
+void ItemView6TcpHv::appendConsole(const QString& msg)
 {
     QString text = edtMsg->toPlainText();
 
@@ -255,7 +255,7 @@ void ItemView9Tcp::appendConsole(const QString& msg)
     writeConsole(text);
 }
 
-void ItemView9Tcp::writeConsole(const QString& msg)
+void ItemView6TcpHv::writeConsole(const QString& msg)
 {
     edtMsg->setPlainText(msg);
     QTextCursor cursor = edtMsg->textCursor();
@@ -264,7 +264,7 @@ void ItemView9Tcp::writeConsole(const QString& msg)
     edtMsg->repaint();
 }
 
-void ItemView9Tcp::customEvent(QEvent *e)
+void ItemView6TcpHv::customEvent(QEvent *e)
 {
     switch (e->type())
     {

@@ -48,6 +48,10 @@ SOURCES += \
     itemview10pe.cpp \
     itemview11.cpp \
     itemview11cmd.cpp \
+    itemview6.cpp \
+    itemview6tcp.cpp \
+    itemview6tcpc.cpp \
+    itemview6tcphv.cpp \
     itemview7player.cpp \
     itemview7vlcplayer.cpp \
     itemview8.cpp \
@@ -56,7 +60,6 @@ SOURCES += \
     itemview9csgo.cpp \
     itemview9css.cpp \
     itemview9l4d2.cpp \
-    itemview9tcp.cpp \
     main.cpp \
     mainwindow.cpp \
 #    qftp.cpp \
@@ -87,6 +90,10 @@ HEADERS += \
     itemview10pe.h \
     itemview11.h \
     itemview11cmd.h \
+    itemview6.h \
+    itemview6tcp.h \
+    itemview6tcpc.h \
+    itemview6tcphv.h \
     itemview7player.h \
     itemview7vlcplayer.h \
     itemview8.h \
@@ -95,7 +102,6 @@ HEADERS += \
     itemview9csgo.h \
     itemview9css.h \
     itemview9l4d2.h \
-    itemview9tcp.h \
     mainwindow.h \
 #    qftp.h \
     structs/pe.h \

@@ -15,21 +15,22 @@ public:
                const char *host = "0.0.0.0");
     void stop();
 
+    void postAppendConsole(const QString& msg);
+    class QLineEdit *edtHost;
+    class QLineEdit *edtPort;
+
 protected:
 
     void         initUI();
     void         initConnect();
-    void         postMessage(const QString& msg);
     void         clearConsole();
 
-    void         appendConsole(const QString& msg);
     void         writeConsole(const QString& msg);
     virtual void customEvent(QEvent *e);
+    void         appendConsole(const QString& msg);
 
 private:
 
-    class QLineEdit *edtHost;
-    class QLineEdit *edtPort;
     class QPushButton *btnStartStop;
     class QPushButton *btnClients;
     class QPushButton *btnConsoleClear;

@@ -16,6 +16,8 @@
 #include <winsock2.h>
 #include <WS2tcpip.h>
 
+#include "threads/threadtcpc.h"
+
 
 ItemView6TcpC::ItemView6TcpC(QWidget *parent)
     : QWidget{parent}
@@ -111,51 +113,22 @@ void ItemView6TcpC::initConnect()
     });
 
     connect(btnStartStop, &QPushButton::clicked, [this]() {
-        // Windows 必须先执行WSAStartup ，否则socket构造时会报错
-        WSADATA wsadata;
-        int Ret;
-
-        if ((Ret = WSAStartup(MAKEWORD(2, 2), &wsadata)) != 0) {
-            // 注意，因为winsock没有加载，不能使用WSAGetLastError来确定导致故障的特定错误，但可以根据返回值确定。
-            appendConsole(tr("WSAStartup error RetCode: %1!").arg(Ret));
-            return;
-        }
+        auto thread = new ThreadTcpC(this);
 
 
-        int sockfd, n;
-        char recvline[200 + 1];
+        connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
 
-        // struct sockaddr servaddr; 这个结构没有把ip与端口分开
-        // struct sockaddr_in servaddr;
-        sockaddr_in servaddr;
-
-        // IPPROTO_TCP = 6
-        if ((sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-            appendConsole(tr("socket error RetCode: %1!").arg(sockfd));
-            return;
-        }
-
-        // bzero(&servaddr, sizeof(servaddr)); windows 下没有bzero函数
-        ZeroMemory(&servaddr, sizeof(servaddr));
-
-        servaddr.sin_family = AF_INET;
-        servaddr.sin_port = htons(13);
+        //        connect(thread, &QThread::finished, []() {
+        //            int d = 1;
+        //            int a = d;
+        //        });
 
 
-        wchar_t ip[20] = { 0 };
-        edtHost->text().toWCharArray(ip);
+        thread->ip = edtHost->text();
+        thread->port = edtPort->text().toUShort();
+        thread->setParent(this);
 
-        // inet_pton UNIX下
-        if (InetPton(AF_INET, ip, &servaddr.sin_addr) <= 0) {
-            appendConsole(tr("InetPton error !"));
-            return;
-        }
-
-
-        // 这里强转sockaddr * 好像历史遗留问题
-        if (::connect(sockfd, (PSOCKADDR)&servaddr, sizeof(servaddr)) < 0) {
-            appendConsole(tr("connect error !").arg(WSAGetLastError()));
-        }
+        thread->start();
 
 
         return;
@@ -222,31 +195,30 @@ void ItemView6TcpC::clearConsole()
     edtMsg->clear();
 }
 
-void ItemView6TcpC::postMessage(const QString& msg)
+void ItemView6TcpC::postAppendConsole(const QString& msg)
 {
-    QStringEvent *event = new QStringEvent(msg);
+    QStringEvent *event = new QStringEvent(msg, qEventAppendConsole);
 
     QApplication::postEvent(this, event);
 }
 
 void ItemView6TcpC::appendConsole(const QString& msg)
 {
-    QString text = edtMsg->toPlainText();
+    QString text = QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ");
 
-    text += QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ");
-
-    //    text += QDateTime::currentDateTime().toString("[yyyy-MM-dd
-    // hh:mm:ss.zzz] ");
     text += msg;
-
-    if (text.back() != '\n') {
-        text += "\n";
-    }
-    writeConsole(text);
+    edtMsg->appendPlainText(text);
+    QTextCursor cursor = edtMsg->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    edtMsg->setTextCursor(cursor);
+    edtMsg->repaint();
 }
 
 void ItemView6TcpC::writeConsole(const QString& msg)
 {
+    QString text = QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ");
+
+    text += msg;
     edtMsg->setPlainText(msg);
     QTextCursor cursor = edtMsg->textCursor();
     cursor.movePosition(QTextCursor::End);
@@ -258,13 +230,13 @@ void ItemView6TcpC::customEvent(QEvent *e)
 {
     switch (e->type())
     {
-    case qEventRecvMsg:
+    case qEventAppendConsole:
     {
         QStringEvent *event = dynamic_cast<QStringEvent *>(e);
         appendConsole(event->message);
-    }
         e->accept();
         break;
+    }
 
     default:
         break;

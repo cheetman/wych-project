@@ -1,8 +1,8 @@
 #ifndef EVENTWINMESSAGE_H
 #define EVENTWINMESSAGE_H
 
-#include <QEvent>
 #include <QObject>
+#include <QEvent>
 #include <window.h>
 
 const static QEvent::Type qEventMouseProc = (QEvent::Type)(QEvent::User + 101);

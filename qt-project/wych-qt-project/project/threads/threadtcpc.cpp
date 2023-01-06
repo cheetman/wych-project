@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QSpinBox>
 #include <QLineEdit>
+#include <QComboBox>
 
 
 #include <winsock2.h>
@@ -11,6 +12,7 @@
 #include "itemview6tcpc.h"
 
 #include <events/customevent.h>
+#include <events/eventtcpcgrid.h>
 
 ThreadTcpC::ThreadTcpC(QObject *parent)
     : QThread{parent}
@@ -73,8 +75,25 @@ void ThreadTcpC::run()
         return;
     }
 
+
+    parent->postAppendConsole(tr("服务器连接成功! [id:%1]").arg(sockfd));
+
+    // 推送
+    QApplication::postEvent(parent, new EventTcpCGrid(sockfd, qEventTcpCAdd));
+
     while ((n = recv(sockfd, recvline, 200, 0)) > 0) {
-        recvline[n] = 0;
+        //        recvline[n] = 0;
+
+        QString data = tr("[%1] ").arg(sockfd);
+
+        if (parent->cbCharEncoding->currentIndex() == 0) {
+            data +=  QString::fromUtf8(recvline, n);
+        } else {
+            data +=  QString::fromLocal8Bit(recvline, n);
+        }
+
+        parent->postAppendRecvMsg(data);
+
 
         //        if (fputs(recvline, stdout) == EOF) {
         //            std::cout << "error!\n";
@@ -82,37 +101,14 @@ void ThreadTcpC::run()
     }
 
     if (n < 0) {
-        parent->postAppendConsole(tr("read error "));
+        parent->postAppendConsole(tr("read error [id:%1]"));
     }
 
 
-    //    while (true)
-    //    {
-    //        if (parent->hideStatus != 2) {
-    //            if (IsWindow(parent->lasthwnd)) {
-    //                parent->showWindow(parent->lasthwnd);
-    //            }
-    //            break;
-    //        }
+    parent->postAppendConsole(tr("服务器连接断开! [id:%1]").arg(sockfd));
 
-    //        if (!IsWindow(parent->lasthwnd)) {
-    //            parent->postAppendConsole(tr("窗口不存在！"));
-    //            HWND hWnd = FindWindow(parent->lastWindowInfo.ClassName, parent->lastWindowInfo.TitleName);
-
-    //            if (hWnd) {
-    //                parent->postAppendConsole(tr("新窗口已找到！"));
-    //                parent->lasthwnd = hWnd;
-    //                continue;
-    //            }
-    //            Sleep(5 * 1000);
-    //            continue;
-    //        }
-
-
-    //        parent->hideWindow(parent->lasthwnd);
-    //        Sleep(2 * 1000);
-    //    }
-
+    // 推送
+    QApplication::postEvent(parent, new EventTcpCGrid(sockfd, qEventTcpCRemove));
 
     emit threadFinished();
 }

@@ -1,9 +1,8 @@
 #ifndef EVENTSTATUSGRID_H
 #define EVENTSTATUSGRID_H
 
-#include "qstandarditemmodel.h"
 #include <QEvent>
-#include <QObject>
+#include <QStandardItem>
 
 const static QEvent::Type qEventStatusGridScript = (QEvent::Type)(QEvent::User + 11);
 const static QEvent::Type qEventCountGridScript = (QEvent::Type)(QEvent::User + 12);

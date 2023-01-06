@@ -3,6 +3,7 @@
 #include "mainwindow.h"
 #include "events/customevent.h"
 
+#include <QComboBox>
 #include <QGroupBox>
 #include <QHeaderView>
 #include <QLabel>
@@ -18,6 +19,8 @@
 
 #include "threads/threadtcpc.h"
 
+#include <events/eventtcpcgrid.h>
+
 
 ItemView6TcpC::ItemView6TcpC(QWidget *parent)
     : QWidget{parent}
@@ -28,7 +31,7 @@ ItemView6TcpC::ItemView6TcpC(QWidget *parent)
 
 ItemView6TcpC::~ItemView6TcpC()
 {
-    stop();
+    //    stop();
 }
 
 void ItemView6TcpC::initUI()
@@ -36,21 +39,102 @@ void ItemView6TcpC::initUI()
     auto layout = new QHBoxLayout(this);
     auto leftQWidget = new QWidget(this);
     auto leftQWidgetLayout = new QVBoxLayout(leftQWidget);
+
+    leftQWidgetLayout->setAlignment(Qt::AlignTop);
+
+
     auto leftQWidgetGroupBox1 = new QGroupBox("TCP服务设置", this);
 
-    leftQWidgetLayout->addWidget(leftQWidgetGroupBox1);
-    leftQWidgetLayout->setAlignment(Qt::AlignTop);
-    auto leftQWidgetGroup1Layout = new QGridLayout(leftQWidgetGroupBox1);
-    leftQWidgetGroupBox1->setFixedHeight(200);
+    auto leftQWidgetGroup1Layout = new QVBoxLayout(leftQWidgetGroupBox1);
+    auto leftQWidgetGroup1Layouta = new QHBoxLayout();
+    auto leftQWidgetGroup1Layoutb = new QHBoxLayout();
+    auto leftQWidgetGroup1Layoutc = new QHBoxLayout();
+    leftQWidgetGroup1Layout->setAlignment(Qt::AlignTop);
+    leftQWidgetGroup1Layouta->setAlignment(Qt::AlignLeft);
+    leftQWidgetGroup1Layoutb->setAlignment(Qt::AlignLeft);
+    leftQWidgetGroup1Layoutc->setAlignment(Qt::AlignRight);
+    leftQWidgetGroup1Layout->addLayout(leftQWidgetGroup1Layouta);
+    leftQWidgetGroup1Layout->addLayout(leftQWidgetGroup1Layoutb);
+    leftQWidgetGroup1Layout->addLayout(leftQWidgetGroup1Layoutc);
 
-    //    leftQWidgetGroupBox1->setFixedWidth(400);
+    auto leftQWidgetGroupBox2 = new QGroupBox("发送信息", this);
+    auto leftQWidgetGroup2Layout = new QVBoxLayout();
+    auto leftQWidgetGroup2Layouta = new QHBoxLayout();
+    auto leftQWidgetGroup2Layoutb = new QHBoxLayout();
+    leftQWidgetGroupBox2->setLayout(leftQWidgetGroup2Layout);
+    leftQWidgetGroup2Layout->setAlignment(Qt::AlignTop);
+    leftQWidgetGroup2Layouta->setAlignment(Qt::AlignLeft);
+    leftQWidgetGroup2Layoutb->setAlignment(Qt::AlignRight);
+    leftQWidgetGroup2Layout->addLayout(leftQWidgetGroup2Layouta);
+    leftQWidgetGroup2Layout->addLayout(leftQWidgetGroup2Layoutb);
+
+
+    leftQWidgetLayout->addWidget(leftQWidgetGroupBox1, 0, Qt::AlignTop);
+    leftQWidgetLayout->addWidget(leftQWidgetGroupBox2, 0, Qt::AlignTop);
+
+
+    cbCharEncodingS =  new QComboBox();
+
+    cbCharEncodingS->addItem("UTF-8", QVariant::fromValue(1));
+    cbCharEncodingS->addItem("GBK",   QVariant::fromValue(2));
+
+    btnSend = new QPushButton("发送信息");
+    edtSend = new QPlainTextEdit();
+    leftQWidgetGroup2Layouta->addWidget(edtSend, 0, Qt::AlignLeft);
+    leftQWidgetGroup2Layoutb->addWidget(new QLabel("编码:", this), 0, Qt::AlignLeft);
+    leftQWidgetGroup2Layoutb->addWidget(cbCharEncodingS,         0, Qt::AlignLeft);
+    leftQWidgetGroup2Layoutb->addWidget(btnSend,                 0, Qt::AlignRight);
 
 
     auto centerQWidget = new QWidget(this);
     auto centerQWidgetLayout = new QVBoxLayout(centerQWidget);
+
+
+    auto centerQWidgetGroupBox2 = new QGroupBox("接收信息", centerQWidget);
+    auto centerQWidgetGroupBox2Layout = new QVBoxLayout(centerQWidgetGroupBox2);
+    auto centerQWidgetGroupBox2Layouta = new QHBoxLayout();
+    auto centerQWidgetGroupBox2Layoutb = new QHBoxLayout();
+    centerQWidgetGroupBox2Layout->setAlignment(Qt::AlignTop);
+    centerQWidgetGroupBox2Layouta->setAlignment(Qt::AlignLeft);
+    centerQWidgetGroupBox2Layoutb->setAlignment(Qt::AlignLeft);
+    centerQWidgetGroupBox2Layout->addLayout(centerQWidgetGroupBox2Layouta);
+    centerQWidgetGroupBox2Layout->addLayout(centerQWidgetGroupBox2Layoutb);
+
+
+    cbCharEncoding =  new QComboBox();
+
+    cbCharEncoding->addItem("UTF-8", QVariant::fromValue(1));
+    cbCharEncoding->addItem("GBK",   QVariant::fromValue(2));
+    btnRecvClear = new QPushButton("清空信息");
+
+    edtRecv = new QPlainTextEdit();
+    edtRecv->setReadOnly(true);
+    centerQWidgetGroupBox2Layoutb->addWidget(edtRecv);
+
+
+    centerQWidgetGroupBox2Layouta->addWidget(new QLabel("编码:", this), 0, Qt::AlignLeft);
+    centerQWidgetGroupBox2Layouta->addWidget(cbCharEncoding,          1, Qt::AlignLeft);
+    centerQWidgetGroupBox2Layouta->addWidget(btnRecvClear,            0, Qt::AlignRight);
+
+
     auto centerQWidgetGroupBox1 = new QGroupBox("控制台设置", centerQWidget);
-    auto centerQWidgetGroupBox1Layout = new QHBoxLayout(centerQWidgetGroupBox1);
-    centerQWidgetLayout->addWidget(centerQWidgetGroupBox1);
+    auto centerQWidgetGroupBox1Layout = new QVBoxLayout(centerQWidgetGroupBox1);
+    auto centerQWidgetGroupBox1Layouta = new QHBoxLayout();
+    auto centerQWidgetGroupBox1Layoutb = new QHBoxLayout();
+    centerQWidgetGroupBox1Layout->setAlignment(Qt::AlignTop);
+    centerQWidgetGroupBox1Layout->addLayout(centerQWidgetGroupBox1Layouta);
+    centerQWidgetGroupBox1Layout->addLayout(centerQWidgetGroupBox1Layoutb);
+    ckConsoleEnable = new QCheckBox("启动控制台");
+    btnConsoleClear = new QPushButton("清空控制台");
+    edtMsg = new QPlainTextEdit();
+    edtMsg->setReadOnly(true);
+    centerQWidgetGroupBox1Layouta->addWidget(ckConsoleEnable, 0, Qt::AlignLeft);
+    centerQWidgetGroupBox1Layouta->addWidget(btnConsoleClear, 0, Qt::AlignRight);
+    centerQWidgetGroupBox1Layoutb->addWidget(edtMsg, 0, Qt::AlignTop);
+
+
+    centerQWidgetLayout->addWidget(centerQWidgetGroupBox2);
+    centerQWidgetLayout->addWidget(centerQWidgetGroupBox1, 0, Qt::AlignTop);
 
 
     auto rightQWidget = new QWidget(this);
@@ -60,18 +144,11 @@ void ItemView6TcpC::initUI()
     rightQWidgetLayout->addWidget(rightQWidgetGroupBox1);
 
 
-    ckConsoleEnable = new QCheckBox("启动控制台");
     ckRefreshClients = new QCheckBox("刷新客户端");
-    btnStartStop = new QPushButton("start");
-    btnConsoleClear = new QPushButton("清空控制台");
+    btnStartStop = new QPushButton("打开连接");
     btnClients = new QPushButton("刷新客户端");
     edtHost = new QLineEdit("127.0.0.1");
     edtPort = new QLineEdit("1024");
-
-    //    edtMsg = new QTextEdit();
-    edtMsg = new QPlainTextEdit();
-
-    edtMsg->setReadOnly(true);
 
 
     infoTableView = new QTableView(this);
@@ -85,16 +162,13 @@ void ItemView6TcpC::initUI()
     infoTableView->setModel(infoGridModel);
 
 
-    leftQWidgetGroup1Layout->addWidget(new QLabel("host:"), 0, 0);
-    leftQWidgetGroup1Layout->addWidget(new QLabel("port:"), 1, 0);
-    leftQWidgetGroup1Layout->addWidget(btnStartStop,        2, 0);
-    leftQWidgetGroup1Layout->addWidget(btnClients,          2, 1);
-    leftQWidgetGroup1Layout->addWidget(edtHost,             0, 1);
-    leftQWidgetGroup1Layout->addWidget(edtPort,             1, 1);
+    leftQWidgetGroup1Layouta->addWidget(new QLabel("host:"), 0, Qt::AlignLeft);
+    leftQWidgetGroup1Layoutb->addWidget(new QLabel("port:"), 0, Qt::AlignLeft);
+    leftQWidgetGroup1Layouta->addWidget(edtHost, 0, Qt::AlignLeft);
+    leftQWidgetGroup1Layoutb->addWidget(edtPort, 0, Qt::AlignLeft);
+    leftQWidgetGroup1Layoutc->addWidget(btnStartStop, 0, Qt::AlignLeft);
+    leftQWidgetGroup1Layoutc->addWidget(btnClients,   0, Qt::AlignLeft);
 
-    centerQWidgetLayout->addWidget(edtMsg);
-    centerQWidgetGroupBox1Layout->addWidget(ckConsoleEnable);
-    centerQWidgetGroupBox1Layout->addWidget(btnConsoleClear);
 
     rightQWidgetGroupBox1Layout->addWidget(ckRefreshClients);
     rightQWidgetGroupBox1Layout->addWidget(btnClients);
@@ -108,9 +182,46 @@ void ItemView6TcpC::initUI()
 
 void ItemView6TcpC::initConnect()
 {
+    connect(infoTableView, &QTableView::clicked, [this](const QModelIndex& current) {
+        if (current.isValid()) {
+            currentSocketId = current.siblingAtColumn(1).data().toInt();
+        }
+    });
+
     connect(btnConsoleClear, &QPushButton::clicked, [this]() {
         clearConsole();
     });
+
+    connect(btnRecvClear, &QPushButton::clicked, [this]() {
+        clearRecvMsg();
+    });
+
+    connect(btnSend, &QPushButton::clicked, [this]() {
+        if (!currentSocketId) {
+            appendConsole(tr("请先选择一个TCP连接！"));
+            return;
+        }
+
+        QByteArray ba;
+
+        if (cbCharEncodingS->currentIndex() == 0) {
+            ba = edtSend->toPlainText().toUtf8();
+        } else {
+            ba = edtSend->toPlainText().toLocal8Bit();
+        }
+        char *data = ba.data();
+        int ret = send(currentSocketId, data, ba.size(), 0);
+
+        if (ret == SOCKET_ERROR) {
+            appendConsole(tr("发送失败! errorcode:%1 [id:%2]").arg(WSAGetLastError()).arg(ret));
+            return;
+        }
+
+        appendConsole(tr("发送成功[ret:%3]:%1[id:%2]").arg(edtSend->toPlainText()).arg(currentSocketId).arg(ret));
+
+        clearSendMsg();
+    });
+
 
     connect(btnStartStop, &QPushButton::clicked, [this]() {
         auto thread = new ThreadTcpC(this);
@@ -132,67 +243,52 @@ void ItemView6TcpC::initConnect()
 
 
         return;
-
-        if (!isStart) {
-            std::string host = edtHost->text().toStdString();
-            int port = edtPort->text().toInt();
-
-            if (start(port, host.c_str())) {
-                btnStartStop->setText(tr("关闭"));
-                appendConsole(QString::asprintf("TCP server running on %s:%d ...", host.c_str(), port));
-            } else {
-                appendConsole(QString::asprintf("TCP server start failed!"));
-            }
-            isStart = true;
-        } else {
-            stop();
-            btnStartStop->setText(tr("打开"));
-
-            //        g_mainwnd->
-            appendConsole("TCP server stopped!");
-            isStart = false;
-        }
     });
 
-    connect(btnClients, &QPushButton::clicked, [this]() {
-        //        if (server == NULL) {
-        //            return;
-        //        }
-
-        //        int i = 0;
-        //        int count = server->foreachChannel([this, &i](const hv::SocketChannelPtr& channel) {
-        //            this->infoGridModel->setItem(i, 0, new QStandardItem("TCP"));
-        //            this->infoGridModel->setItem(i, 1, new QStandardItem(QString::number(channel->fd())));
-        //            this->infoGridModel->setItem(i, 2, new QStandardItem(channel->peeraddr().c_str()));
-        //            this->infoGridModel->setItem(i++, 3, new QStandardItem("在线"));
-        //        });
-        //        auto removeCount = infoGridModel->rowCount() - count;
-
-        //        if (removeCount > 0) {
-        //            infoGridModel->removeRows(i, removeCount);
-        //        }
-    });
-
-    QTimer *clientTimer = new QTimer(this);
-    connect(clientTimer, &QTimer::timeout, [this]() {
-        if (!ckRefreshClients->isChecked()) {
-            return;
-        }
-    });
-    clientTimer->start(2000);
+    connect(btnClients, &QPushButton::clicked, [this]() {});
 }
 
-bool ItemView6TcpC::start(int port, const char *host)
+void ItemView6TcpC::clientAdd(int socketid)
 {
-    return true;
+    int i = infoGridModel->rowCount();
+
+    infoGridModel->setItem(i, 0, new QStandardItem("TCP"));
+    infoGridModel->setItem(i, 1, new QStandardItem(QString::number(socketid)));
+
+    //    infoGridModel->setItem(i, 2, new QStandardItem(channel->peeraddr().c_str()));
+    infoGridModel->setItem(i, 3, new QStandardItem("在线"));
 }
 
-void ItemView6TcpC::stop()
-{}
+void ItemView6TcpC::clientRemove(int socketid)
+{
+    auto items = infoGridModel->findItems(QString::number(socketid), Qt::MatchExactly, 1);
+
+    if (items.count() >= 1) {
+        auto *firstItem = items.first();
+        infoGridModel->removeRow(firstItem->row());
+    }
+}
 
 void ItemView6TcpC::clearConsole()
 {
     edtMsg->clear();
+}
+
+void ItemView6TcpC::clearRecvMsg()
+{
+    edtRecv->clear();
+}
+
+void ItemView6TcpC::clearSendMsg()
+{
+    edtSend->clear();
+}
+
+void ItemView6TcpC::postAppendRecvMsg(const QString& msg)
+{
+    QStringEvent *event = new QStringEvent(msg, qEventRecvMsg);
+
+    QApplication::postEvent(this, event);
 }
 
 void ItemView6TcpC::postAppendConsole(const QString& msg)
@@ -200,6 +296,18 @@ void ItemView6TcpC::postAppendConsole(const QString& msg)
     QStringEvent *event = new QStringEvent(msg, qEventAppendConsole);
 
     QApplication::postEvent(this, event);
+}
+
+void ItemView6TcpC::appendRecvMsg(const QString& msg)
+{
+    QString text = QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ");
+
+    text += msg;
+    edtRecv->appendPlainText(text);
+    QTextCursor cursor = edtRecv->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    edtRecv->setTextCursor(cursor);
+    edtRecv->repaint();
 }
 
 void ItemView6TcpC::appendConsole(const QString& msg)
@@ -230,6 +338,21 @@ void ItemView6TcpC::customEvent(QEvent *e)
 {
     switch (e->type())
     {
+    case qEventTcpCAdd: {
+        EventTcpCGrid *event = dynamic_cast<EventTcpCGrid *>(e);
+        clientAdd(event->socketid);
+        e->accept();
+        break;
+    }
+
+    case qEventTcpCRemove: {
+        EventTcpCGrid *event = dynamic_cast<EventTcpCGrid *>(e);
+        clientRemove(event->socketid);
+        e->accept();
+        break;
+    }
+
+
     case qEventAppendConsole:
     {
         QStringEvent *event = dynamic_cast<QStringEvent *>(e);
@@ -237,6 +360,15 @@ void ItemView6TcpC::customEvent(QEvent *e)
         e->accept();
         break;
     }
+
+    case qEventRecvMsg:
+    {
+        QStringEvent *event = dynamic_cast<QStringEvent *>(e);
+        appendRecvMsg(event->message);
+        e->accept();
+        break;
+    }
+
 
     default:
         break;

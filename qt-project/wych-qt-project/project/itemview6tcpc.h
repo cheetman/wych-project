@@ -42,12 +42,14 @@ private:
     int currentSocketId = 0;
 
     class QPushButton *btnStartStop;
-    class QPushButton *btnClients;
+
+    //    class QPushButton *btnClients;
     class QPushButton *btnConsoleClear;
     class QPushButton *btnRecvClear;
     class QPushButton *btnSend;
     class QCheckBox *ckConsoleEnable;
-    class QCheckBox *ckRefreshClients;
+
+    //    class QCheckBox *ckRefreshClients;
 
     class QPlainTextEdit *edtMsg;
     class QPlainTextEdit *edtSend;
@@ -56,6 +58,8 @@ private:
 
     class QStandardItemModel *infoGridModel;
     class QTableView *infoTableView;
+    class QStandardItemModel *optionGridModel;
+    class QTableView *optionTableView;
 
 signals:
 };

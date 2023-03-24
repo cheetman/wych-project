@@ -86,3 +86,7 @@ android-project/app/libs/x86/libwychlib.so
 android-project/app/libs/armeabi-v7a/libwychlib.so
 
 android-project/app/libs/arm64-v8a/libwychlib.so
+
+c-project-cmake/.vs/
+
+c-project-cmake/out/

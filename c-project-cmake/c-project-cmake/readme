@@ -1,2 +1,3 @@
-下载glm源代码，生成vs2019 vs ，设置lib生成目录， 打开sln，INSTALL生成lib。
-自己编译的好处是可以同一版本。
+1.下载glm源代码，生成vs2019 vs ，设置lib生成目录， 打开sln，INSTALL生成lib。
+2.自己编译的好处是可以同一版本。
+3.vulkan去官网下载windows版sdk安装，对应目录有include和lib

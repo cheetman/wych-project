@@ -60,11 +60,24 @@
 #include <array>
 
 #include "vulkan/vulkan.h"
+#include <vulkan/vulkan_win32.h>
+
+#include "base/CommandLineParser.hpp"
+#include "base/VulkanTools.h"
+#include "base/VulkanSwapChain.h"
+#include "base/VulkanBuffer.h"
+#include "base/VulkanDevice.h"
+
 
 class VulkanExample
 {
 
 public:
+	VulkanExample();
+
+
+	CommandLineParser commandLineParser;
+
 	// OS specific
 #if defined(_WIN32)
 	HWND window;
@@ -72,8 +85,10 @@ public:
 
 #endif
 
-	std::string title = "Vulkan Example";
-	std::string name = "vulkanExample";
+	std::string title = "Vulkan-Project";
+	std::string name = "vulkanProject";
+	uint32_t apiVersion = VK_API_VERSION_1_0;
+
 	uint32_t width = 1280;
 	uint32_t height = 720;
 
@@ -86,7 +101,7 @@ public:
 
 	struct Settings {
 		/** @brief Activates validation layers (and message output) when set to true */
-		bool validation = false;
+		bool validation = true;
 		/** @brief Set to true if fullscreen mode has been requested via command line */
 		bool fullscreen = false;
 		/** @brief Set to true if v-sync will be forced for the swapchain */
@@ -96,21 +111,77 @@ public:
 	} settings;
 
 
-	// Stores physical device properties (for e.g. checking device limits)
-	VkPhysicalDeviceProperties deviceProperties;
+	/** @brief Encapsulated physical and logical vulkan device */
+	vks::VulkanDevice* vulkanDevice;
 
 
 
 
-
-
-
-
-	HWND setupWindow(HINSTANCE hinstance, WNDPROC wndproc);
-
+	bool initVulkan();
 	void renderLoop();
 	std::string getWindowTitle();
+
+	VkResult createInstance(bool enableValidation);
+
+#if defined(_WIN32)
+	void setupConsole(std::string title);
+	//void setupDPIAwareness();
+	HWND setupWindow(HINSTANCE hinstance, WNDPROC wndproc);
 	void handleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+#endif
+
+
+protected:
+
+	// Vulkan instance, stores all per-application states
+	VkInstance instance;
+	// Stores physical device properties (for e.g. checking device limits)
+	VkPhysicalDeviceProperties deviceProperties;
+	// Stores the features available on the selected physical device (for e.g. checking if a feature is available)
+	VkPhysicalDeviceFeatures deviceFeatures;
+	// Stores all available memory (type) properties for the physical device
+	VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
+
+	std::vector<std::string> supportedInstanceExtensions;
+
+
+	/** @brief Set of physical device features to be enabled for this example (must be set in the derived constructor) */
+	VkPhysicalDeviceFeatures enabledFeatures{};
+	/** @brief Set of device extensions to be enabled for this example (must be set in the derived constructor) */
+	std::vector<const char*> enabledDeviceExtensions;
+	std::vector<const char*> enabledInstanceExtensions;
+	/** @brief Optional pNext structure for passing extension structures to device creation */
+	void* deviceCreatepNextChain = nullptr;
+
+	/** @brief Logical device, application's view of the physical device (GPU) */
+	VkDevice device;
+
+	// Physical device (GPU) that Vulkan will use
+	VkPhysicalDevice physicalDevice;
+
+
+	// Handle to the device graphics queue that command buffers are submitted to
+	VkQueue queue;
+
+	/** @brief Pipeline stages used to wait at for graphics queue submissions */
+	VkPipelineStageFlags submitPipelineStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+	// Depth buffer format (selected during Vulkan initialization)
+	VkFormat depthFormat;
+
+	// Contains command buffers and semaphores to be presented to the queue
+	VkSubmitInfo submitInfo;
+
+	// Wraps the swap chain to present images (framebuffers) to the windowing system
+	VulkanSwapChain swapChain;
+	// Synchronization semaphores
+	struct {
+		// Swap chain image presentation
+		VkSemaphore presentComplete;
+		// Command buffer submission and execution
+		VkSemaphore renderComplete;
+	} semaphores;
 };
 
 

@@ -2,6 +2,7 @@
 # 项目特定的逻辑。
 #
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVK_USE_PLATFORM_WIN32_KHR")
 
 
 aux_source_directory(. DIRSRCS)
@@ -17,9 +18,12 @@ link_directories(
 )
 
 
+
+add_subdirectory(base)
+
 add_executable(c-project-cmake  ${DIRSRCS})
 
-target_link_libraries(c-project-cmake vulkan-1.lib)
+target_link_libraries(c-project-cmake base vulkan-1.lib)
 
 if(WIN32)
   #set_target_properties(c-project-cmake PROPERTIES LINK_FLAGS "/SUBSYSTEM:CONSOLE")

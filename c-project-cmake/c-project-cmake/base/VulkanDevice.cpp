@@ -44,6 +44,7 @@ namespace vks
 		// Get list of supported extensions
 		uint32_t extCount = 0;
 		vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extCount, nullptr);
+		std::cout << "支持的Device扩展:" << "\n";
 		if (extCount > 0)
 		{
 			std::vector<VkExtensionProperties> extensions(extCount);
@@ -52,6 +53,7 @@ namespace vks
 				for (auto ext : extensions)
 				{
 					supportedExtensions.push_back(ext.extensionName);
+					std::cout << "  " << supportedExtensions.size() << "." << ext.extensionName << "\n";
 				}
 			}
 		}

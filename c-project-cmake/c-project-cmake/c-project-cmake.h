@@ -28,7 +28,6 @@
 
 
 
-#include <iostream>
 
 #pragma comment(linker, "/subsystem:windows")
 #include <windows.h>
@@ -46,6 +45,7 @@
 #include <numeric>
 #include <ctime>
 #include <iostream>
+#include <iomanip>
 #include <chrono>
 #include <random>
 #include <algorithm>
@@ -136,6 +136,7 @@ protected:
 
 	// Vulkan instance, stores all per-application states
 	VkInstance instance;
+
 	// Stores physical device properties (for e.g. checking device limits)
 	VkPhysicalDeviceProperties deviceProperties;
 	// Stores the features available on the selected physical device (for e.g. checking if a feature is available)

@@ -322,17 +322,106 @@ bool VulkanExample::initVulkan()
 			vkGetPhysicalDeviceProperties(physicalDevices[i], &deviceProperties);
 			std::cout << "Device [" << i << "] : " << deviceProperties.deviceName << std::endl;
 			std::cout << " Type: " << vks::tools::physicalDeviceTypeString(deviceProperties.deviceType) << "\n";
-			std::cout << " API: " << (deviceProperties.apiVersion >> 22) << "." << ((deviceProperties.apiVersion >> 12) & 0x3ff) << "." << (deviceProperties.apiVersion & 0xfff) << "\n";
+			//std::cout << " API: " << (deviceProperties.apiVersion >> 22) << "." << ((deviceProperties.apiVersion >> 12) & 0x3ff) << "." << (deviceProperties.apiVersion & 0xfff) << "\n";
 		}
 	}
 #endif
 
 	physicalDevice = physicalDevices[selectedDevice];
 
+
 	// Store properties (including limits), features and memory properties of the physical device (so that examples can check against them)
 	vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
 	vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
 	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &deviceMemoryProperties);
+
+	// 打印属性
+	std::cout << "当前显卡属性：" << "\n";
+	std::cout << "  Device Name: " << deviceProperties.deviceName << std::endl;
+	std::cout << "  Device Type: " << deviceProperties.deviceType << std::endl;
+	std::cout << "  API Version: " << VK_VERSION_MAJOR(deviceProperties.apiVersion) << "." << VK_VERSION_MINOR(deviceProperties.apiVersion) << "." << VK_VERSION_PATCH(deviceProperties.apiVersion) << std::endl;
+	std::cout << "  Driver Version: " << deviceProperties.driverVersion << std::endl;
+	std::cout << "  Vendor ID: " << deviceProperties.vendorID << std::endl;
+	std::cout << "  Device ID: " << deviceProperties.deviceID << std::endl;
+	for (int i = 0; i < VK_UUID_SIZE; i++) {
+		std::cout << "  " << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(deviceProperties.pipelineCacheUUID[i]);
+	}
+	std::cout << std::dec << std::endl;
+
+
+	std::cout << "当前显卡特性：" << "\n";
+	std::cout << "  robustBufferAccess: " << deviceFeatures.robustBufferAccess << "\n";
+	std::cout << "  fullDrawIndexUint32: " << deviceFeatures.fullDrawIndexUint32 << "\n";
+	std::cout << "  imageCubeArray: " << deviceFeatures.imageCubeArray << "\n";
+	std::cout << "  independentBlend: " << deviceFeatures.independentBlend << "\n";
+	std::cout << "  geometryShader: " << deviceFeatures.geometryShader << "\n";
+	std::cout << "  tessellationShader: " << deviceFeatures.tessellationShader << "\n";
+	std::cout << "  sampleRateShading: " << deviceFeatures.sampleRateShading << "\n";
+	std::cout << "  dualSrcBlend: " << deviceFeatures.dualSrcBlend << "\n";
+	std::cout << "  logicOp: " << deviceFeatures.logicOp << "\n";
+	std::cout << "  multiDrawIndirect: " << deviceFeatures.multiDrawIndirect << "\n";
+	std::cout << "  drawIndirectFirstInstance: " << deviceFeatures.drawIndirectFirstInstance << "\n";
+	std::cout << "  depthClamp: " << deviceFeatures.depthClamp << "\n";
+	std::cout << "  depthBiasClamp: " << deviceFeatures.depthBiasClamp << "\n";
+	std::cout << "  fillModeNonSolid: " << deviceFeatures.fillModeNonSolid << "\n";
+	std::cout << "  depthBounds: " << deviceFeatures.depthBounds << "\n";
+	std::cout << "  wideLines: " << deviceFeatures.wideLines << "\n";
+	std::cout << "  largePoints: " << deviceFeatures.largePoints << "\n";
+	std::cout << "  alphaToOne: " << deviceFeatures.alphaToOne << "\n";
+	std::cout << "  multiViewport: " << deviceFeatures.multiViewport << "\n";
+	std::cout << "  samplerAnisotropy: " << deviceFeatures.samplerAnisotropy << "\n";
+	std::cout << "  textureCompressionETC2: " << deviceFeatures.textureCompressionETC2 << "\n";
+	std::cout << "  textureCompressionASTC_LDR: " << deviceFeatures.textureCompressionASTC_LDR << "\n";
+	std::cout << "  textureCompressionBC: " << deviceFeatures.textureCompressionBC << "\n";
+	std::cout << "  occlusionQueryPrecise: " << deviceFeatures.occlusionQueryPrecise << "\n";
+	std::cout << "  pipelineStatisticsQuery: " << deviceFeatures.pipelineStatisticsQuery << "\n";
+	std::cout << "  vertexPipelineStoresAndAtomics: " << deviceFeatures.vertexPipelineStoresAndAtomics << "\n";
+	std::cout << "  fragmentStoresAndAtomics: " << deviceFeatures.fragmentStoresAndAtomics << "\n";
+	std::cout << "  shaderTessellationAndGeometryPointSize: " << deviceFeatures.shaderTessellationAndGeometryPointSize << "\n";
+	std::cout << "  shaderImageGatherExtended: " << deviceFeatures.shaderImageGatherExtended << "\n";
+	std::cout << "  shaderStorageImageExtendedFormats: " << deviceFeatures.shaderStorageImageExtendedFormats << "\n";
+	std::cout << "  shaderStorageImageMultisample: " << deviceFeatures.shaderStorageImageExtendedFormats << "\n";
+	std::cout << "  shaderStorageImageReadWithoutFormat: " << deviceFeatures.shaderStorageImageReadWithoutFormat << "\n";
+	std::cout << "  shaderStorageImageWriteWithoutFormat: " << deviceFeatures.shaderStorageImageWriteWithoutFormat << "\n";
+	std::cout << "  shaderUniformBufferArrayDynamicIndexing: " << deviceFeatures.shaderUniformBufferArrayDynamicIndexing << "\n";
+	std::cout << "  shaderSampledImageArrayDynamicIndexing: " << deviceFeatures.shaderSampledImageArrayDynamicIndexing << "\n";
+	std::cout << "  shaderStorageBufferArrayDynamicIndexing: " << deviceFeatures.shaderStorageBufferArrayDynamicIndexing << "\n";
+	std::cout << "  shaderStorageImageArrayDynamicIndexing: " << deviceFeatures.shaderStorageImageArrayDynamicIndexing << "\n";
+	std::cout << "  shaderClipDistance: " << deviceFeatures.shaderClipDistance << "\n";
+	std::cout << "  shaderCullDistance: " << deviceFeatures.shaderCullDistance << "\n";
+	std::cout << "  shaderFloat64: " << deviceFeatures.shaderFloat64 << "\n";
+	std::cout << "  shaderInt64: " << deviceFeatures.shaderInt64 << "\n";
+	std::cout << "  shaderInt16: " << deviceFeatures.shaderInt16 << "\n";
+	std::cout << "  shaderResourceResidency: " << deviceFeatures.shaderResourceResidency << "\n";
+	std::cout << "  shaderResourceMinLod: " << deviceFeatures.shaderResourceMinLod << "\n";
+	std::cout << "  sparseBinding: " << deviceFeatures.sparseBinding << "\n";
+	std::cout << "  sparseResidencyBuffer: " << deviceFeatures.sparseResidencyBuffer << "\n";
+	std::cout << "  sparseResidencyImage2D: " << deviceFeatures.sparseResidencyImage2D << "\n";
+	std::cout << "  sparseResidencyImage3D: " << deviceFeatures.sparseResidencyImage3D << "\n";
+	std::cout << "  sparseResidency2Samples: " << deviceFeatures.sparseResidency2Samples << "\n";
+	std::cout << "  sparseResidency4Samples: " << deviceFeatures.sparseResidency4Samples << "\n";
+	std::cout << "  sparseResidency8Samples: " << deviceFeatures.sparseResidency8Samples << "\n";
+	std::cout << "  sparseResidency16Samples: " << deviceFeatures.sparseResidency16Samples << "\n";
+	std::cout << "  sparseResidencyAliased: " << deviceFeatures.sparseResidencyAliased << "\n";
+	std::cout << "  variableMultisampleRate: " << deviceFeatures.variableMultisampleRate << "\n";
+	std::cout << "  inheritedQueries: " << deviceFeatures.inheritedQueries << "\n";
+
+
+
+	std::cout << "当前显存信息：" << "\n";
+	std::cout << "  Memory Type Count: " << deviceMemoryProperties.memoryTypeCount << "\n";
+	for (uint32_t i = 0; i < deviceMemoryProperties.memoryTypeCount; ++i) {
+		const auto& memoryType = deviceMemoryProperties.memoryTypes[i];
+		std::cout << "  Memory Type " << i << " Heap Index: " << memoryType.heapIndex << " Property Flags: " << memoryType.propertyFlags << "\n";
+	}
+
+	std::cout << "  Memory Heap Count: " << deviceMemoryProperties.memoryHeapCount << "\n";
+	for (uint32_t i = 0; i < deviceMemoryProperties.memoryHeapCount; ++i) {
+		const auto& memoryHeap = deviceMemoryProperties.memoryHeaps[i];
+		std::cout << "  Memory Heap " << i << " Size: " << memoryHeap.size << " Flags: " << memoryHeap.flags << "\n";
+	}
+
+
 
 	// Derived examples can override this to set actual features (based on above readings) to enable for logical device creation
 	//getEnabledFeatures();
@@ -354,6 +443,23 @@ bool VulkanExample::initVulkan()
 
 	// Get a graphics queue from the device
 	vkGetDeviceQueue(device, vulkanDevice->queueFamilyIndices.graphics, 0, &queue);
+
+	// 打印所有支持的格式 好像必须自己遍历
+	//uint32_t formatCount = 0;
+	//VkFormatProperties formatProperties;
+	//vkGetPhysicalDeviceFormatProperties(physicalDevice, VK_FORMAT_UNDEFINED, &formatProperties);
+	//std::vector<VkFormat> formats(formatCount);
+
+	//for (VkFormat format = VK_FORMAT_UNDEFINED; format < VK_FORMAT_RANGE_SIZE; format++) {
+	//	vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &formatProperties);
+
+	//	if (formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) {
+	//		std::cout << "Physical Device supports format: " << format << std::endl;
+	//	}
+	//}
+
+
+
 
 	// Find a suitable depth format
 	VkBool32 validDepthFormat = vks::tools::getSupportedDepthFormat(physicalDevice, &depthFormat);
@@ -465,14 +571,14 @@ VkResult VulkanExample::createInstance(bool enableValidation)
 	if (extCount > 0)
 	{
 
-		std::cout << "支持的扩展:" << "\n";
+		std::cout << "支持的Instance扩展:" << "\n";
 		std::vector<VkExtensionProperties> extensions(extCount);
 		if (vkEnumerateInstanceExtensionProperties(nullptr, &extCount, &extensions.front()) == VK_SUCCESS)
 		{
 			for (VkExtensionProperties extension : extensions)
 			{
 				supportedInstanceExtensions.push_back(extension.extensionName);
-				std::cout << supportedInstanceExtensions.size() << "." << extension.extensionName << "\n";
+				std::cout << "  " << supportedInstanceExtensions.size() << "." << extension.extensionName << "\n";
 
 			}
 		}
@@ -516,7 +622,7 @@ VkResult VulkanExample::createInstance(bool enableValidation)
 		int i = 0;
 		for (const char* enabledExtension : instanceExtensions)
 		{
-			std::cout << ++i << "." << enabledExtension << "\n";
+			std::cout << "  " << ++i << "." << enabledExtension << "\n";
 		}
 	}
 

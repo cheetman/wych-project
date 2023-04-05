@@ -2,6 +2,11 @@
 # 项目特定的逻辑。
 #
 
+
+add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVK_USE_PLATFORM_WIN32_KHR")
 
 
@@ -10,12 +15,18 @@ aux_source_directory(. DIRSRCS)
 
 include_directories(
 	SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/glm/include
+	SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/tinygltf
+	SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/ktx/include
+	SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../../thirdParty/ktx/other_include
 	SYSTEM C:/WorkEnv/VulkanSDK/1.2.189.2/Include
 )
+
 
 link_directories(
 	SYSTEM C:/WorkEnv/VulkanSDK/1.2.189.2/Lib
 )
+
+
 
 
 

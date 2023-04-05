@@ -16,14 +16,14 @@ VulkanExample::VulkanExample() {
 	{
 		setupConsole("Vulkan Project");
 	}
-	//setupDPIAwareness();
+	setupDPIAwareness();
 #endif
 
 	title = "glTF scene rendering";
 	camera.type = Camera::CameraType::firstperson;
 	camera.flipY = true;
-	camera.setPosition(glm::vec3(0.0f, 1.0f, 0.0f));
-	camera.setRotation(glm::vec3(0.0f, -90.0f, 0.0f));
+	camera.setPosition(glm::vec3(-0.9f, 1.0f, 0.0f));
+	camera.setRotation(glm::vec3(0.0f, -24.0f, 0.0f));
 	camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
 }
 
@@ -205,24 +205,24 @@ void VulkanExample::setupConsole(std::string title)
 	SetConsoleTitle(TEXT(title.c_str()));
 }
 
-//void VulkanExample::setupDPIAwareness()
-//{
-//	typedef HRESULT* (__stdcall* SetProcessDpiAwarenessFunc)(PROCESS_DPI_AWARENESS);
-//
-//	HMODULE shCore = LoadLibraryA("Shcore.dll");
-//	if (shCore)
-//	{
-//		SetProcessDpiAwarenessFunc setProcessDpiAwareness =
-//			(SetProcessDpiAwarenessFunc)GetProcAddress(shCore, "SetProcessDpiAwareness");
-//
-//		if (setProcessDpiAwareness != nullptr)
-//		{
-//			setProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-//		}
-//
-//		FreeLibrary(shCore);
-//	}
-//}
+void VulkanExample::setupDPIAwareness()
+{
+	typedef HRESULT* (__stdcall* SetProcessDpiAwarenessFunc)(PROCESS_DPI_AWARENESS);
+
+	HMODULE shCore = LoadLibraryA("Shcore.dll");
+	if (shCore)
+	{
+		SetProcessDpiAwarenessFunc setProcessDpiAwareness =
+			(SetProcessDpiAwarenessFunc)GetProcAddress(shCore, "SetProcessDpiAwareness");
+
+		if (setProcessDpiAwareness != nullptr)
+		{
+			setProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+		}
+
+		FreeLibrary(shCore);
+	}
+}
 
 
 std::string VulkanExample::getWindowTitle()
@@ -289,6 +289,8 @@ HWND VulkanExample::setupWindow(HINSTANCE hinstance, WNDPROC wndproc) {
 	windowRect.right = settings.fullscreen ? (long)screenWidth : (long)width;
 	windowRect.bottom = settings.fullscreen ? (long)screenHeight : (long)height;
 
+	// 这里不调整，在创建swapchain时会根据实际窗口大小赋值
+	AdjustWindowRectEx(&windowRect, dwStyle, FALSE, dwExStyle);
 
 	std::string windowTitle = getWindowTitle();
 	window = CreateWindowEx(0,
@@ -305,6 +307,20 @@ HWND VulkanExample::setupWindow(HINSTANCE hinstance, WNDPROC wndproc) {
 		NULL);
 
 
+	if (!settings.fullscreen)
+	{
+		// Center on screen
+		uint32_t x = (GetSystemMetrics(SM_CXSCREEN) - windowRect.right) / 2;
+		uint32_t y = (GetSystemMetrics(SM_CYSCREEN) - windowRect.bottom) / 2;
+		SetWindowPos(window, 0, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+	}
+
+	if (!window)
+	{
+		printf("Could not create window!\n");
+		fflush(stdout);
+		return nullptr;
+	}
 
 	ShowWindow(window, SW_SHOW);
 	SetForegroundWindow(window);

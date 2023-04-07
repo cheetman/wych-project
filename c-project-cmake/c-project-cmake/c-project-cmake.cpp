@@ -8,6 +8,18 @@
 using namespace std;
 
 
+// Options and values to display/toggle from the UI
+struct UISettings {
+	bool displayModels = true;
+	bool displayLogos = true;
+	bool displayBackground = true;
+	bool animateLight = false;
+	float lightSpeed = 0.25f;
+	std::array<float, 50> frameTimes{};
+	float frameTimeMin = 9999.0f, frameTimeMax = 0.0f;
+	float lightTimer = 0.0f;
+} uiSettings;
+
 
 VulkanExample::VulkanExample() {
 #if defined(_WIN32)
@@ -37,10 +49,10 @@ void VulkanExample::handleMouseMove(int32_t x, int32_t y)
 
 	bool handled = false;
 
-	//if (settings.overlay) {
-	//	ImGuiIO& io = ImGui::GetIO();
-	//	handled = io.WantCaptureMouse && UIOverlay.visible;
-	//}
+	if (settings.overlay) {
+		ImGuiIO& io = ImGui::GetIO();
+		handled = io.WantCaptureMouse && UIOverlay.visible;
+	}
 	mouseMoved((float)x, (float)y, handled);
 
 	if (handled) {
@@ -82,10 +94,10 @@ void VulkanExample::handleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 		case KEY_P:
 			paused = !paused;
 			break;
-			/*case KEY_F1:
+			case KEY_F1:
 				UIOverlay.visible = !UIOverlay.visible;
 				UIOverlay.updated = true;
-				break;*/
+				break;
 		case KEY_ESCAPE:
 			PostQuitMessage(0);
 			break;
@@ -230,9 +242,9 @@ std::string VulkanExample::getWindowTitle()
 	std::string device(deviceProperties.deviceName);
 	std::string windowTitle;
 	windowTitle = title + " - " + device;
-	if (!settings.overlay) {
+	//if (!settings.overlay) {
 		windowTitle += " - " + std::to_string(frameCounter) + " fps";
-	}
+	//}
 	return windowTitle;
 }
 
@@ -327,6 +339,11 @@ HWND VulkanExample::setupWindow(HINSTANCE hinstance, WNDPROC wndproc) {
 	SetFocus(window);
 
 	return window;
+}
+
+void VulkanExample::getEnabledFeatures()
+{
+	enabledFeatures.samplerAnisotropy = deviceFeatures.samplerAnisotropy;
 }
 
 bool VulkanExample::initVulkan()
@@ -489,7 +506,7 @@ bool VulkanExample::initVulkan()
 
 
 	// Derived examples can override this to set actual features (based on above readings) to enable for logical device creation
-	//getEnabledFeatures();
+	getEnabledFeatures();
 
 	// Vulkan device creation
 	// This is handled by a separate class that gets a logical device representation
@@ -505,6 +522,18 @@ bool VulkanExample::initVulkan()
 		return false;
 	}
 	device = vulkanDevice->logicalDevice;
+
+	//SRS - Get Vulkan device driver information if available, use later for display
+	if (vulkanDevice->extensionSupported(VK_KHR_DRIVER_PROPERTIES_EXTENSION_NAME))
+	{
+		VkPhysicalDeviceProperties2 deviceProperties2 = {};
+		deviceProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+		deviceProperties2.pNext = &driverProperties;
+		driverProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES;
+		vkGetPhysicalDeviceProperties2(vulkanDevice->physicalDevice, &deviceProperties2);
+	}
+
+
 
 	// Get a graphics queue from the device
 	vkGetDeviceQueue(device, vulkanDevice->queueFamilyIndices.graphics, 0, &queue);
@@ -625,7 +654,7 @@ void VulkanExample::windowResize()
 
 	if ((width > 0.0f) && (height > 0.0f)) {
 		if (settings.overlay) {
-			//UIOverlay.resize(width, height);
+			UIOverlay.resize(width, height);
 		}
 	}
 
@@ -690,6 +719,10 @@ void VulkanExample::submitFrame()
 void VulkanExample::renderFrame()
 {
 	VulkanExample::prepareFrame();
+
+	if (settings.overlay && UIOverlay.visible) {
+		buildCommandBuffers();
+	}
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &drawCmdBuffers[currentBuffer];
 	VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
@@ -747,10 +780,10 @@ void VulkanExample::nextFrame()
 	{
 		lastFPS = static_cast<uint32_t>((float)frameCounter * (1000.0f / fpsTimer));
 #if defined(_WIN32)
-		if (!settings.overlay) {
+		//if (!settings.overlay) {
 			std::string windowTitle = getWindowTitle();
 			SetWindowText(window, windowTitle.c_str());
-		}
+		//}
 #endif
 		frameCounter = 0;
 		lastTimestamp = tEnd;
@@ -758,9 +791,150 @@ void VulkanExample::nextFrame()
 	tPrevEnd = tEnd;
 
 	// TODO: Cap UI overlay update rates
-	//updateOverlay();
+	updateOverlay();
 }
 
+
+void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
+{
+	if (overlay->header("Visibility")) {
+
+		if (overlay->button("All")) {
+			std::for_each(glTFScene.nodes.begin(), glTFScene.nodes.end(), [](VulkanglTFScene::Node* node) { node->visible = true; });
+			buildCommandBuffers();
+		}
+		ImGui::SameLine();
+		if (overlay->button("None")) {
+			std::for_each(glTFScene.nodes.begin(), glTFScene.nodes.end(), [](VulkanglTFScene::Node* node) { node->visible = false; });
+			buildCommandBuffers();
+		}
+		ImGui::NewLine();
+
+		// POI: Create a list of glTF nodes for visibility toggle
+		ImGui::BeginChild("#nodelist", ImVec2(200.0f * overlay->scale, 340.0f * overlay->scale), false);
+		for (auto& node : glTFScene.nodes)
+		{
+			if (overlay->checkBox(node->name.c_str(), &node->visible))
+			{
+				buildCommandBuffers();
+			}
+		}
+		ImGui::EndChild();
+	}
+}
+
+
+void VulkanExample ::updateOverlay()
+{
+	if (!settings.overlay)
+		return;
+
+	ImGuiIO& io = ImGui::GetIO();
+
+	io.DisplaySize = ImVec2((float)width, (float)height);
+	io.DeltaTime = frameTimer;
+
+	io.MousePos = ImVec2(mousePos.x, mousePos.y);
+	io.MouseDown[0] = mouseButtons.left && UIOverlay.visible;
+	io.MouseDown[1] = mouseButtons.right && UIOverlay.visible;
+	io.MouseDown[2] = mouseButtons.middle && UIOverlay.visible;
+
+	ImGui::NewFrame();
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+	ImGui::SetNextWindowPos(ImVec2(10 * UIOverlay.scale, 10 * UIOverlay.scale));
+	//ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_FirstUseEver);
+	ImGui::Begin("Vulkan Example", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+	ImGui::TextUnformatted(title.c_str());
+	ImGui::TextUnformatted(deviceProperties.deviceName);
+	ImGui::Text("%.2f ms/frame (%.1d fps)", (1000.0f / lastFPS), lastFPS);
+
+
+	ImGui::PushItemWidth(110.0f * UIOverlay.scale);
+
+
+	if (UIOverlay.header("Visibility")) {
+
+		if (UIOverlay.button("All")) {
+			std::for_each(glTFScene.nodes.begin(), glTFScene.nodes.end(), [](VulkanglTFScene::Node* node) { node->visible = true; });
+			buildCommandBuffers();
+		}
+		ImGui::SameLine();
+		if (UIOverlay.button("None")) {
+			std::for_each(glTFScene.nodes.begin(), glTFScene.nodes.end(), [](VulkanglTFScene::Node* node) { node->visible = false; });
+			buildCommandBuffers();
+		}
+		ImGui::NewLine();
+
+		// POI: Create a list of glTF nodes for visibility toggle
+		ImGui::BeginChild("#nodelist", ImVec2(200.0f * UIOverlay.scale, 340.0f * UIOverlay.scale), false);
+		for (auto& node : glTFScene.nodes)
+		{
+			if (UIOverlay.checkBox(node->name.c_str(), &node->visible))
+			{
+				buildCommandBuffers();
+			}
+		}
+		ImGui::EndChild();
+	}
+
+	//OnUpdateUIOverlay(&UIOverlay);
+
+
+
+	ImGui::PopItemWidth();
+
+	ImGui::End();
+	ImGui::PopStyleVar();
+
+
+
+
+	ImGui::Begin(u8"显卡信息");
+	ImGui::TextUnformatted(vulkanDevice->properties.deviceName);
+	ImGui::Text("Vulkan API %i.%i.%i", VK_API_VERSION_MAJOR(vulkanDevice->properties.apiVersion), VK_API_VERSION_MINOR(vulkanDevice->properties.apiVersion), VK_API_VERSION_PATCH(vulkanDevice->properties.apiVersion));
+	ImGui::Text("%s %s", driverProperties.driverName, driverProperties.driverInfo);
+
+	// Update frame time display
+	if ((frameCounter == 0)) {
+		std::rotate(uiSettings.frameTimes.begin(), uiSettings.frameTimes.begin() + 1, uiSettings.frameTimes.end());
+		float frameTime = 1000.0f / (frameTimer * 1000.0f);
+		uiSettings.frameTimes.back() = frameTime;
+		if (frameTime < uiSettings.frameTimeMin) {
+			uiSettings.frameTimeMin = frameTime;
+		}
+		if (frameTime > uiSettings.frameTimeMax) {
+			uiSettings.frameTimeMax = frameTime;
+		}
+	}
+
+	ImGui::PlotLines("Frame Times", &uiSettings.frameTimes[0], 50, 0, "", uiSettings.frameTimeMin, uiSettings.frameTimeMax, ImVec2(0, 80));
+
+	ImGui::Text("Camera");
+	ImGui::InputFloat3("position", &camera.position.x, "%.1f");
+	ImGui::InputFloat3("rotation", &camera.rotation.x, "%.1f");
+
+
+
+
+
+	ImGui::End();
+
+
+
+
+
+	ImGui::Render();
+
+	//buildCommandBuffers();
+	if (UIOverlay.update() || UIOverlay.updated) {
+		buildCommandBuffers();
+		UIOverlay.updated = false;
+	}
+
+
+}
 
 void VulkanExample::initSwapchain()
 {
@@ -1656,14 +1830,14 @@ void VulkanExample::buildCommandBuffers()
 
 void VulkanExample::drawUI(const VkCommandBuffer commandBuffer)
 {
-	//if (settings.overlay && UIOverlay.visible) {
-	//	const VkViewport viewport = vks::initializers::viewport((float)width, (float)height, 0.0f, 1.0f);
-	//	const VkRect2D scissor = vks::initializers::rect2D(width, height, 0, 0);
-	//	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-	//	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+	if (settings.overlay && UIOverlay.visible) {
+		const VkViewport viewport = vks::initializers::viewport((float)width, (float)height, 0.0f, 1.0f);
+		const VkRect2D scissor = vks::initializers::rect2D(width, height, 0, 0);
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-	//	UIOverlay.draw(commandBuffer);
-	//}
+		UIOverlay.draw(commandBuffer);
+	}
 }
 
 
@@ -1683,18 +1857,17 @@ void VulkanExample::prepare() {
 
 	setupFrameBuffer();
 
-	//settings.overlay = settings.overlay && (!benchmark.active);
-	//settings.overlay = settings.overlay && (!benchmark.active);
-	//if (settings.overlay) {
-	//	UIOverlay.device = vulkanDevice;
-	//	UIOverlay.queue = queue;
-	//	UIOverlay.shaders = {
-	//		loadShader(getShadersPath() + "base/uioverlay.vert.spv", VK_SHADER_STAGE_VERTEX_BIT),
-	//		loadShader(getShadersPath() + "base/uioverlay.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT),
-	//	};
-	//	UIOverlay.prepareResources();
-	//	UIOverlay.preparePipeline(pipelineCache, renderPass, swapChain.colorFormat, depthFormat);
-	//}
+	settings.overlay = settings.overlay;//&& (!benchmark.active);
+	if (settings.overlay) {
+		UIOverlay.device = vulkanDevice;
+		UIOverlay.queue = queue;
+		UIOverlay.shaders = {
+			loadShader(getShadersPath() + "base/uioverlay.vert.spv", VK_SHADER_STAGE_VERTEX_BIT),
+			loadShader(getShadersPath() + "base/uioverlay.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT),
+		};
+		UIOverlay.prepareResources();
+		UIOverlay.preparePipeline(pipelineCache, renderPass, swapChain.colorFormat, depthFormat);
+	}
 
 
 

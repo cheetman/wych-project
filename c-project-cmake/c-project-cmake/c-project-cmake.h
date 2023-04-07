@@ -68,6 +68,7 @@
 
 #include "base/CommandLineParser.hpp"
 #include "base/VulkanTools.h"
+#include "base/VulkanUIOverlay.h"
 #include "base/VulkanSwapChain.h"
 #include "base/VulkanBuffer.h"
 #include "base/VulkanDevice.h"
@@ -226,6 +227,15 @@ public:
 	VkPipelineLayout pipelineLayout;
 	VkDescriptorSet descriptorSet;
 
+
+	vks::UIOverlay UIOverlay;
+
+
+	void updateOverlay();
+
+	/** @brief (Virtual) Called when the UI overlay is updating, can be used to add custom elements to the overlay */
+	virtual void OnUpdateUIOverlay(vks::UIOverlay* overlay);
+
 		VulkanExample();
 
 		void handleMouseMove(int32_t x, int32_t y);
@@ -363,6 +373,9 @@ private:
 	void windowResize();
 	void destroyCommandBuffers();
 
+
+	virtual void getEnabledFeatures();
+
 protected:
 
 	// Vulkan instance, stores all per-application states
@@ -375,7 +388,10 @@ protected:
 	// Stores all available memory (type) properties for the physical device
 	VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
 
+	VkPhysicalDeviceDriverProperties driverProperties = {};
+
 	std::vector<std::string> supportedInstanceExtensions;
+
 
 
 	/** @brief Set of physical device features to be enabled for this example (must be set in the derived constructor) */

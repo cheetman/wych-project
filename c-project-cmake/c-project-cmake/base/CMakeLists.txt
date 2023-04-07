@@ -1,4 +1,4 @@
-file(GLOB_RECURSE base ./  *.cpp)
+file(GLOB_RECURSE base ./  *.cpp  "../external/imgui_1_87/*.cpp")
 
 
 set(KTX_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../thirdParty/ktx)

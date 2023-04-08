@@ -84,36 +84,22 @@ void VulkanExample::render()
 
 void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 {
-
-
 	ImGui::NewFrame();
+	//ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+	//ImGui::SetNextWindowPos(ImVec2(10 * UIOverlay.scale, 10 * UIOverlay.scale));
+	////ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
+	//ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_FirstUseEver);
+	//ImGui::Begin("Vulkan Example", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+	//ImGui::TextUnformatted(title.c_str());
 
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
-	ImGui::SetNextWindowPos(ImVec2(10 * UIOverlay.scale, 10 * UIOverlay.scale));
-	//ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
-	ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_FirstUseEver);
-	ImGui::Begin("Vulkan Example", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-	ImGui::TextUnformatted(title.c_str());
+	//ImGui::PushItemWidth(110.0f * UIOverlay.scale);
+	//ImGui::PopItemWidth();
 
+	//ImGui::End();
+	//ImGui::PopStyleVar();
 
-
-	ImGui::PushItemWidth(110.0f * UIOverlay.scale);
-
-
-
-
-
-
-
-	ImGui::PopItemWidth();
-
-	ImGui::End();
-	ImGui::PopStyleVar();
-
-	//ImGui::SetNextWindowPos(ImVec2(100 * UIOverlay.scale, 110 * UIOverlay.scale));
 
 	ImGui::Begin(u8"设备信息");
-
 	ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
 	if (ImGui::BeginTabBar(u8"Tab", tab_bar_flags)) {
 
@@ -255,7 +241,6 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 	ImGui::End();
 
 
-
 	ImGui::Begin(u8"状态信息");
 	ImGui::Text(u8"相机信息");
 	ImGui::InputFloat3(u8"位置", &camera.position.x, "%.1f");
@@ -273,34 +258,28 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 			std::for_each(glTFScene.nodes.begin(), glTFScene.nodes.end(), [](VulkanglTFScene::Node* node) { node->visible = false; });
 			buildCommandBuffers();
 		}
-		ImGui::NewLine();
+		//ImGui::NewLine();
 
 		// POI: Create a list of glTF nodes for visibility toggle
 		//ImGui::BeginChild("#nodelist", ImVec2(200.0f * UIOverlay.scale, 340.0f * UIOverlay.scale), false);
 		for (auto& node : glTFScene.nodes)
 		{
-
 			if (ImGui::TreeNodeEx(node->name.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
 			{
-
-				ImGui::Text(u8"顶点数量:%d", node->countPosNor);
-				ImGui::Text(u8"顶点大小:%d字节 [%d * float[3]]", node->countPosNor * 4 * 3, node->countPosNor);
-				ImGui::Text(u8"索引数量:%d - %d组", node->countIndex, node->countIndex / 3);
-				ImGui::Text(u8"索引大小:%d字节 [%d * int]", node->countIndex * 4, node->countPosNor);
+				ImGui::TextDisabled(u8"顶点数量:"); ImGui::SameLine();
+				ImGui::Text(u8"%d", node->countPosNor);
+				ImGui::TextDisabled(u8"顶点大小:"); ImGui::SameLine();
+				ImGui::Text(u8"%d字节 [%d * float[3]]", node->countPosNor * 4 * 3, node->countPosNor);
+				ImGui::TextDisabled(u8"索引数量:"); ImGui::SameLine();
+				ImGui::Text(u8"%d - %d组", node->countIndex, node->countIndex / 3);
+				ImGui::TextDisabled(u8"索引大小:"); ImGui::SameLine();
+				ImGui::Text(u8"%d字节 [%d * int]", node->countIndex * 4, node->countIndex);
 				if (UIOverlay.checkBox(u8"是否隐藏", &node->visible))
 				{
 					buildCommandBuffers();
 				}
-
-
-
 				ImGui::TreePop();
 			}
-
-
-
-
-
 		}
 		//ImGui::EndChild();
 	}

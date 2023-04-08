@@ -185,9 +185,12 @@ public:
 
 	// 主循环
 	void renderLoop();
-
 	void prepareFrame();
 	void submitFrame();
+
+
+	// 读取shader
+	VkPipelineShaderStageCreateInfo loadShader(std::string fileName, VkShaderStageFlagBits stage);
 
 	// 用来设置 device features
 	virtual void getEnabledFeatures();
@@ -221,8 +224,11 @@ protected:
 
 	// 支持的Instance扩展
 	std::vector<std::string> supportedInstanceExtensions;
-	// 启用的Instance扩展
+	// 启用的Instance扩展(这好像是临时的)
 	std::vector<const char*> enabledInstanceExtensions;
+	// 启用的Instance扩展
+	std::vector<const char*> instanceExtensions = { VK_KHR_SURFACE_EXTENSION_NAME };
+
 
 	// Stores physical device properties (for e.g. checking device limits)
 	VkPhysicalDeviceProperties deviceProperties;
@@ -239,6 +245,9 @@ protected:
 	/** @brief Optional pNext structure for passing extension structures to device creation */
 	void* deviceCreatepNextChain = nullptr;
 
+
+	// List of shader modules created (stored for cleanup)
+	std::vector<VkShaderModule> shaderModules;
 
 	// Handle to the device graphics queue that command buffers are submitted to
 	VkQueue queue;
@@ -287,3 +296,30 @@ protected:
 	uint32_t frameCounter = 0;
 
 };
+
+
+
+
+//	for (int32_t i = 0; i < __argc; i++) { VulkanExample::args.push_back(__argv[i]); };
+#define VULKAN_EXAMPLE_MAIN()																					 \
+VulkanExample* vulkanExample;																					 \
+LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)									 \
+{																												 \
+	if (vulkanExample != NULL)																					 \
+	{																											 \
+		vulkanExample->handleMessages(hWnd, uMsg, wParam, lParam);												 \
+	}																											 \
+	return (DefWindowProc(hWnd, uMsg, wParam, lParam));															 \
+}																												 \
+																												 \
+																												 \
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow)				 \
+{																												 \
+	vulkanExample = new VulkanExample();																		 \
+	vulkanExample->initVulkan();																				 \
+	vulkanExample->setupWindow(hInstance, WndProc);																 \
+	vulkanExample->prepare();																					 \
+	vulkanExample->renderLoop();																				 \
+	delete(vulkanExample);          																			 \
+	return 0;																									 \
+}

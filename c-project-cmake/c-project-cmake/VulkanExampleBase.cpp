@@ -394,6 +394,22 @@ HWND VulkanExampleBase::setupWindow(HINSTANCE hinstance, WNDPROC wndproc) {
 
 
 
+VkPipelineShaderStageCreateInfo VulkanExampleBase::loadShader(std::string fileName, VkShaderStageFlagBits stage)
+{
+	VkPipelineShaderStageCreateInfo shaderStage = {};
+	shaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	shaderStage.stage = stage;
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+	shaderStage.module = vks::tools::loadShader(androidApp->activity->assetManager, fileName.c_str(), device);
+#else
+	shaderStage.module = vks::tools::loadShader(fileName.c_str(), device);
+#endif
+	shaderStage.pName = "main";
+	assert(shaderStage.module != VK_NULL_HANDLE);
+	shaderModules.push_back(shaderStage.module);
+	return shaderStage;
+}
+
 
 VkResult VulkanExampleBase::createInstance(bool enableValidation)
 {
@@ -410,7 +426,7 @@ VkResult VulkanExampleBase::createInstance(bool enableValidation)
 	appInfo.pEngineName = name.c_str();
 	appInfo.apiVersion = apiVersion;
 
-	std::vector<const char*> instanceExtensions = { VK_KHR_SURFACE_EXTENSION_NAME };
+	//std::vector<const char*> instanceExtensions = { VK_KHR_SURFACE_EXTENSION_NAME };
 
 	// Enable surface extensions depending on os
 #if defined(_WIN32)
@@ -1112,3 +1128,4 @@ void VulkanExampleBase::submitFrame()
 	}
 	VK_CHECK_RESULT(vkQueueWaitIdle(queue));
 }
+

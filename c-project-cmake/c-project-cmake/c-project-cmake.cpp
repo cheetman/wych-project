@@ -28,7 +28,7 @@ struct UISettings {
 } uiSettings;
 
 
-VulkanExample::VulkanExample() :VulkanExampleBase(){
+VulkanExample::VulkanExample() :VulkanExampleBase() {
 
 
 	title = "glTF scene rendering";
@@ -44,19 +44,11 @@ VulkanExample::VulkanExample() :VulkanExampleBase(){
 
 
 
-
-
-
-
-
-
-
+// 设置开启的Features
 void VulkanExample::getEnabledFeatures()
 {
 	enabledFeatures.samplerAnisotropy = deviceFeatures.samplerAnisotropy;
 }
-
-
 
 
 
@@ -118,30 +110,152 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 	ImGui::End();
 	ImGui::PopStyleVar();
 
+	//ImGui::SetNextWindowPos(ImVec2(100 * UIOverlay.scale, 110 * UIOverlay.scale));
+
+	ImGui::Begin(u8"设备信息");
+
+	ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+	if (ImGui::BeginTabBar(u8"Tab", tab_bar_flags)) {
+
+		if (ImGui::BeginTabItem(u8"状态", 0, 0)) {
+			ImGui::Text(u8"显卡信息：");
+			ImGui::TextUnformatted(vulkanDevice->properties.deviceName);
+			ImGui::Text("Vulkan API %i.%i.%i", VK_API_VERSION_MAJOR(vulkanDevice->properties.apiVersion), VK_API_VERSION_MINOR(vulkanDevice->properties.apiVersion), VK_API_VERSION_PATCH(vulkanDevice->properties.apiVersion));
+			ImGui::Text("%s %s", driverProperties.driverName, driverProperties.driverInfo);
+			// Update frame time display
+			if ((frameCounter == 0)) {
+				std::rotate(uiSettings.frameTimes.begin(), uiSettings.frameTimes.begin() + 1, uiSettings.frameTimes.end());
+				float frameTime = 1000.0f / (frameTimer * 1000.0f);
+				uiSettings.frameTimes.back() = frameTime;
+				if (frameTime < uiSettings.frameTimeMin) {
+					uiSettings.frameTimeMin = frameTime;
+				}
+				if (frameTime > uiSettings.frameTimeMax) {
+					uiSettings.frameTimeMax = frameTime;
+				}
+			}
+			ImGui::PlotLines("Frame Times", &uiSettings.frameTimes[0], 50, 0, "", uiSettings.frameTimeMin, uiSettings.frameTimeMax, ImVec2(0, 80));
+			ImGui::Text("%.2f ms/frame (%.1d fps)", (1000.0f / lastFPS), lastFPS);
+
+			ImGui::Separator();
+			ImGui::Text(u8"显存信息：");
 
 
+			for (uint32_t i = 0; i < deviceMemoryProperties.memoryHeapCount; ++i) {
+				const auto& memoryHeap = deviceMemoryProperties.memoryHeaps[i];
+				ImGui::Text(u8"%d.%s:%dM", i + 1, (memoryHeap.flags == VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) ? u8"本地内存" : u8"共享内存", memoryHeap.size / 1024 / 1024);
 
-	ImGui::Begin(u8"显卡信息");
-	ImGui::TextUnformatted(vulkanDevice->properties.deviceName);
-	ImGui::Text("Vulkan API %i.%i.%i", VK_API_VERSION_MAJOR(vulkanDevice->properties.apiVersion), VK_API_VERSION_MINOR(vulkanDevice->properties.apiVersion), VK_API_VERSION_PATCH(vulkanDevice->properties.apiVersion));
-	ImGui::Text("%s %s", driverProperties.driverName, driverProperties.driverInfo);
+				for (uint32_t j = 0; j < deviceMemoryProperties.memoryTypeCount; ++j) {
+					const auto& memoryType = deviceMemoryProperties.memoryTypes[j];
+					if (memoryType.heapIndex == i) {
+						ImGui::Text(u8"   MemoryPropertyFlags: %d", memoryType.propertyFlags);
+					}
+				}
+			}
 
-	// Update frame time display
-	if ((frameCounter == 0)) {
-		std::rotate(uiSettings.frameTimes.begin(), uiSettings.frameTimes.begin() + 1, uiSettings.frameTimes.end());
-		float frameTime = 1000.0f / (frameTimer * 1000.0f);
-		uiSettings.frameTimes.back() = frameTime;
-		if (frameTime < uiSettings.frameTimeMin) {
-			uiSettings.frameTimeMin = frameTime;
+
+			ImGui::EndTabItem();
 		}
-		if (frameTime > uiSettings.frameTimeMax) {
-			uiSettings.frameTimeMax = frameTime;
+		if (ImGui::BeginTabItem(u8"扩展信息[Instance]", 0, 0)) {
+
+			ImGui::Text(u8"支持的扩展[%d]：", supportedInstanceExtensions.size());
+			int i = 1;
+			for (const auto& supportedExtension : supportedInstanceExtensions)
+			{
+				bool found = false;
+				for (const auto& enabledExtensions : instanceExtensions) {
+					if (supportedExtension == std::string(enabledExtensions)) {
+						found = true;
+						break;
+					}
+				}
+
+				if (found)
+					ImGui::Text(u8"%d.%s [已开启]", i++, supportedExtension.c_str());
+				else
+					ImGui::Text(u8"%d.%s", i++, supportedExtension.c_str());
+			}
+			ImGui::EndTabItem();
 		}
+		if (ImGui::BeginTabItem(u8"扩展信息[Device]", 0, 0)) {
+
+			ImGui::Text(u8"支持的扩展[%d]：", vulkanDevice->supportedExtensions.size());
+			int i = 1;
+			for (const auto& supported : vulkanDevice->supportedExtensions)
+			{
+				ImGui::Text(u8"%d.%s", i++, supported.c_str());
+			}
+			ImGui::EndTabItem();
+		}
+		if (ImGui::BeginTabItem(u8"特性信息", 0, 0)) {
+
+			ImGui::Text(u8"特性是否支持：");
+			int i = 1;
+			ImGui::Text(u8"%d.robustBufferAccess: %s", i++, deviceFeatures.robustBufferAccess ? "true" : "false");
+			ImGui::Text(u8"%d.fullDrawIndexUint32: %s", i++, deviceFeatures.fullDrawIndexUint32 ? "true" : "false");
+			ImGui::Text(u8"%d.imageCubeArray: %s", i++, deviceFeatures.imageCubeArray ? "true" : "false");
+			ImGui::Text(u8"%d.independentBlend: %s", i++, deviceFeatures.independentBlend ? "true" : "false");
+			ImGui::Text(u8"%d.geometryShader: %s", i++, deviceFeatures.geometryShader ? "true" : "false");
+			ImGui::Text(u8"%d.tessellationShader: %s", i++, deviceFeatures.tessellationShader ? "true" : "false");
+			ImGui::Text(u8"%d.sampleRateShading: %s", i++, deviceFeatures.sampleRateShading ? "true" : "false");
+			ImGui::Text(u8"%d.dualSrcBlend: %s", i++, deviceFeatures.dualSrcBlend ? "true" : "false");
+			ImGui::Text(u8"%d.logicOp: %s", i++, deviceFeatures.logicOp ? "true" : "false");
+			ImGui::Text(u8"%d.multiDrawIndirect: %s", i++, deviceFeatures.multiDrawIndirect ? "true" : "false");
+			ImGui::Text(u8"%d.drawIndirectFirstInstance: %s", i++, deviceFeatures.drawIndirectFirstInstance ? "true" : "false");
+			ImGui::Text(u8"%d.depthClamp: %s", i++, deviceFeatures.depthClamp ? "true" : "false");
+			ImGui::Text(u8"%d.depthBiasClamp: %s", i++, deviceFeatures.depthBiasClamp ? "true" : "false");
+			ImGui::Text(u8"%d.fillModeNonSolid: %s", i++, deviceFeatures.fillModeNonSolid ? "true" : "false");
+			ImGui::Text(u8"%d.depthBounds: %s", i++, deviceFeatures.depthBounds ? "true" : "false");
+			ImGui::Text(u8"%d.wideLines: %s", i++, deviceFeatures.wideLines ? "true" : "false");
+			ImGui::Text(u8"%d.largePoints: %s", i++, deviceFeatures.largePoints ? "true" : "false");
+			ImGui::Text(u8"%d.alphaToOne: %s", i++, deviceFeatures.alphaToOne ? "true" : "false");
+			ImGui::Text(u8"%d.multiViewport: %s", i++, deviceFeatures.multiViewport ? "true" : "false");
+			ImGui::Text(u8"%d.samplerAnisotropy: %s", i++, deviceFeatures.samplerAnisotropy ? "true" : "false");
+			ImGui::Text(u8"%d.textureCompressionETC2: %s", i++, deviceFeatures.textureCompressionETC2 ? "true" : "false");
+			ImGui::Text(u8"%d.textureCompressionASTC_LDR: %s", i++, deviceFeatures.textureCompressionASTC_LDR ? "true" : "false");
+			ImGui::Text(u8"%d.textureCompressionBC: %s", i++, deviceFeatures.textureCompressionBC ? "true" : "false");
+			ImGui::Text(u8"%d.occlusionQueryPrecise: %s", i++, deviceFeatures.occlusionQueryPrecise ? "true" : "false");
+			ImGui::Text(u8"%d.pipelineStatisticsQuery: %s", i++, deviceFeatures.pipelineStatisticsQuery ? "true" : "false");
+			ImGui::Text(u8"%d.vertexPipelineStoresAndAtomics: %s", i++, deviceFeatures.vertexPipelineStoresAndAtomics ? "true" : "false");
+			ImGui::Text(u8"%d.fragmentStoresAndAtomics: %s", i++, deviceFeatures.fragmentStoresAndAtomics ? "true" : "false");
+			ImGui::Text(u8"%d.shaderTessellationAndGeometryPointSize: %s", i++, deviceFeatures.shaderTessellationAndGeometryPointSize ? "true" : "false");
+			ImGui::Text(u8"%d.shaderImageGatherExtended: %s", i++, deviceFeatures.shaderImageGatherExtended ? "true" : "false");
+			ImGui::Text(u8"%d.shaderStorageImageExtendedFormats: %s", i++, deviceFeatures.shaderStorageImageExtendedFormats ? "true" : "false");
+			ImGui::Text(u8"%d.shaderStorageImageMultisample: %s", i++, deviceFeatures.shaderStorageImageExtendedFormats ? "true" : "false");
+			ImGui::Text(u8"%d.shaderStorageImageReadWithoutFormat: %s", i++, deviceFeatures.shaderStorageImageReadWithoutFormat ? "true" : "false");
+			ImGui::Text(u8"%d.shaderStorageImageWriteWithoutFormat: %s", i++, deviceFeatures.shaderStorageImageWriteWithoutFormat ? "true" : "false");
+			ImGui::Text(u8"%d.shaderUniformBufferArrayDynamicIndexing: %s", i++, deviceFeatures.shaderUniformBufferArrayDynamicIndexing ? "true" : "false");
+			ImGui::Text(u8"%d.shaderSampledImageArrayDynamicIndexing: %s", i++, deviceFeatures.shaderSampledImageArrayDynamicIndexing ? "true" : "false");
+			ImGui::Text(u8"%d.shaderStorageBufferArrayDynamicIndexing: %s", i++, deviceFeatures.shaderStorageBufferArrayDynamicIndexing ? "true" : "false");
+			ImGui::Text(u8"%d.shaderStorageImageArrayDynamicIndexing: %s", i++, deviceFeatures.shaderStorageImageArrayDynamicIndexing ? "true" : "false");
+			ImGui::Text(u8"%d.shaderClipDistance: %s", i++, deviceFeatures.shaderClipDistance ? "true" : "false");
+			ImGui::Text(u8"%d.shaderCullDistance: %s", i++, deviceFeatures.shaderCullDistance ? "true" : "false");
+			ImGui::Text(u8"%d.shaderFloat64: %s", i++, deviceFeatures.shaderFloat64 ? "true" : "false");
+			ImGui::Text(u8"%d.shaderInt64: %s", i++, deviceFeatures.shaderInt64 ? "true" : "false");
+			ImGui::Text(u8"%d.shaderInt16: %s", i++, deviceFeatures.shaderInt16 ? "true" : "false");
+			ImGui::Text(u8"%d.shaderResourceResidency: %s", i++, deviceFeatures.shaderResourceResidency ? "true" : "false");
+			ImGui::Text(u8"%d.shaderResourceMinLod: %s", i++, deviceFeatures.shaderResourceMinLod ? "true" : "false");
+			ImGui::Text(u8"%d.sparseBinding: %s", i++, deviceFeatures.sparseBinding ? "true" : "false");
+			ImGui::Text(u8"%d.sparseResidencyBuffer: %s", i++, deviceFeatures.sparseResidencyBuffer ? "true" : "false");
+			ImGui::Text(u8"%d.sparseResidencyImage2D: %s", i++, deviceFeatures.sparseResidencyImage2D ? "true" : "false");
+			ImGui::Text(u8"%d.sparseResidencyImage3D: %s", i++, deviceFeatures.sparseResidencyImage3D ? "true" : "false");
+			ImGui::Text(u8"%d.sparseResidency2Samples: %s", i++, deviceFeatures.sparseResidency2Samples ? "true" : "false");
+			ImGui::Text(u8"%d.sparseResidency4Samples: %s", i++, deviceFeatures.sparseResidency4Samples ? "true" : "false");
+			ImGui::Text(u8"%d.sparseResidency8Samples: %s", i++, deviceFeatures.sparseResidency8Samples ? "true" : "false");
+			ImGui::Text(u8"%d.sparseResidency16Samples: %s", i++, deviceFeatures.sparseResidency16Samples ? "true" : "false");
+			ImGui::Text(u8"%d.sparseResidencyAliased: %s", i++, deviceFeatures.sparseResidencyAliased ? "true" : "false");
+			ImGui::Text(u8"%d.variableMultisampleRate: %s", i++, deviceFeatures.variableMultisampleRate ? "true" : "false");
+			ImGui::Text(u8"%d.inheritedQueries: %s", i++, deviceFeatures.inheritedQueries ? "true" : "false");
+
+			ImGui::EndTabItem();
+		}
+
+		ImGui::EndTabBar();
 	}
-
-	ImGui::PlotLines("Frame Times", &uiSettings.frameTimes[0], 50, 0, "", uiSettings.frameTimeMin, uiSettings.frameTimeMax, ImVec2(0, 80));
-	ImGui::Text("%.2f ms/frame (%.1d fps)", (1000.0f / lastFPS), lastFPS);
 	ImGui::End();
+
+
+
 	ImGui::Begin(u8"状态信息");
 	ImGui::Text(u8"相机信息");
 	ImGui::InputFloat3(u8"位置", &camera.position.x, "%.1f");
@@ -524,21 +638,6 @@ void VulkanExample::preparePipelines()
 }
 
 
-VkPipelineShaderStageCreateInfo VulkanExample::loadShader(std::string fileName, VkShaderStageFlagBits stage)
-{
-	VkPipelineShaderStageCreateInfo shaderStage = {};
-	shaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	shaderStage.stage = stage;
-#if defined(VK_USE_PLATFORM_ANDROID_KHR)
-	shaderStage.module = vks::tools::loadShader(androidApp->activity->assetManager, fileName.c_str(), device);
-#else
-	shaderStage.module = vks::tools::loadShader(fileName.c_str(), device);
-#endif
-	shaderStage.pName = "main";
-	assert(shaderStage.module != VK_NULL_HANDLE);
-	shaderModules.push_back(shaderStage.module);
-	return shaderStage;
-}
 
 
 void VulkanExample::buildCommandBuffers()
@@ -649,26 +748,4 @@ void VulkanExample::prepare() {
 
 
 
-
-VulkanExample* vulkanExample;
-LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	if (vulkanExample != NULL)
-	{
-		vulkanExample->handleMessages(hWnd, uMsg, wParam, lParam);
-	}
-	return (DefWindowProc(hWnd, uMsg, wParam, lParam));
-}
-
-
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow)
-{
-	//for (size_t i = 0; i < __argc; i++) { VulkanExample::args.push_back(__argv[i]); };
-	vulkanExample = new VulkanExample();
-	vulkanExample->initVulkan();
-	vulkanExample->setupWindow(hInstance, WndProc);
-	vulkanExample->prepare();
-	vulkanExample->renderLoop();
-	delete(vulkanExample);
-	return 0;
-}
+VULKAN_EXAMPLE_MAIN()

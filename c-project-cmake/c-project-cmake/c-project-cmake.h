@@ -135,11 +135,7 @@ protected:
 	std::string getShadersPath() const;
 
 
-	// List of shader modules created (stored for cleanup)
-	std::vector<VkShaderModule> shaderModules;
 
-	/** @brief Loads a SPIR-V shader file for the given shader stage */
-	VkPipelineShaderStageCreateInfo loadShader(std::string fileName, VkShaderStageFlagBits stage);
 
 
 

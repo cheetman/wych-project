@@ -15,8 +15,6 @@
 class Camera
 {
 private:
-	float fov;
-	float znear, zfar;
 
 	void updateViewMatrix()
 	{
@@ -57,6 +55,11 @@ public:
 	float rotationSpeed = 1.0f;
 	float movementSpeed = 1.0f;
 
+	// 改成共有
+	float fov;
+	float znear, zfar;
+	float aspect;
+
 	bool updated = false;
 	bool flipY = false;
 
@@ -92,11 +95,23 @@ public:
 		this->fov = fov;
 		this->znear = znear;
 		this->zfar = zfar;
+		this->aspect = aspect;
 		matrices.perspective = glm::perspective(glm::radians(fov), aspect, znear, zfar);
 		if (flipY) {
 			matrices.perspective[1][1] *= -1.0f;
 		}
 	};
+
+
+	// 追加
+	void updatePerspective()
+	{
+		matrices.perspective = glm::perspective(glm::radians(fov), aspect, znear, zfar);
+		if (flipY) {
+			matrices.perspective[1][1] *= -1.0f;
+		}
+	};
+	
 
 	void updateAspectRatio(float aspect)
 	{

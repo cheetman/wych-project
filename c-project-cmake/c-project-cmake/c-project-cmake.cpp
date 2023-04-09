@@ -75,6 +75,11 @@ void VulkanExample::render()
 
 void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 {
+
+	if (!UIOverlay.visible) {
+		return;
+	}
+
 	ImGui::NewFrame();
 	//ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
 	//ImGui::SetNextWindowPos(ImVec2(10 * UIOverlay.scale, 10 * UIOverlay.scale));
@@ -88,6 +93,8 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 
 	//ImGui::End();
 	//ImGui::PopStyleVar();
+
+
 
 
 	ImGui::Begin(u8"设备信息");
@@ -233,10 +240,51 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 
 
 	ImGui::Begin(u8"状态信息");
+
+
+
+	ImGui::Text(u8"光线信息");
+	ImGui::SliderFloat(u8"X", &shaderData.values.lightPos.x, -180.0f, 180.0f);
+	ImGui::SliderFloat(u8"Y", &shaderData.values.lightPos.y, -180.0f, 180.0f);
+	ImGui::SliderFloat(u8"Z", &shaderData.values.lightPos.z, -180.0f, 180.0f);
+
+	ImGui::NewLine();
+
 	ImGui::Text(u8"相机信息");
+	ImGui::SliderFloat(u8"移动速度", &camera.movementSpeed, 1.0f, 10.0f);
+	ImGui::SliderFloat(u8"旋转速度", &camera.rotationSpeed, 0.1f, 2.0f);
+	ImGui::SliderFloat(u8"Fov", &camera.fov, 5.0f, 170.0f); ImGui::SameLine();
+	if (ImGui::SmallButton(u8"更新##1")) {
+		camera.updatePerspective();
+	}
+	ImGui::SliderFloat(u8"近平面", &camera.znear, 0.1f, 10.0f); ImGui::SameLine();
+	if (ImGui::SmallButton(u8"更新##2")) {
+		camera.updatePerspective();
+	}
+	ImGui::SliderFloat(u8"远平面", &camera.zfar, 20.0f, 1000.0f); ImGui::SameLine();
+	if (ImGui::SmallButton(u8"更新##3")) {
+		camera.updatePerspective();
+	}
 	ImGui::InputFloat3(u8"位置", &camera.position.x, "%.1f");
 	ImGui::InputFloat3(u8"旋转", &camera.rotation.x, "%.1f");
+
+	ImGui::Separator();
+	ImGui::Text(u8"矩阵：[%.2f, %.2f, %.2f, %.2f]", shaderData.values.view[0][0], shaderData.values.view[1][0], shaderData.values.view[2][0], shaderData.values.view[3][0]);
+	ImGui::Text(u8"视图　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.view[0][1], shaderData.values.view[1][1], shaderData.values.view[2][1], shaderData.values.view[3][1]);
+	ImGui::Text(u8"　　　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.view[0][2], shaderData.values.view[1][2], shaderData.values.view[2][2], shaderData.values.view[3][2]);
+	ImGui::Text(u8"　　　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.view[0][3], shaderData.values.view[1][3], shaderData.values.view[2][3], shaderData.values.view[3][3]);
+							   		 	   
+	ImGui::Separator();		   		 	   
+	ImGui::Text(u8"矩阵：[%.2f, %.2f, %.2f, %.2f]", shaderData.values.projection[0][0], shaderData.values.projection[1][0], shaderData.values.projection[2][0], shaderData.values.projection[3][0]);
+	ImGui::Text(u8"投影　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.projection[0][1], shaderData.values.projection[1][1], shaderData.values.projection[2][1], shaderData.values.projection[3][1]);
+	ImGui::Text(u8"　　　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.projection[0][2], shaderData.values.projection[1][2], shaderData.values.projection[2][2], shaderData.values.projection[3][2]);
+	ImGui::Text(u8"　　　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.projection[0][3], shaderData.values.projection[1][3], shaderData.values.projection[2][3], shaderData.values.projection[3][3]);
+
+
+
 	ImGui::End();
+
+
 	ImGui::Begin(u8"场景信息");
 	if (UIOverlay.header(u8"模型信息")) {
 
@@ -294,16 +342,16 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 						ImGui::TextDisabled(u8"UV数据:"); ImGui::SameLine();
 						ImGui::Text(u8"偏移:%d字节 - %s[%d]", primitive.uvOffsetAccessor + primitive.uvOffsetBufferView, primitive.uvUri.c_str(), primitive.uvIndexBufferView);
 
-
 						ImGui::TextDisabled(u8"索引数量:"); ImGui::SameLine();
 						ImGui::Text(u8"%d - %d组", primitive.countIndex, primitive.countIndex / 3);
 						ImGui::TextDisabled(u8"索引大小:"); ImGui::SameLine();
 						ImGui::Text(u8"%d字节 [%d * int]", primitive.countIndex * 4, primitive.countIndex); ImGui::SameLine();
 						ImGui::Text(u8" (Buffer中:%d字节 [%d * %s])", primitive.countIndex * primitive.idxSize, primitive.countIndex, primitive.idxType.c_str());
-
 						ImGui::TextDisabled(u8"索引数据:"); ImGui::SameLine();
 						ImGui::Text(u8"偏移:%d字节 - %s[%d]", primitive.idxOffsetAccessor + primitive.idxOffsetBufferView, primitive.idxUri.c_str(), primitive.idxIndexBufferView);
 
+						ImGui::TextDisabled(u8"材质:"); ImGui::SameLine();
+						ImGui::Text(u8"%d", primitive.materialIndex);
 
 
 						ImGui::NewLine();

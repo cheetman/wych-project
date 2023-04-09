@@ -65,6 +65,50 @@ public:
 		uint32_t firstIndex;
 		uint32_t indexCount;
 		int32_t materialIndex;
+
+		// 新增
+		
+
+		uint32_t firstVertex;
+		uint32_t vertexCount;
+
+
+        // 顶点数(不同坐标不同法线)
+		size_t countPosNor;
+		size_t countIndex;
+
+		size_t idxSize;
+		std::string idxType;
+		bool tgtExist;
+		std::string posUri;
+		std::string norUri;
+		std::string idxUri;
+		std::string uvUri;
+		std::string tgtUri;
+
+		int posIndexBufferView;
+		int norIndexBufferView;
+		int idxIndexBufferView;
+		int uvIndexBufferView;
+		int tgtIndexBufferView;
+
+		size_t posLengthBufferView;
+		size_t norLengthBufferView;
+		size_t idxLengthBufferView;
+		size_t uvLengthBufferView;
+		size_t tgtLengthBufferView;
+
+		size_t posOffsetBufferView;
+		size_t norOffsetBufferView;
+		size_t idxOffsetBufferView;
+		size_t uvOffsetBufferView;
+		size_t tgtOffsetBufferView;
+
+		size_t posOffsetAccessor;
+		size_t norOffsetAccessor;
+		size_t idxOffsetAccessor;
+		size_t uvOffsetAccessor;
+		size_t tgtOffsetAccessor;
 	};
 
 	// Contains the node's (optional) geometry and can be made up of an arbitrary number of primitives
@@ -85,11 +129,6 @@ public:
 				delete child;
 			}
 		}
-
-		// 新增
-		// 顶点数(不同坐标不同法线)
-		size_t countPosNor;
-		size_t countIndex;
 
 
 	};

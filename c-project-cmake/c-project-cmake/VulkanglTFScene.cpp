@@ -160,6 +160,9 @@ void VulkanglTFScene::loadNode(const tinygltf::Node& inputNode, const tinygltf::
 
 		// Iterate through all primitives of this node's mesh
 		for (size_t i = 0; i < mesh.primitives.size(); i++) {
+			// 装进去
+			Primitive primitive{};
+
 			const tinygltf::Primitive& glTFPrimitive = mesh.primitives[i];
 
 			uint32_t firstIndex = static_cast<uint32_t>(indexBuffer.size());
@@ -182,11 +185,20 @@ void VulkanglTFScene::loadNode(const tinygltf::Node& inputNode, const tinygltf::
 					std::cout << "    primitives[" << i << "].POSITION.bufferView view.byteOffset：" << view.byteOffset << std::endl;
 					std::cout << "    primitives[" << i << "].POSITION.bufferView accessor.byteOffset：" << accessor.byteOffset << std::endl;
 					std::cout << "    primitives[" << i << "].POSITION.bufferView accessor.count(顶点数,每个顶点3个float)：" << accessor.count << std::endl;
-					node->countPosNor = accessor.count;
+					primitive.countPosNor = accessor.count;
 					std::cout << "    primitives[" << i << "].POSITION buffer 索引：" << view.buffer << "起始字节：" << accessor.byteOffset + view.byteOffset << std::endl;
 					std::cout << "    primitives[" << i << "].POSITION buffer 名称：" << input.buffers[view.buffer].uri << std::endl;
+					
+					primitive.posUri = input.buffers[view.buffer].uri;
+					primitive.posOffsetBufferView = view.byteOffset;
+					primitive.posOffsetAccessor = accessor.byteOffset;
+					primitive.posLengthBufferView = view.byteLength;
+					primitive.posIndexBufferView = accessor.bufferView;
+					
 					positionBuffer = reinterpret_cast<const float*>(&(input.buffers[view.buffer].data[accessor.byteOffset + view.byteOffset]));
 					vertexCount = accessor.count;
+
+					primitive.vertexCount = vertexCount;
 				}
 				// Get buffer data for vertex normals
 				if (glTFPrimitive.attributes.find("NORMAL") != glTFPrimitive.attributes.end()) {
@@ -199,6 +211,13 @@ void VulkanglTFScene::loadNode(const tinygltf::Node& inputNode, const tinygltf::
 					std::cout << "    primitives[" << i << "].NORMAL.bufferView accessor.count(同上)：" << accessor.count << std::endl;
 					std::cout << "    primitives[" << i << "].NORMAL buffer 索引：" << view.buffer << "起始字节：" << accessor.byteOffset + view.byteOffset << std::endl;
 					std::cout << "    primitives[" << i << "].NORMAL buffer 名称：" << input.buffers[view.buffer].uri << std::endl;
+
+					primitive.norUri = input.buffers[view.buffer].uri;
+					primitive.norOffsetBufferView = view.byteOffset;
+					primitive.norOffsetAccessor = accessor.byteOffset;
+					primitive.norLengthBufferView = view.byteLength;
+					primitive.norIndexBufferView = accessor.bufferView;
+
 					normalsBuffer = reinterpret_cast<const float*>(&(input.buffers[view.buffer].data[accessor.byteOffset + view.byteOffset]));
 				}
 				// Get buffer data for vertex texture coordinates
@@ -213,13 +232,29 @@ void VulkanglTFScene::loadNode(const tinygltf::Node& inputNode, const tinygltf::
 					std::cout << "    primitives[" << i << "].TEXCOORD_0.bufferView accessor.count(同上，每个顶点2个float)：" << accessor.count << std::endl;
 					std::cout << "    primitives[" << i << "].TEXCOORD_0 buffer 索引：" << view.buffer << "起始字节：" << accessor.byteOffset + view.byteOffset << std::endl;
 					std::cout << "    primitives[" << i << "].TEXCOORD_0 buffer 名称：" << input.buffers[view.buffer].uri << std::endl;
+
+					primitive.uvUri = input.buffers[view.buffer].uri;
+					primitive.uvOffsetBufferView = view.byteOffset;
+					primitive.uvOffsetAccessor = accessor.byteOffset;
+					primitive.uvLengthBufferView = view.byteLength;
+					primitive.uvIndexBufferView = accessor.bufferView;
+
 					texCoordsBuffer = reinterpret_cast<const float*>(&(input.buffers[view.buffer].data[accessor.byteOffset + view.byteOffset]));
 				}
+
+
+
 				// POI: This sample uses normal mapping, so we also need to load the tangents from the glTF file
 				if (glTFPrimitive.attributes.find("TANGENT") != glTFPrimitive.attributes.end()) {
 					const tinygltf::Accessor& accessor = input.accessors[glTFPrimitive.attributes.find("TANGENT")->second];
 					const tinygltf::BufferView& view = input.bufferViews[accessor.bufferView];
 					tangentsBuffer = reinterpret_cast<const float*>(&(input.buffers[view.buffer].data[accessor.byteOffset + view.byteOffset]));
+					primitive.tgtExist = true;
+					primitive.tgtUri = input.buffers[view.buffer].uri;
+					primitive.tgtOffsetBufferView = view.byteOffset;
+					primitive.tgtOffsetAccessor = accessor.byteOffset;
+					primitive.tgtLengthBufferView = view.byteLength;
+					primitive.tgtIndexBufferView = accessor.bufferView;
 				}
 
 
@@ -249,10 +284,16 @@ void VulkanglTFScene::loadNode(const tinygltf::Node& inputNode, const tinygltf::
 				std::cout << "    primitives[" << i << "].indices.bufferView view.byteOffset：" << bufferView.byteOffset << std::endl;
 				std::cout << "    primitives[" << i << "].indices.bufferView accessor.byteOffset：" << accessor.byteOffset << std::endl;
 				std::cout << "    primitives[" << i << "].indices.bufferView accessor.count(索引数)：" << accessor.count << std::endl;
-				node->countIndex = accessor.count;
 				std::cout << "    primitives[" << i << "].indices buffer 索引：" << bufferView.buffer << "起始字节：" << accessor.byteOffset + bufferView.byteOffset << "[索引可能共用]" << std::endl;
 				std::cout << "    primitives[" << i << "].indices buffer 名称：" << buffer.uri << std::endl;
 				// std::cout << "    vertexStart ？：" << vertexStart << std::endl; 只是为了在上一次基础增加
+
+				primitive.countIndex = accessor.count;
+				primitive.idxUri = buffer.uri;
+				primitive.idxOffsetBufferView = bufferView.byteOffset;
+				primitive.idxLengthBufferView = bufferView.byteLength;
+				primitive.idxOffsetAccessor = accessor.byteOffset;
+				primitive.idxIndexBufferView = accessor.bufferView;
 
 
 				indexCount += static_cast<uint32_t>(accessor.count);
@@ -260,6 +301,8 @@ void VulkanglTFScene::loadNode(const tinygltf::Node& inputNode, const tinygltf::
 				// glTF supports different component types of indices
 				switch (accessor.componentType) {
 				case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: {
+					primitive.idxSize = 4;
+					primitive.idxType = "int";
 					const uint32_t* buf = reinterpret_cast<const uint32_t*>(&buffer.data[accessor.byteOffset + bufferView.byteOffset]);
 					for (size_t index = 0; index < accessor.count; index++) {
 						indexBuffer.push_back(buf[index] + vertexStart);
@@ -267,7 +310,8 @@ void VulkanglTFScene::loadNode(const tinygltf::Node& inputNode, const tinygltf::
 					break;
 				}
 				case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: {
-
+					primitive.idxSize = 2;
+					primitive.idxType = "short";
 					const uint16_t* buf = reinterpret_cast<const uint16_t*>(&buffer.data[accessor.byteOffset + bufferView.byteOffset]);
 					for (size_t index = 0; index < accessor.count; index++) {
 						indexBuffer.push_back(buf[index] + vertexStart);
@@ -280,6 +324,8 @@ void VulkanglTFScene::loadNode(const tinygltf::Node& inputNode, const tinygltf::
 					break;
 				}
 				case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: {
+					primitive.idxSize = 1;
+					primitive.idxType = "byte";
 					const uint8_t* buf = reinterpret_cast<const uint8_t*>(&buffer.data[accessor.byteOffset + bufferView.byteOffset]);
 					for (size_t index = 0; index < accessor.count; index++) {
 						indexBuffer.push_back(buf[index] + vertexStart);
@@ -291,10 +337,11 @@ void VulkanglTFScene::loadNode(const tinygltf::Node& inputNode, const tinygltf::
 					return;
 				}
 			}
-			Primitive primitive{};
 			primitive.firstIndex = firstIndex;
+			primitive.firstVertex = vertexStart;
 			std::cout << "    indexBuffer 起始索引[每个索引3个int]：" << firstIndex << std::endl;
 			primitive.indexCount = indexCount;
+
 			primitive.materialIndex = glTFPrimitive.material;
 			std::cout << "    primitives[" << i << "].material 索引：" << glTFPrimitive.material << std::endl;
 			node->mesh.primitives.push_back(primitive);

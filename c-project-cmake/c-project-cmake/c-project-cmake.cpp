@@ -15,6 +15,12 @@
 using namespace std;
 
 
+// 设置开启的Features
+void VulkanExample::getEnabledFeatures()
+{
+	enabledFeatures.samplerAnisotropy = deviceFeatures.samplerAnisotropy;
+}
+
 // Options and values to display/toggle from the UI
 struct UISettings {
 	bool displayModels = true;
@@ -38,20 +44,6 @@ VulkanExample::VulkanExample() :VulkanExampleBase() {
 	camera.setRotation(glm::vec3(0.0f, -24.0f, 0.0f));
 	camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
 }
-
-
-
-
-
-
-// 设置开启的Features
-void VulkanExample::getEnabledFeatures()
-{
-	enabledFeatures.samplerAnisotropy = deviceFeatures.samplerAnisotropy;
-}
-
-
-
 
 
 void VulkanExample::renderFrame()
@@ -79,7 +71,6 @@ void VulkanExample::render()
 		updateUniformBuffers();
 	}
 }
-
 
 
 void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
@@ -247,7 +238,7 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 	ImGui::InputFloat3(u8"旋转", &camera.rotation.x, "%.1f");
 	ImGui::End();
 	ImGui::Begin(u8"场景信息");
-	if (UIOverlay.header("Visibility")) {
+	if (UIOverlay.header(u8"模型信息")) {
 
 		if (UIOverlay.button("All")) {
 			std::for_each(glTFScene.nodes.begin(), glTFScene.nodes.end(), [](VulkanglTFScene::Node* node) { node->visible = true; });
@@ -259,25 +250,85 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 			buildCommandBuffers();
 		}
 		//ImGui::NewLine();
-
 		// POI: Create a list of glTF nodes for visibility toggle
 		//ImGui::BeginChild("#nodelist", ImVec2(200.0f * UIOverlay.scale, 340.0f * UIOverlay.scale), false);
 		for (auto& node : glTFScene.nodes)
 		{
 			if (ImGui::TreeNodeEx(node->name.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				ImGui::TextDisabled(u8"顶点数量:"); ImGui::SameLine();
-				ImGui::Text(u8"%d", node->countPosNor);
-				ImGui::TextDisabled(u8"顶点大小:"); ImGui::SameLine();
-				ImGui::Text(u8"%d字节 [%d * float[3]]", node->countPosNor * 4 * 3, node->countPosNor);
-				ImGui::TextDisabled(u8"索引数量:"); ImGui::SameLine();
-				ImGui::Text(u8"%d - %d组", node->countIndex, node->countIndex / 3);
-				ImGui::TextDisabled(u8"索引大小:"); ImGui::SameLine();
-				ImGui::Text(u8"%d字节 [%d * int]", node->countIndex * 4, node->countIndex);
 				if (UIOverlay.checkBox(u8"是否隐藏", &node->visible))
 				{
 					buildCommandBuffers();
 				}
+
+				int i = 1;
+				for (auto& primitive : node->mesh.primitives) {
+
+					std::string name = std::to_string(i++) + u8" - 索引：" + std::to_string(primitive.firstIndex) + " [" + std::to_string(primitive.countIndex)+ " * int]";
+					if (ImGui::TreeNodeEx(name.c_str(), ImGuiTreeNodeFlags_NoAutoOpenOnLog))
+					{
+
+						ImGui::Text(u8"导入前");
+						ImGui::Separator();
+						ImGui::TextDisabled(u8"顶点数量:"); ImGui::SameLine();
+						ImGui::Text(u8"%d", primitive.countPosNor);
+						ImGui::TextDisabled(u8"顶点大小:"); ImGui::SameLine();
+						ImGui::Text(u8"%d字节 [%d * float[3]]", primitive.countPosNor * 4 * 3, primitive.countPosNor);
+						ImGui::TextDisabled(u8"顶点数据:"); ImGui::SameLine();
+						ImGui::Text(u8"偏移:%d字节 - %s[%d]", primitive.posOffsetAccessor + primitive.posOffsetBufferView, primitive.posUri.c_str(), primitive.posIndexBufferView);
+
+						ImGui::TextDisabled(u8"法线大小:"); ImGui::SameLine();
+						ImGui::Text(u8"%d字节 [%d * float[3]]", primitive.countPosNor * 4 * 3, primitive.countPosNor);
+						ImGui::TextDisabled(u8"法线数据:"); ImGui::SameLine();
+						ImGui::Text(u8"偏移:%d字节 - %s[%d]", primitive.norOffsetAccessor + primitive.norOffsetBufferView, primitive.norUri.c_str(), primitive.norIndexBufferView);
+
+						if (primitive.tgtExist) {
+							ImGui::TextDisabled(u8"切线大小:"); ImGui::SameLine();
+							ImGui::Text(u8"%d字节 [%d * float[4]]", primitive.countPosNor * 4 * 4, primitive.countPosNor);
+							ImGui::TextDisabled(u8"切线数据:"); ImGui::SameLine();
+							ImGui::Text(u8"偏移:%d字节 - %s[%d]", primitive.tgtOffsetAccessor + primitive.tgtOffsetBufferView, primitive.tgtUri.c_str(), primitive.tgtIndexBufferView);
+						}
+
+						ImGui::TextDisabled(u8"UV大小:"); ImGui::SameLine();
+						ImGui::Text(u8"%d字节 [%d * float[2]]", primitive.countPosNor * 4 * 2, primitive.countPosNor);
+						ImGui::TextDisabled(u8"UV数据:"); ImGui::SameLine();
+						ImGui::Text(u8"偏移:%d字节 - %s[%d]", primitive.uvOffsetAccessor + primitive.uvOffsetBufferView, primitive.uvUri.c_str(), primitive.uvIndexBufferView);
+
+
+						ImGui::TextDisabled(u8"索引数量:"); ImGui::SameLine();
+						ImGui::Text(u8"%d - %d组", primitive.countIndex, primitive.countIndex / 3);
+						ImGui::TextDisabled(u8"索引大小:"); ImGui::SameLine();
+						ImGui::Text(u8"%d字节 [%d * int]", primitive.countIndex * 4, primitive.countIndex); ImGui::SameLine();
+						ImGui::Text(u8" (Buffer中:%d字节 [%d * %s])", primitive.countIndex * primitive.idxSize, primitive.countIndex, primitive.idxType.c_str());
+
+						ImGui::TextDisabled(u8"索引数据:"); ImGui::SameLine();
+						ImGui::Text(u8"偏移:%d字节 - %s[%d]", primitive.idxOffsetAccessor + primitive.idxOffsetBufferView, primitive.idxUri.c_str(), primitive.idxIndexBufferView);
+
+
+
+						ImGui::NewLine();
+						ImGui::Text(u8"导入后");
+						ImGui::Separator();
+						ImGui::TextDisabled(u8"IndexBuffer[大小]:"); ImGui::SameLine();
+						ImGui::Text(u8"%d字节 [%d * int]", primitive.indexCount * 4, primitive.indexCount);
+						ImGui::TextDisabled(u8"IndexBuffer[偏移]:"); ImGui::SameLine();
+						ImGui::Text(u8"%d字节", primitive.firstIndex * 4);
+						ImGui::TextDisabled(u8"VertexBuffer[大小]:"); ImGui::SameLine();
+						ImGui::Text(u8"%d字节 [%d * VulkanglTFScene::Vertex]", primitive.vertexCount * sizeof(VulkanglTFScene::Vertex), primitive.vertexCount);
+						ImGui::TextDisabled(u8"VertexBuffer[偏移]:"); ImGui::SameLine();
+						ImGui::Text(u8"%d字节", primitive.firstVertex * sizeof(VulkanglTFScene::Vertex));
+
+						ImGui::NewLine();
+						ImGui::TreePop();
+
+					}
+
+
+				}
+
+
+
+
 				ImGui::TreePop();
 			}
 		}

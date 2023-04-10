@@ -59,6 +59,7 @@ public:
 	float fov;
 	float znear, zfar;
 	float aspect;
+	glm::vec3 camFront;
 
 	bool updated = false;
 	bool flipY = false;
@@ -166,13 +167,31 @@ public:
 		updated = false;
 		if (type == CameraType::firstperson)
 		{
+			if (rotation.x >= 89.0f)
+			{
+				rotation.x = 89.0f;
+			}
+
+			if (rotation.x <= -89.0f)
+			{
+				rotation.x = -89.0f;
+			}
+
+
+
+
+			camFront.x = -cos(glm::radians(rotation.x)) * sin(glm::radians(rotation.y));
+			camFront.y = sin(glm::radians(rotation.x));
+			camFront.z = cos(glm::radians(rotation.x)) * cos(glm::radians(rotation.y));
+			camFront = glm::normalize(camFront);
+
 			if (moving())
 			{
-				glm::vec3 camFront;
-				camFront.x = -cos(glm::radians(rotation.x)) * sin(glm::radians(rotation.y));
+				//glm::vec3 camFront;
+				/*camFront.x = -cos(glm::radians(rotation.x)) * sin(glm::radians(rotation.y));
 				camFront.y = sin(glm::radians(rotation.x));
 				camFront.z = cos(glm::radians(rotation.x)) * cos(glm::radians(rotation.y));
-				camFront = glm::normalize(camFront);
+				camFront = glm::normalize(camFront);*/
 
 				float moveSpeed = deltaTime * movementSpeed;
 

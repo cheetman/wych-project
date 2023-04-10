@@ -97,7 +97,7 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 
 
 
-	ImGui::Begin(u8"设备信息");
+	ImGui::Begin(u8"设备信息 [F1隐藏]");
 	ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
 	if (ImGui::BeginTabBar(u8"Tab", tab_bar_flags)) {
 
@@ -240,15 +240,14 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 
 
 	ImGui::Begin(u8"状态信息");
-
+	ImGui::Text(u8"坐标：Y朝上,Z向里");
+	ImGui::Separator();
 
 
 	ImGui::Text(u8"光线信息");
-	ImGui::SliderFloat(u8"X", &shaderData.values.lightPos.x, -180.0f, 180.0f);
-	ImGui::SliderFloat(u8"Y", &shaderData.values.lightPos.y, -180.0f, 180.0f);
-	ImGui::SliderFloat(u8"Z", &shaderData.values.lightPos.z, -180.0f, 180.0f);
+	ImGui::SliderFloat3(u8"方向向量[XYZ]", &shaderData.values.lightPos.x, -90.0f, 90.0f);
 
-	ImGui::NewLine();
+	ImGui::Separator();
 
 	ImGui::Text(u8"相机信息");
 	ImGui::SliderFloat(u8"移动速度", &camera.movementSpeed, 1.0f, 10.0f);
@@ -265,8 +264,19 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 	if (ImGui::SmallButton(u8"更新##3")) {
 		camera.updatePerspective();
 	}
-	ImGui::InputFloat3(u8"位置", &camera.position.x, "%.1f");
-	ImGui::InputFloat3(u8"旋转", &camera.rotation.x, "%.1f");
+	ImGui::Text(u8"相机方向: X: %.3f, Y: %.3f, Z: %.3f", camera.camFront.x, camera.camFront.y, camera.camFront.z);
+	ImGui::InputFloat3(u8"位置", &camera.position.x, u8"%.1f"); ImGui::SameLine();
+	if (ImGui::SmallButton(u8"置0##1")) {
+		camera.position.x = 0;
+		camera.position.y = 0;
+		camera.position.z = 0;
+	}
+	ImGui::InputFloat3(u8"旋转", &camera.rotation.x, u8"%.1f°"); ImGui::SameLine();
+	if (ImGui::SmallButton(u8"置0##2")) {
+		camera.rotation.x = 0;
+		camera.rotation.y = 0;
+		camera.rotation.z = 0;
+	}
 
 	ImGui::Separator();
 	ImGui::Text(u8"矩阵：[%.2f, %.2f, %.2f, %.2f]", shaderData.values.view[0][0], shaderData.values.view[1][0], shaderData.values.view[2][0], shaderData.values.view[3][0]);
@@ -370,12 +380,7 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 						ImGui::TreePop();
 
 					}
-
-
 				}
-
-
-
 
 				ImGui::TreePop();
 			}

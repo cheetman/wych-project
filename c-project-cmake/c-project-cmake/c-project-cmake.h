@@ -16,6 +16,8 @@ public:
 	// 私有
 	class VulkanglTFScene glTFScene;
 
+	// Shader相关
+
 	struct ShaderData {
 		vks::Buffer buffer;
 		struct Values {
@@ -29,25 +31,42 @@ public:
 	} shaderData;
 
 
+	struct ShaderDataCustom {
+		vks::Buffer buffer;
+		struct Values {
+			float ambient = 0.1f;
+			float specularExponent = 32.0f;
+			
+		} values;
+	} shaderDataCustom;
+
+
 	struct DescriptorSetLayouts {
 		VkDescriptorSetLayout matrices;
 		VkDescriptorSetLayout textures;
+		// 新增一个
+		VkDescriptorSetLayout custom;
+
 	} descriptorSetLayouts;
 
 
 	VkPipelineLayout pipelineLayout;
+
+	// 给CMD使用 vkCmdBindDescriptorSets 
 	VkDescriptorSet descriptorSet;
+	// 新增
+	VkDescriptorSet descriptorSetCustom;
 
 
 
 
 
 
-		VulkanExample();
+	VulkanExample();
 
 
 
-		VkClearColorValue defaultClearColor = { { 0.025f, 0.025f, 0.025f, 1.0f } };
+	VkClearColorValue defaultClearColor = { { 0.025f, 0.025f, 0.025f, 1.0f } };
 
 
 
@@ -86,7 +105,7 @@ public:
 
 	/** @brief (Virtual) Default image acquire + submission and command buffer submission function */
 	virtual void renderFrame();
-	
+
 	// 设置 device features
 	virtual void getEnabledFeatures();
 

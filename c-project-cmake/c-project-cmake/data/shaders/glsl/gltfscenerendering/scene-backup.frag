@@ -3,12 +3,6 @@
 layout (set = 1, binding = 0) uniform sampler2D samplerColorMap;
 layout (set = 1, binding = 1) uniform sampler2D samplerNormalMap;
 
-layout (set = 2, binding = 0) uniform Custom 
-{
-	float ambient;
-	float specularExponent;
-} custom;
-
 layout (location = 0) in vec3 inNormal;
 layout (location = 1) in vec3 inColor;
 layout (location = 2) in vec2 inUV;
@@ -41,7 +35,7 @@ void main()
 	vec3 L = normalize(inLightVec);
 	vec3 V = normalize(inViewVec);
 	vec3 R = reflect(-L, N);
-	vec3 diffuse = max(dot(N, L), custom.ambient).rrr;
-	float specular = pow(max(dot(R, V), 0.0), custom.specularExponent);
+	vec3 diffuse = max(dot(N, L), ambient).rrr;
+	float specular = pow(max(dot(R, V), 0.0), 32.0);
 	outFragColor = vec4(diffuse * color.rgb + specular, color.a);
 }

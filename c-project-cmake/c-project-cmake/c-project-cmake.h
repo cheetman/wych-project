@@ -76,6 +76,7 @@ public:
 
 
 	VkPipelineLayout pipelineLayout;
+	VkPipelineLayout pipelineLayoutSkybox;
 
 	// 给CMD使用 vkCmdBindDescriptorSets 
 	VkDescriptorSet descriptorSet;

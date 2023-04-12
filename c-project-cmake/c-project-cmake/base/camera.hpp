@@ -24,12 +24,22 @@ private:
 		rotM = glm::rotate(rotM, glm::radians(rotation.x * (flipY ? -1.0f : 1.0f)), glm::vec3(1.0f, 0.0f, 0.0f));
 		rotM = glm::rotate(rotM, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
 		rotM = glm::rotate(rotM, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-
 		glm::vec3 translation = position;
 		if (flipY) {
 			translation.y *= -1.0f;
 		}
 		transM = glm::translate(glm::mat4(1.0f), translation);
+
+		if (flipY) {
+			glm::mat4 rotM2 = glm::mat4(1.0f);
+			glm::mat4 transM2;
+			rotM2 = glm::rotate(rotM2, glm::radians(rotation.x * (flipY ? 1.0f : -1.0f)), glm::vec3(1.0f, 0.0f, 0.0f));
+			rotM2 = glm::rotate(rotM2, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+			rotM2 = glm::rotate(rotM2, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+			glm::vec3 translation2 = position;
+			transM2 = glm::translate(glm::mat4(1.0f), translation2);
+			matrices.viewNoFlipY = rotM2 * transM2;
+		}
 
 		if (type == CameraType::firstperson)
 		{
@@ -68,6 +78,7 @@ public:
 	{
 		glm::mat4 perspective;
 		glm::mat4 view;
+		glm::mat4 viewNoFlipY;
 	} matrices;
 
 	struct

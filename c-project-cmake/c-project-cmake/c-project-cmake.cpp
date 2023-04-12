@@ -620,10 +620,25 @@ void VulkanExample::updateUniformBuffers()
 	memcpy(shaderDataCustom.buffer.mapped, &shaderDataCustom.values, sizeof(shaderDataCustom.values));
 
 
-	// 天空盒
-	shaderDataSkybox.ubo.projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 256.0f);
-	shaderDataSkybox.ubo.view = glm::mat4(glm::mat3(camera.matrices.view));
+	// 天空盒 显示异常是受flipY影响
+	shaderDataSkybox.ubo.projection = glm::perspective(glm::radians(65.0f), (float)width / (float)height, 0.1f, 256.0f);
+
+	//camera.matrices.view[1][0] *= -1.0f;
+	//camera.matrices.view[1][1] *= -1.0f;
+	//camera.matrices.view[1][2] *= -1.0f;
+	//camera.matrices.view[1][3] *= -1.0f;
+	if (camera.flipY) {
+		shaderDataSkybox.ubo.view = glm::mat4(glm::mat3(camera.matrices.viewNoFlipY));
+	}
+	else {
+		shaderDataSkybox.ubo.view = glm::mat4(glm::mat3(camera.matrices.view));
+	}
+
 	shaderDataSkybox.ubo.model = glm::mat4(1.0f);
+
+	//shaderDataSkybox.ubo.projection = camera.matrices.perspective;
+	//shaderDataSkybox.ubo.view = camera.matrices.view;
+	//shaderDataSkybox.ubo.model = glm::mat4(glm::mat3(camera.matrices.view));
 	memcpy(shaderDataSkybox.buffer.mapped, &shaderDataSkybox.ubo, sizeof(shaderDataSkybox.ubo));
 }
 
@@ -637,12 +652,12 @@ void VulkanExample::setupDescriptors()
 	// One ubo to pass dynamic data to the shader
 	// Two combined image samplers per material as each material uses color and normal maps
 	std::vector<VkDescriptorPoolSize> poolSizes = {
-		vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1),
+		vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 5),
 		vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, static_cast<uint32_t>(glTFScene.materials.size()) * 2),
-		vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1) // 添加参数
+		//vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1) // 添加参数
 	};
 	// One set for matrices and one per model image/texture
-	const uint32_t maxSetCount = static_cast<uint32_t>(glTFScene.images.size()) + 1 + 1;
+	const uint32_t maxSetCount = static_cast<uint32_t>(glTFScene.images.size()) + 5;
 	VkDescriptorPoolCreateInfo descriptorPoolInfo = vks::initializers::descriptorPoolCreateInfo(poolSizes, maxSetCount);
 	VK_CHECK_RESULT(vkCreateDescriptorPool(device, &descriptorPoolInfo, nullptr, &descriptorPool));
 
@@ -664,13 +679,15 @@ void VulkanExample::setupDescriptors()
 	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCI, nullptr, &descriptorSetLayouts.custom));
 
 
+	// 写错阶段会报错 Shader uses descriptor slot 0.0 but descriptor not accessible from stage VK_SHADER_STAGE_VERTEX_BIT The Vulkan spec states: layout must be consistent with all shaders specified in pStages 
 	setLayoutBindings = {
-	    vks::initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0),
+		vks::initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0),
 		vks::initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1)
 	};
 	descriptorSetLayoutCI.pBindings = setLayoutBindings.data();
 	descriptorSetLayoutCI.bindingCount = 2;
 	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCI, nullptr, &descriptorSetLayouts.skybox));
+
 
 
 	// Descriptor set layout for passing material textures
@@ -698,6 +715,12 @@ void VulkanExample::setupDescriptors()
 	pipelineLayoutCI.pushConstantRangeCount = 1;
 	pipelineLayoutCI.pPushConstantRanges = &pushConstantRange;
 	VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutCI, nullptr, &pipelineLayout));
+
+
+	// 新增一套 (天空盒)
+	pipelineLayoutCI = vks::initializers::pipelineLayoutCreateInfo(&descriptorSetLayouts.skybox, 1);
+	VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutCI, nullptr, &pipelineLayoutSkybox));
+
 
 	// Descriptor set for scene matrices
 	VkDescriptorSetAllocateInfo allocInfo = vks::initializers::descriptorSetAllocateInfo(descriptorPool, &descriptorSetLayouts.matrices, 1);
@@ -779,6 +802,10 @@ void VulkanExample::preparePipelines()
 	//shaderStages[1] = loadShader(getShadersPath() + "gltfscenerendering/scene-nolight.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 	shaderStages[1] = loadShader(getShadersPath() + "gltfscenerendering/scene.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 
+
+
+
+
 	// POI: Instead if using a few fixed pipelines, we create one pipeline for each material using the properties of that material
 	for (auto& material : glTFScene.materials) {
 
@@ -804,13 +831,22 @@ void VulkanExample::preparePipelines()
 		VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCI, nullptr, &material.pipeline));
 	}
 
+
+
 	// 加一个天空盒
+	/*VkPipelineVertexInputStateCreateInfo emptyInputState = vks::initializers::pipelineVertexInputStateCreateInfo();
+	pipelineCI.pVertexInputState = &emptyInputState;*/
+	pipelineCI.pVertexInputState = vkglTF::Vertex::getPipelineVertexInputState({
+		vkglTF::VertexComponent::Position });
 	shaderStages[0] = loadShader(getShadersPath() + "bloom/skybox.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
 	shaderStages[1] = loadShader(getShadersPath() + "bloom/skybox.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 	depthStencilStateCI.depthWriteEnable = VK_FALSE;
 	rasterizationStateCI.cullMode = VK_CULL_MODE_FRONT_BIT;
 	pipelineCI.renderPass = renderPass;
+	pipelineCI.layout = pipelineLayoutSkybox;
 	VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCI, nullptr, &pipelines.skyBox));
+
+
 
 
 
@@ -848,6 +884,14 @@ void VulkanExample::buildCommandBuffers()
 		vkCmdBeginRenderPass(drawCmdBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdSetViewport(drawCmdBuffers[i], 0, 1, &viewport);
 		vkCmdSetScissor(drawCmdBuffers[i], 0, 1, &scissor);
+
+
+		// Skybox
+		vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayoutSkybox, 0, 1, &descriptorSetSkyBox, 0, NULL);
+		vkCmdBindPipeline(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.skyBox);
+		glTFModels.skyBox.draw(drawCmdBuffers[i]);
+
+
 		// Bind scene matrices descriptor to set 0
 		vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 

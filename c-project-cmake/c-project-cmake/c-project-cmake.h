@@ -6,7 +6,8 @@
 
 
 #include "VulkanExampleBase.h"
-#include "VulkanglTFScene.h"
+//#include "VulkanglTFScene.h"
+#include "base/VulkanglTFModel.h"
 
 
 class VulkanExample : public VulkanExampleBase
@@ -14,7 +15,16 @@ class VulkanExample : public VulkanExampleBase
 
 public:
 	// 私有
-	class VulkanglTFScene glTFScene;
+	VulkanglTFScene glTFScene;
+
+	struct {
+		//vkglTF::Model ufo;
+		//vkglTF::Model ufoGlow;
+		vkglTF::Model skyBox;
+	} glTFModels;
+	// 天空盒材质相关
+	vks::TextureCubeMap cubemap;
+
 
 	// Shader相关
 
@@ -25,7 +35,6 @@ public:
 			glm::mat4 view;
 			//glm::vec4 lightPos = glm::vec4(0.0f, 2.5f, 0.0f, 1.0f);
 			glm::vec4 lightPos = glm::vec4(5.0f, 5.0f, -5.0f, 1.0f);
-
 			glm::vec4 viewPos;
 		} values;
 	} shaderData;
@@ -127,34 +136,8 @@ protected:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	// Descriptor set pool
+	// Descriptor set 池，这个其实都在子类中使用了
 	VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-
-
-
-	std::string shaderDir = "glsl";
-
-
-	// Returns the path to the root of the glsl or hlsl shader directory.
-	std::string getShadersPath() const;
-
-
-
 
 
 

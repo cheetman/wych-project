@@ -3,13 +3,14 @@
 
 #include "c-project-cmake.h"
 
+//
+//#define TINYGLTF_NO_STB_IMAGE_WRITE
+//#define TINYGLTF_NO_STB_IMAGE
+//#define TINYGLTF_NO_EXTERNAL_IMAGE
+//#include "tiny_gltf.h"
 
-#define TINYGLTF_NO_STB_IMAGE_WRITE
-#define TINYGLTF_NO_STB_IMAGE
-#define TINYGLTF_NO_EXTERNAL_IMAGE
-#include "tiny_gltf.h"
-
-#include "VulkanglTFScene.h"
+//#include "VulkanglTFScene.h"
+//#include "base/VulkanglTFModel.h"
 
 
 using namespace std;
@@ -567,6 +568,11 @@ void VulkanExample::loadAssets()
 	loadglTFFile("C:/WorkMe/gltf_export/test_ktx/origin2/vulakan.gltf");
 	//loadglTFFile("D:/WorkGitbub3/Vulkan/data/models/sponza/sponza.gltf");
 
+	// 天空盒
+	const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices | vkglTF::FileLoadingFlags::PreMultiplyVertexColors | vkglTF::FileLoadingFlags::FlipY;
+	glTFModels.skyBox.loadFromFile(getAssetPath() + "models/cube.gltf", vulkanDevice, queue, glTFLoadingFlags);
+	cubemap.loadFromFile(getAssetPath() + "textures/cubemap_space.ktx", VK_FORMAT_R8G8B8A8_UNORM, vulkanDevice, queue);
+
 }
 
 void VulkanExample::prepareUniformBuffers()
@@ -696,10 +702,6 @@ void VulkanExample::setupDescriptors()
 
 }
 
-std::string VulkanExample::getShadersPath() const
-{
-	return getAssetPath() + "shaders/" + shaderDir + "/";
-}
 
 
 void VulkanExample::preparePipelines()
@@ -832,18 +834,15 @@ void VulkanExample::drawUI(const VkCommandBuffer commandBuffer)
 
 void VulkanExample::prepare() {
 
-	initSwapchain();
-	createCommandPool();
-	setupSwapChain();
-	createCommandBuffers();
-	createSynchronizationPrimitives();
-
-	setupDepthStencil();
-	setupRenderPass();
-	createPipelineCache();
-
-	setupFrameBuffer();
-
+	VulkanExampleBase::initSwapchain();
+	VulkanExampleBase::createCommandPool();
+	VulkanExampleBase::setupSwapChain();
+	VulkanExampleBase::createCommandBuffers();
+	VulkanExampleBase::createSynchronizationPrimitives();
+	VulkanExampleBase::setupDepthStencil();
+	VulkanExampleBase::setupRenderPass();
+	VulkanExampleBase::createPipelineCache();
+	VulkanExampleBase::setupFrameBuffer();
 	settings.overlay = settings.overlay;//&& (!benchmark.active);
 	if (settings.overlay) {
 		UIOverlay.device = vulkanDevice;
@@ -855,7 +854,6 @@ void VulkanExample::prepare() {
 		UIOverlay.prepareResources();
 		UIOverlay.preparePipeline(pipelineCache, renderPass, swapChain.colorFormat, depthFormat);
 	}
-
 
 
 	loadAssets();

@@ -197,6 +197,10 @@ public:
 	// 用来设置 device Extensions
 	virtual void getEnabledExtensions();
 
+	// 着色器子目录
+	std::string shaderDir = "glsl";
+	// 着色器路径
+	std::string getShadersPath() const;
 
 	// 虚拟 build命令
 	virtual void buildCommandBuffers();

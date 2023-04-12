@@ -18,6 +18,12 @@ void VulkanExampleBase::OnUpdateUIOverlay(vks::UIOverlay* overlay) {}
 
 // =======================  private ========================
 
+
+std::string VulkanExampleBase::getShadersPath() const
+{
+	return getAssetPath() + "shaders/" + shaderDir + "/";
+}
+
 std::string VulkanExampleBase::getWindowTitle()
 {
 	std::string device(deviceProperties.deviceName);

@@ -287,8 +287,8 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 	ImGui::Text(u8"视图　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.view[0][1], shaderData.values.view[1][1], shaderData.values.view[2][1], shaderData.values.view[3][1]);
 	ImGui::Text(u8"　　　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.view[0][2], shaderData.values.view[1][2], shaderData.values.view[2][2], shaderData.values.view[3][2]);
 	ImGui::Text(u8"　　　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.view[0][3], shaderData.values.view[1][3], shaderData.values.view[2][3], shaderData.values.view[3][3]);
-							   		 	   
-	ImGui::Separator();		   		 	   
+
+	ImGui::Separator();
 	ImGui::Text(u8"矩阵：[%.2f, %.2f, %.2f, %.2f]", shaderData.values.projection[0][0], shaderData.values.projection[1][0], shaderData.values.projection[2][0], shaderData.values.projection[3][0]);
 	ImGui::Text(u8"投影　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.projection[0][1], shaderData.values.projection[1][1], shaderData.values.projection[2][1], shaderData.values.projection[3][1]);
 	ImGui::Text(u8"　　　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.projection[0][2], shaderData.values.projection[1][2], shaderData.values.projection[2][2], shaderData.values.projection[3][2]);
@@ -331,9 +331,9 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 					}
 
 
-					std::string name = std::to_string(i++) + u8" - 索引：" + std::to_string(primitive.firstIndex) + " [" + std::to_string(primitive.countIndex)+ " * int]";
-					
-				
+					std::string name = std::to_string(i++) + u8" - 索引：" + std::to_string(primitive.firstIndex) + " [" + std::to_string(primitive.countIndex) + " * int]";
+
+
 					if (ImGui::TreeNodeEx(name.c_str(), flag))
 					{
 
@@ -586,13 +586,25 @@ void VulkanExample::prepareUniformBuffers()
 		sizeof(shaderData.values)));
 	VK_CHECK_RESULT(shaderData.buffer.map());
 
-
+	// 新增的自定义的
 	VK_CHECK_RESULT(vulkanDevice->createBuffer(
 		VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 		&shaderDataCustom.buffer,
 		sizeof(shaderDataCustom.values)));
 	VK_CHECK_RESULT(shaderDataCustom.buffer.map());
+
+
+	// 新增的天空盒
+	VK_CHECK_RESULT(vulkanDevice->createBuffer(
+		VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		&shaderDataSkybox.buffer,
+		sizeof(shaderDataSkybox.ubo)));
+	VK_CHECK_RESULT(shaderDataSkybox.buffer.map());
+
+
+
 
 	updateUniformBuffers();
 }
@@ -606,6 +618,13 @@ void VulkanExample::updateUniformBuffers()
 
 
 	memcpy(shaderDataCustom.buffer.mapped, &shaderDataCustom.values, sizeof(shaderDataCustom.values));
+
+
+	// 天空盒
+	shaderDataSkybox.ubo.projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 256.0f);
+	shaderDataSkybox.ubo.view = glm::mat4(glm::mat3(camera.matrices.view));
+	shaderDataSkybox.ubo.model = glm::mat4(1.0f);
+	memcpy(shaderDataSkybox.buffer.mapped, &shaderDataSkybox.ubo, sizeof(shaderDataSkybox.ubo));
 }
 
 
@@ -636,15 +655,22 @@ void VulkanExample::setupDescriptors()
 	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCI, nullptr, &descriptorSetLayouts.matrices));
 
 
-	// 2023/4/11 新增一个set 
-	 setLayoutBindings = {
-		vks::initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0)
+	// 2023/4/11 新增一个setlayout
+	setLayoutBindings = {
+	   vks::initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0)
 	};
-	 descriptorSetLayoutCI.pBindings = setLayoutBindings.data();
-	 descriptorSetLayoutCI.bindingCount = 1;
+	descriptorSetLayoutCI.pBindings = setLayoutBindings.data();
+	descriptorSetLayoutCI.bindingCount = 1;
 	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCI, nullptr, &descriptorSetLayouts.custom));
 
 
+	setLayoutBindings = {
+	    vks::initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0),
+		vks::initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1)
+	};
+	descriptorSetLayoutCI.pBindings = setLayoutBindings.data();
+	descriptorSetLayoutCI.bindingCount = 2;
+	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCI, nullptr, &descriptorSetLayouts.skybox));
 
 
 	// Descriptor set layout for passing material textures
@@ -660,7 +686,7 @@ void VulkanExample::setupDescriptors()
 
 	// Pipeline layout using both descriptor sets (set 0 = matrices, set 1 = material)
 	// 新增一个
-	std::array<VkDescriptorSetLayout, 3> setLayouts = { 
+	std::array<VkDescriptorSetLayout, 3> setLayouts = {
 		descriptorSetLayouts.matrices
 		, descriptorSetLayouts.textures
 		, descriptorSetLayouts.custom };
@@ -700,6 +726,14 @@ void VulkanExample::setupDescriptors()
 	vkUpdateDescriptorSets(device, 1, &writeDescriptorSet, 0, nullptr);
 
 
+	// 新增一个 天空盒
+	allocInfo = vks::initializers::descriptorSetAllocateInfo(descriptorPool, &descriptorSetLayouts.skybox, 1);
+	VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, &descriptorSetSkyBox));
+	std::vector<VkWriteDescriptorSet> writeDescriptorSets = {
+		vks::initializers::writeDescriptorSet(descriptorSetSkyBox, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &shaderDataSkybox.buffer.descriptor),						// Binding 0: Vertex shader uniform buffer
+		vks::initializers::writeDescriptorSet(descriptorSetSkyBox, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	1, &cubemap.descriptor),							// Binding 1: Fragment shader texture sampler
+	};
+	vkUpdateDescriptorSets(device, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
 }
 
 
@@ -769,6 +803,17 @@ void VulkanExample::preparePipelines()
 
 		VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCI, nullptr, &material.pipeline));
 	}
+
+	// 加一个天空盒
+	shaderStages[0] = loadShader(getShadersPath() + "bloom/skybox.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+	shaderStages[1] = loadShader(getShadersPath() + "bloom/skybox.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+	depthStencilStateCI.depthWriteEnable = VK_FALSE;
+	rasterizationStateCI.cullMode = VK_CULL_MODE_FRONT_BIT;
+	pipelineCI.renderPass = renderPass;
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCI, nullptr, &pipelines.skyBox));
+
+
+
 }
 
 

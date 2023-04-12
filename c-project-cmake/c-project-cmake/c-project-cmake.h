@@ -27,7 +27,6 @@ public:
 
 
 	// Shader相关
-
 	struct ShaderData {
 		vks::Buffer buffer;
 		struct Values {
@@ -45,9 +44,25 @@ public:
 		struct Values {
 			float ambient = 0.1f;
 			float specularExponent = 32.0f;
-			
 		} values;
 	} shaderDataCustom;
+
+
+	struct UBO {
+		glm::mat4 projection;
+		glm::mat4 view;
+		glm::mat4 model;
+	};
+	struct SkyBox {
+		vks::Buffer buffer;
+		struct UBO {
+			glm::mat4 projection;
+			glm::mat4 view;
+			glm::mat4 model;
+		} ubo;
+	} shaderDataSkybox;
+
+
 
 
 	struct DescriptorSetLayouts {
@@ -55,6 +70,7 @@ public:
 		VkDescriptorSetLayout textures;
 		// 新增一个
 		VkDescriptorSetLayout custom;
+		VkDescriptorSetLayout skybox;
 
 	} descriptorSetLayouts;
 
@@ -65,8 +81,19 @@ public:
 	VkDescriptorSet descriptorSet;
 	// 新增
 	VkDescriptorSet descriptorSetCustom;
+	// 新增天空盒
+	VkDescriptorSet descriptorSetSkyBox;
 
 
+	// 材质的pipeline存在自己的结构体中了
+	struct {
+		/*VkPipeline blurVert;
+		VkPipeline blurHorz;
+		VkPipeline glowPass;
+		VkPipeline phongPass;*/
+		
+		VkPipeline skyBox;
+	} pipelines;
 
 
 
@@ -76,20 +103,6 @@ public:
 
 
 	VkClearColorValue defaultClearColor = { { 0.025f, 0.025f, 0.025f, 1.0f } };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

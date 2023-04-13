@@ -48,6 +48,7 @@ public:
 	} shaderDataCustom;
 
 
+	bool displaySkybox = true;
 	struct UBO {
 		glm::mat4 projection;
 		glm::mat4 view;
@@ -62,7 +63,8 @@ public:
 		} ubo;
 	} shaderDataSkybox;
 
-
+	bool displayNormals = false;
+	
 
 
 	struct DescriptorSetLayouts {
@@ -94,6 +96,7 @@ public:
 		VkPipeline phongPass;*/
 		
 		VkPipeline skyBox;
+		VkPipeline normal;
 	} pipelines;
 
 

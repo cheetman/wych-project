@@ -1971,7 +1971,12 @@ void VulkanglTFScene::drawNode(VkCommandBuffer commandBuffer, VkPipelineLayout p
 			if (primitive.indexCount > 0) {
 				VulkanglTFScene::Material& material = materials[primitive.materialIndex];
 				// POI: Bind the pipeline for the node's material
-				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, material.pipeline);
+				if (displayNormal) {
+					vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, normal);
+				}
+				else {
+					vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, material.pipeline);
+				}
 				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &material.descriptorSet, 0, nullptr);
 				vkCmdDrawIndexed(commandBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
 			}

@@ -139,8 +139,15 @@ public:
 
 
 	struct Settings {
+
+#if defined(_DEBUG)
 		// validation layers
 		bool validation = true;
+#else
+		bool validation = false;
+
+#endif
+
 		/** @brief Set to true if fullscreen mode has been requested via command line */
 		bool fullscreen = false;
 		/** @brief Set to true if v-sync will be forced for the swapchain */

@@ -245,6 +245,13 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 	ImGui::Separator();
 
 
+	if (overlay->checkBox(u8"显示法线", &glTFScene.displayNormal)) {
+		buildCommandBuffers();
+	}
+	ImGui::Separator();
+
+
+
 	ImGui::Text(u8"光线信息");
 	ImGui::Text(u8"光照模型: Phong");
 	ImGui::SliderFloat3(u8"方向向量[XYZ]", &shaderData.values.lightPos.x, -90.0f, 90.0f);
@@ -300,14 +307,27 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 
 
 	ImGui::Begin(u8"场景信息");
+
+
+	if (UIOverlay.header(u8"天空盒")) {
+		if (overlay->checkBox(u8"是否隐藏", &displaySkybox)) {
+			buildCommandBuffers();
+		}
+
+
+	}
+
+
+
+
 	if (UIOverlay.header(u8"模型信息")) {
 
-		if (UIOverlay.button("All")) {
+		if (UIOverlay.button(u8"显示所有")) {
 			std::for_each(glTFScene.nodes.begin(), glTFScene.nodes.end(), [](VulkanglTFScene::Node* node) { node->visible = true; });
 			buildCommandBuffers();
 		}
 		ImGui::SameLine();
-		if (UIOverlay.button("None")) {
+		if (UIOverlay.button(u8"隐藏所有")) {
 			std::for_each(glTFScene.nodes.begin(), glTFScene.nodes.end(), [](VulkanglTFScene::Node* node) { node->visible = false; });
 			buildCommandBuffers();
 		}
@@ -621,24 +641,15 @@ void VulkanExample::updateUniformBuffers()
 
 
 	// 天空盒 显示异常是受flipY影响
-	shaderDataSkybox.ubo.projection = glm::perspective(glm::radians(65.0f), (float)width / (float)height, 0.1f, 256.0f);
+	shaderDataSkybox.ubo.projection = glm::perspective(glm::radians(90.0f), (float)width / (float)height, 0.1f, 256.0f);
 
-	//camera.matrices.view[1][0] *= -1.0f;
-	//camera.matrices.view[1][1] *= -1.0f;
-	//camera.matrices.view[1][2] *= -1.0f;
-	//camera.matrices.view[1][3] *= -1.0f;
 	if (camera.flipY) {
 		shaderDataSkybox.ubo.view = glm::mat4(glm::mat3(camera.matrices.viewNoFlipY));
 	}
 	else {
 		shaderDataSkybox.ubo.view = glm::mat4(glm::mat3(camera.matrices.view));
 	}
-
 	shaderDataSkybox.ubo.model = glm::mat4(1.0f);
-
-	//shaderDataSkybox.ubo.projection = camera.matrices.perspective;
-	//shaderDataSkybox.ubo.view = camera.matrices.view;
-	//shaderDataSkybox.ubo.model = glm::mat4(glm::mat3(camera.matrices.view));
 	memcpy(shaderDataSkybox.buffer.mapped, &shaderDataSkybox.ubo, sizeof(shaderDataSkybox.ubo));
 }
 
@@ -804,8 +815,6 @@ void VulkanExample::preparePipelines()
 
 
 
-
-
 	// POI: Instead if using a few fixed pipelines, we create one pipeline for each material using the properties of that material
 	for (auto& material : glTFScene.materials) {
 
@@ -848,6 +857,15 @@ void VulkanExample::preparePipelines()
 
 
 
+	// 加一个法线调试
+	pipelineCI.pVertexInputState = &vertexInputStateCI;
+	shaderStages[0] = loadShader(getShadersPath() + "gltfscenerendering/scene.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+	shaderStages[1] = loadShader(getShadersPath() + "gltfscenerendering/scene.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+	depthStencilStateCI.depthWriteEnable = VK_TRUE;
+	rasterizationStateCI.cullMode = VK_CULL_MODE_BACK_BIT;
+	pipelineCI.renderPass = renderPass;
+	pipelineCI.layout = pipelineLayout;
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCI, nullptr, &glTFScene.normal));
 
 
 }
@@ -886,19 +904,23 @@ void VulkanExample::buildCommandBuffers()
 		vkCmdSetScissor(drawCmdBuffers[i], 0, 1, &scissor);
 
 
-		// Skybox
-		vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayoutSkybox, 0, 1, &descriptorSetSkyBox, 0, NULL);
-		vkCmdBindPipeline(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.skyBox);
-		glTFModels.skyBox.draw(drawCmdBuffers[i]);
+		if (displaySkybox) {
+			// Skybox
+			vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayoutSkybox, 0, 1, &descriptorSetSkyBox, 0, NULL);
+			vkCmdBindPipeline(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.skyBox);
+			glTFModels.skyBox.draw(drawCmdBuffers[i]);
+		}
 
 
 		// Bind scene matrices descriptor to set 0
 		vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-
 		vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &descriptorSetCustom, 0, nullptr);
 
 		// POI: Draw the glTF scene
 		glTFScene.draw(drawCmdBuffers[i], pipelineLayout);
+
+
+
 
 		drawUI(drawCmdBuffers[i]);
 		vkCmdEndRenderPass(drawCmdBuffers[i]);

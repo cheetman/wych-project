@@ -354,8 +354,6 @@ public:
 		int32_t materialIndex;
 
 		// 新增
-
-
 		uint32_t firstVertex;
 		uint32_t vertexCount;
 
@@ -453,6 +451,10 @@ public:
 	std::vector<Node*> nodes;
 
 	std::string path;
+
+	// 法线渲染
+	VkPipeline normal;
+	bool displayNormal = false;
 
 	~VulkanglTFScene();
 	VkDescriptorImageInfo getTextureDescriptor(const size_t index);

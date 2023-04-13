@@ -454,7 +454,7 @@ public:
 
 	// ∑®œﬂ‰÷»æ
 	VkPipeline normal;
-	bool displayNormal = false;
+
 
 	~VulkanglTFScene();
 	VkDescriptorImageInfo getTextureDescriptor(const size_t index);
@@ -463,7 +463,9 @@ public:
 	void loadMaterials(tinygltf::Model& input);
 	void loadNode(const tinygltf::Node& inputNode, const tinygltf::Model& input, VulkanglTFScene::Node* parent, std::vector<uint32_t>& indexBuffer, std::vector<VulkanglTFScene::Vertex>& vertexBuffer);
 	void drawNode(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, VulkanglTFScene::Node* node);
+	void drawNodeNoPipeline(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, VulkanglTFScene::Node* node);
 	void draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout);
+	void draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, VkPipeline& pipeline);
 
 
 

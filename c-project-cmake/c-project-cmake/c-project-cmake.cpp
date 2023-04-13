@@ -20,7 +20,18 @@ using namespace std;
 void VulkanExample::getEnabledFeatures()
 {
 	enabledFeatures.samplerAnisotropy = deviceFeatures.samplerAnisotropy;
+
+	// 启动geometryShader
+	if (deviceFeatures.geometryShader) {
+		enabledFeatures.geometryShader = VK_TRUE;
+	}
+	else {
+		vks::tools::exitFatal("Selected GPU does not support geometry shaders!", VK_ERROR_FEATURE_NOT_PRESENT);
+	}
+
 }
+
+
 
 // Options and values to display/toggle from the UI
 struct UISettings {
@@ -245,10 +256,6 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 	ImGui::Separator();
 
 
-	if (overlay->checkBox(u8"显示法线", &glTFScene.displayNormal)) {
-		buildCommandBuffers();
-	}
-	ImGui::Separator();
 
 
 
@@ -276,7 +283,7 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 		camera.updatePerspective();
 	}
 	ImGui::Text(u8"相机方向: X: %.3f, Y: %.3f, Z: %.3f", camera.camFront.x, camera.camFront.y, camera.camFront.z);
-	ImGui::InputFloat3(u8"位置", &camera.position.x, u8"%.1f"); ImGui::SameLine();
+	ImGui::InputFloat3(u8"位置", &camera.position.x, u8"%.3f"); ImGui::SameLine();
 	if (ImGui::SmallButton(u8"置0##1")) {
 		camera.position.x = 0;
 		camera.position.y = 0;
@@ -290,16 +297,16 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 	}
 
 	ImGui::Separator();
-	ImGui::Text(u8"矩阵：[%.2f, %.2f, %.2f, %.2f]", shaderData.values.view[0][0], shaderData.values.view[1][0], shaderData.values.view[2][0], shaderData.values.view[3][0]);
-	ImGui::Text(u8"视图　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.view[0][1], shaderData.values.view[1][1], shaderData.values.view[2][1], shaderData.values.view[3][1]);
-	ImGui::Text(u8"　　　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.view[0][2], shaderData.values.view[1][2], shaderData.values.view[2][2], shaderData.values.view[3][2]);
-	ImGui::Text(u8"　　　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.view[0][3], shaderData.values.view[1][3], shaderData.values.view[2][3], shaderData.values.view[3][3]);
+	ImGui::Text(u8"矩阵：[% .2f, % .2f, % .2f, % .2f]", shaderData.values.view[0][0], shaderData.values.view[1][0], shaderData.values.view[2][0], shaderData.values.view[3][0]);
+	ImGui::Text(u8"视图　[% .2f, % .2f, % .2f, % .2f]", shaderData.values.view[0][1], shaderData.values.view[1][1], shaderData.values.view[2][1], shaderData.values.view[3][1]);
+	ImGui::Text(u8"　　　[% .2f, % .2f, % .2f, % .2f]", shaderData.values.view[0][2], shaderData.values.view[1][2], shaderData.values.view[2][2], shaderData.values.view[3][2]);
+	ImGui::Text(u8"　　　[% .2f, % .2f, % .2f, % .2f]", shaderData.values.view[0][3], shaderData.values.view[1][3], shaderData.values.view[2][3], shaderData.values.view[3][3]);
 
 	ImGui::Separator();
-	ImGui::Text(u8"矩阵：[%.2f, %.2f, %.2f, %.2f]", shaderData.values.projection[0][0], shaderData.values.projection[1][0], shaderData.values.projection[2][0], shaderData.values.projection[3][0]);
-	ImGui::Text(u8"投影　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.projection[0][1], shaderData.values.projection[1][1], shaderData.values.projection[2][1], shaderData.values.projection[3][1]);
-	ImGui::Text(u8"　　　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.projection[0][2], shaderData.values.projection[1][2], shaderData.values.projection[2][2], shaderData.values.projection[3][2]);
-	ImGui::Text(u8"　　　[%.2f, %.2f, %.2f, %.2f]", shaderData.values.projection[0][3], shaderData.values.projection[1][3], shaderData.values.projection[2][3], shaderData.values.projection[3][3]);
+	ImGui::Text(u8"矩阵：[% .2f, % .2f, % .2f, % .2f]", shaderData.values.projection[0][0], shaderData.values.projection[1][0], shaderData.values.projection[2][0], shaderData.values.projection[3][0]);
+	ImGui::Text(u8"投影　[% .2f, % .2f, % .2f, % .2f]", shaderData.values.projection[0][1], shaderData.values.projection[1][1], shaderData.values.projection[2][1], shaderData.values.projection[3][1]);
+	ImGui::Text(u8"　　　[% .2f, % .2f, % .2f, % .2f]", shaderData.values.projection[0][2], shaderData.values.projection[1][2], shaderData.values.projection[2][2], shaderData.values.projection[3][2]);
+	ImGui::Text(u8"　　　[% .2f, % .2f, % .2f, % .2f]", shaderData.values.projection[0][3], shaderData.values.projection[1][3], shaderData.values.projection[2][3], shaderData.values.projection[3][3]);
 
 
 
@@ -316,6 +323,18 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 
 
 	}
+
+	if (UIOverlay.header(u8"调试信息")) {
+		if (overlay->checkBox(u8"显示法线", &displayNormals)) {
+			buildCommandBuffers();
+		}
+		if (displayNormals) {
+			ImGui::SliderFloat(u8"法线长度", &shaderDataCustom.values.normalLength, 0.01f, 10.0f);
+		}
+	}
+
+
+
 
 
 
@@ -624,17 +643,17 @@ void VulkanExample::prepareUniformBuffers()
 	VK_CHECK_RESULT(shaderDataSkybox.buffer.map());
 
 
-
-
 	updateUniformBuffers();
 }
 
 void VulkanExample::updateUniformBuffers()
 {
+
 	shaderData.values.projection = camera.matrices.perspective;
 	shaderData.values.view = camera.matrices.view;
 	shaderData.values.viewPos = camera.viewPos;
 	memcpy(shaderData.buffer.mapped, &shaderData.values, sizeof(shaderData.values));
+
 
 
 	memcpy(shaderDataCustom.buffer.mapped, &shaderDataCustom.values, sizeof(shaderDataCustom.values));
@@ -674,7 +693,9 @@ void VulkanExample::setupDescriptors()
 
 	// Descriptor set layout for passing matrices
 	std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = {
-		vks::initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0)
+		vks::initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0),
+		// 加一个geom用
+		vks::initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_GEOMETRY_BIT, 1)
 	};
 	VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCI = vks::initializers::descriptorSetLayoutCreateInfo(setLayoutBindings.data(), static_cast<uint32_t>(setLayoutBindings.size()));
 
@@ -683,11 +704,12 @@ void VulkanExample::setupDescriptors()
 
 	// 2023/4/11 新增一个setlayout
 	setLayoutBindings = {
-	   vks::initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0)
+	   vks::initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0),
+	   vks::initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_GEOMETRY_BIT, 1)
 	};
 	descriptorSetLayoutCI.pBindings = setLayoutBindings.data();
-	descriptorSetLayoutCI.bindingCount = 1;
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCI, nullptr, &descriptorSetLayouts.custom));
+	descriptorSetLayoutCI.bindingCount = 2;
+	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCI, nullptr, &descriptorSetLayouts.customSet2));
 
 
 	// 写错阶段会报错 Shader uses descriptor slot 0.0 but descriptor not accessible from stage VK_SHADER_STAGE_VERTEX_BIT The Vulkan spec states: layout must be consistent with all shaders specified in pStages 
@@ -717,7 +739,7 @@ void VulkanExample::setupDescriptors()
 	std::array<VkDescriptorSetLayout, 3> setLayouts = {
 		descriptorSetLayouts.matrices
 		, descriptorSetLayouts.textures
-		, descriptorSetLayouts.custom };
+		, descriptorSetLayouts.customSet2 };
 
 	VkPipelineLayoutCreateInfo pipelineLayoutCI = vks::initializers::pipelineLayoutCreateInfo(setLayouts.data(), static_cast<uint32_t>(setLayouts.size()));
 	// We will use push constants to push the local matrices of a primitive to the vertex shader
@@ -725,7 +747,20 @@ void VulkanExample::setupDescriptors()
 	// Push constant ranges are part of the pipeline layout
 	pipelineLayoutCI.pushConstantRangeCount = 1;
 	pipelineLayoutCI.pPushConstantRanges = &pushConstantRange;
+
+
+	//std::vector<VkPushConstantRange> pushConstantRanges = {
+	//	vks::initializers::pushConstantRange(VK_SHADER_STAGE_VERTEX_BIT, sizeof(glm::mat4), 0),
+	//	// 加一个geom用
+	//     vks::initializers::pushConstantRange(VK_SHADER_STAGE_GEOMETRY_BIT, sizeof(glm::mat4),  sizeof(glm::mat4))
+	//};
+	//pipelineLayoutCI.pushConstantRangeCount = 2;
+	//pipelineLayoutCI.pPushConstantRanges = pushConstantRanges.data();
+
+
 	VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutCI, nullptr, &pipelineLayout));
+
+
 
 
 	// 新增一套 (天空盒)
@@ -736,8 +771,13 @@ void VulkanExample::setupDescriptors()
 	// Descriptor set for scene matrices
 	VkDescriptorSetAllocateInfo allocInfo = vks::initializers::descriptorSetAllocateInfo(descriptorPool, &descriptorSetLayouts.matrices, 1);
 	VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet));
-	VkWriteDescriptorSet writeDescriptorSet = vks::initializers::writeDescriptorSet(descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &shaderData.buffer.descriptor);
-	vkUpdateDescriptorSets(device, 1, &writeDescriptorSet, 0, nullptr);
+	//VkWriteDescriptorSet writeDescriptorSet = vks::initializers::writeDescriptorSet(descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &shaderData.buffer.descriptor);
+	//vkUpdateDescriptorSets(device, 1, &writeDescriptorSet, 0, nullptr);
+	std::vector<VkWriteDescriptorSet> writeDescriptorSets2 = {
+		vks::initializers::writeDescriptorSet(descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &shaderData.buffer.descriptor),
+		vks::initializers::writeDescriptorSet(descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, &shaderData.buffer.descriptor),
+	};
+	vkUpdateDescriptorSets(device, writeDescriptorSets2.size(), writeDescriptorSets2.data(), 0, nullptr);
 
 	// Descriptor sets for materials
 	for (auto& material : glTFScene.materials) {
@@ -754,10 +794,17 @@ void VulkanExample::setupDescriptors()
 
 
 	// 新增一个
-	allocInfo = vks::initializers::descriptorSetAllocateInfo(descriptorPool, &descriptorSetLayouts.custom, 1);
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, &descriptorSetCustom));
-	writeDescriptorSet = vks::initializers::writeDescriptorSet(descriptorSetCustom, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &shaderDataCustom.buffer.descriptor);
-	vkUpdateDescriptorSets(device, 1, &writeDescriptorSet, 0, nullptr);
+	allocInfo = vks::initializers::descriptorSetAllocateInfo(descriptorPool, &descriptorSetLayouts.customSet2, 1);
+	VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, &descriptorSetCustomSet2));
+
+	writeDescriptorSets2 = {
+			vks::initializers::writeDescriptorSet(descriptorSetCustomSet2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &shaderDataCustom.buffer.descriptor),
+	        vks::initializers::writeDescriptorSet(descriptorSetCustomSet2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, &shaderDataCustom.buffer.descriptor)
+	};
+	vkUpdateDescriptorSets(device, writeDescriptorSets2.size(), writeDescriptorSets2.data(), 0, nullptr);
+
+	//VkWriteDescriptorSet writeDescriptorSet = 
+	//vkUpdateDescriptorSets(device, 1, &writeDescriptorSet, 0, nullptr);
 
 
 	// 新增一个 天空盒
@@ -768,6 +815,10 @@ void VulkanExample::setupDescriptors()
 		vks::initializers::writeDescriptorSet(descriptorSetSkyBox, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	1, &cubemap.descriptor),							// Binding 1: Fragment shader texture sampler
 	};
 	vkUpdateDescriptorSets(device, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
+
+
+
+
 }
 
 
@@ -835,7 +886,8 @@ void VulkanExample::preparePipelines()
 		shaderStages[1].pSpecializationInfo = &specializationInfo;
 
 		// For double sided materials, culling will be disabled
-		rasterizationStateCI.cullMode = material.doubleSided ? VK_CULL_MODE_NONE : VK_CULL_MODE_BACK_BIT;
+		//rasterizationStateCI.cullMode = material.doubleSided ? VK_CULL_MODE_NONE : VK_CULL_MODE_BACK_BIT;
+		rasterizationStateCI.cullMode = VK_CULL_MODE_BACK_BIT;
 
 		VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCI, nullptr, &material.pipeline));
 	}
@@ -858,9 +910,13 @@ void VulkanExample::preparePipelines()
 
 
 	// 加一个法线调试
+	std::array<VkPipelineShaderStageCreateInfo, 3> shaderStages3;
 	pipelineCI.pVertexInputState = &vertexInputStateCI;
-	shaderStages[0] = loadShader(getShadersPath() + "gltfscenerendering/scene.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-	shaderStages[1] = loadShader(getShadersPath() + "gltfscenerendering/scene.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+	shaderStages3[0] = loadShader(getShadersPath() + "new/normal.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+	shaderStages3[1] = loadShader(getShadersPath() + "new/normal.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+	shaderStages3[2] = loadShader(getShadersPath() + "new/normaldebug.geom.spv", VK_SHADER_STAGE_GEOMETRY_BIT);
+	pipelineCI.stageCount = shaderStages3.size();
+	pipelineCI.pStages = shaderStages3.data();
 	depthStencilStateCI.depthWriteEnable = VK_TRUE;
 	rasterizationStateCI.cullMode = VK_CULL_MODE_BACK_BIT;
 	pipelineCI.renderPass = renderPass;
@@ -914,11 +970,16 @@ void VulkanExample::buildCommandBuffers()
 
 		// Bind scene matrices descriptor to set 0
 		vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-		vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &descriptorSetCustom, 0, nullptr);
+		vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &descriptorSetCustomSet2, 0, nullptr);
+
+
 
 		// POI: Draw the glTF scene
 		glTFScene.draw(drawCmdBuffers[i], pipelineLayout);
 
+		if (displayNormals) {
+			glTFScene.draw(drawCmdBuffers[i], pipelineLayout, glTFScene.normal);
+		}
 
 
 

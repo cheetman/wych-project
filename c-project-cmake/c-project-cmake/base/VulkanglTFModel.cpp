@@ -1971,19 +1971,50 @@ void VulkanglTFScene::drawNode(VkCommandBuffer commandBuffer, VkPipelineLayout p
 			if (primitive.indexCount > 0) {
 				VulkanglTFScene::Material& material = materials[primitive.materialIndex];
 				// POI: Bind the pipeline for the node's material
-				if (displayNormal) {
+			/*	if (displayNormal) {
 					vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, normal);
 				}
-				else {
+				else {*/
 					vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, material.pipeline);
-				}
-				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &material.descriptorSet, 0, nullptr);
+					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &material.descriptorSet, 0, nullptr);
+				//}
 				vkCmdDrawIndexed(commandBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
 			}
 		}
 	}
 	for (auto& child : node->children) {
 		drawNode(commandBuffer, pipelineLayout, child);
+	}
+}
+
+
+void VulkanglTFScene::drawNodeNoPipeline(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, VulkanglTFScene::Node* node)
+{
+	if (!node->visible) {
+		return;
+	}
+	if (node->mesh.primitives.size() > 0) {
+		// Pass the node's matrix via push constants
+		// Traverse the node hierarchy to the top-most parent to get the final matrix of the current node
+		glm::mat4 nodeMatrix = node->matrix;
+		VulkanglTFScene::Node* currentParent = node->parent;
+		while (currentParent) {
+			nodeMatrix = currentParent->matrix * nodeMatrix;
+			currentParent = currentParent->parent;
+		}
+		// Pass the final matrix to the vertex shader using push constants
+		vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &nodeMatrix);
+		for (VulkanglTFScene::Primitive& primitive : node->mesh.primitives) {
+			if (primitive.indexCount > 0) {
+				VulkanglTFScene::Material& material = materials[primitive.materialIndex];
+				// POI: Bind the pipeline for the node's material
+		
+				vkCmdDrawIndexed(commandBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
+			}
+		}
+	}
+	for (auto& child : node->children) {
+		drawNodeNoPipeline(commandBuffer, pipelineLayout, child);
 	}
 }
 
@@ -1997,5 +2028,21 @@ void VulkanglTFScene::draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipel
 	// Render all nodes at top-level
 	for (auto& node : nodes) {
 		drawNode(commandBuffer, pipelineLayout, node);
+	}
+}
+
+
+void VulkanglTFScene::draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, VkPipeline &pipeline)
+{
+	// All vertices and indices are stored in single buffers, so we only need to bind once
+	VkDeviceSize offsets[1] = { 0 };
+	vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertices.buffer, offsets);
+	vkCmdBindIndexBuffer(commandBuffer, indices.buffer, 0, VK_INDEX_TYPE_UINT32);
+
+	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+	// Render all nodes at top-level
+	for (auto& node : nodes) {
+		drawNodeNoPipeline(commandBuffer, pipelineLayout, node);
 	}
 }

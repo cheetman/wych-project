@@ -36,7 +36,7 @@ public:
 			glm::vec4 lightPos = glm::vec4(5.0f, 5.0f, -5.0f, 1.0f);
 			glm::vec4 viewPos;
 		} values;
-	} shaderData;
+	} shaderData ;
 
 
 	struct ShaderDataCustom {
@@ -44,6 +44,8 @@ public:
 		struct Values {
 			float ambient = 0.1f;
 			float specularExponent = 32.0f;
+
+			float normalLength = 0.02f;
 		} values;
 	} shaderDataCustom;
 
@@ -71,7 +73,7 @@ public:
 		VkDescriptorSetLayout matrices;
 		VkDescriptorSetLayout textures;
 		// 新增一个
-		VkDescriptorSetLayout custom;
+		VkDescriptorSetLayout customSet2;
 		VkDescriptorSetLayout skybox;
 
 	} descriptorSetLayouts;
@@ -83,7 +85,7 @@ public:
 	// 给CMD使用 vkCmdBindDescriptorSets 
 	VkDescriptorSet descriptorSet;
 	// 新增
-	VkDescriptorSet descriptorSetCustom;
+	VkDescriptorSet descriptorSetCustomSet2;
 	// 新增天空盒
 	VkDescriptorSet descriptorSetSkyBox;
 

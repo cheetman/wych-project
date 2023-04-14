@@ -3,19 +3,18 @@
 
 #pragma once
 
-
-
 #include "VulkanExampleBase.h"
-//#include "VulkanglTFScene.h"
 #include "base/VulkanglTFModel.h"
-
 
 class VulkanExample : public VulkanExampleBase
 {
 
 public:
+	VulkanExample();
 	// 私有
 	VulkanglTFScene glTFScene;
+
+    class TextOverlay* textOverlay = nullptr;
 
 	struct {
 		//vkglTF::Model ufo;
@@ -101,20 +100,17 @@ public:
 		VkPipeline normal;
 	} pipelines;
 
-
-
-
-	VulkanExample();
-
-
-
+	// Clear颜色
 	VkClearColorValue defaultClearColor = { { 0.025f, 0.025f, 0.025f, 1.0f } };
 
 
 
+
+
+
+
+
 	void prepare();
-
-
 
 
 	/** @brief Adds the drawing commands for the ImGui overlay to the given command buffer */
@@ -128,6 +124,11 @@ public:
 	void prepareUniformBuffers();
 	void updateUniformBuffers();
 
+	void prepareTextOverlay();
+	void updateTextOverlay();
+
+
+
 	virtual void viewChanged();
 	virtual void render();
 
@@ -137,8 +138,14 @@ public:
 	// 设置 device features
 	virtual void getEnabledFeatures();
 
+
+	// UI界面函数
 	virtual void OnUpdateUIOverlay(vks::UIOverlay* overlay);
 
+	// 使用到的事件
+	// 事件 - 窗口改变
+	virtual void windowResized();
+	virtual void keyPressed(uint32_t keyCode);
 private:
 
 

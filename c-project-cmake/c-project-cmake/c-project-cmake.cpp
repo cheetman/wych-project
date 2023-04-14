@@ -1,17 +1,7 @@
 ﻿// c-project-cmake.cpp: 定义应用程序的入口点。
-//
 
 #include "c-project-cmake.h"
-
-//
-//#define TINYGLTF_NO_STB_IMAGE_WRITE
-//#define TINYGLTF_NO_STB_IMAGE
-//#define TINYGLTF_NO_EXTERNAL_IMAGE
-//#include "tiny_gltf.h"
-
-//#include "VulkanglTFScene.h"
-//#include "base/VulkanglTFModel.h"
-
+#include "base/TextOverlay.hpp"
 
 using namespace std;
 
@@ -28,9 +18,27 @@ void VulkanExample::getEnabledFeatures()
 	else {
 		vks::tools::exitFatal("Selected GPU does not support geometry shaders!", VK_ERROR_FEATURE_NOT_PRESENT);
 	}
-
 }
 
+
+// 事件 - 屏幕大小改变
+void VulkanExample::windowResized()
+{
+	// SRS - Recreate text overlay resources in case number of swapchain images has changed on resize
+	delete textOverlay;
+	prepareTextOverlay();
+}
+
+// 事件 - 键盘
+void VulkanExample::keyPressed(uint32_t keyCode)
+{
+	switch (keyCode)
+	{
+	case KEY_KPADD:
+	case KEY_SPACE:
+		textOverlay->visible = !textOverlay->visible;
+	}
+}
 
 
 // Options and values to display/toggle from the UI
@@ -49,12 +57,69 @@ struct UISettings {
 VulkanExample::VulkanExample() :VulkanExampleBase() {
 
 
-	title = "glTF scene rendering";
+	title = "Vulkan-Project";
 	camera.type = Camera::CameraType::firstperson;
 	camera.flipY = true;
 	camera.setPosition(glm::vec3(-0.9f, 1.0f, 0.0f));
 	camera.setRotation(glm::vec3(0.0f, -24.0f, 0.0f));
 	camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
+}
+
+
+
+// Update the text buffer displayed by the text overlay
+void VulkanExample::updateTextOverlay(void)
+{
+	textOverlay->beginTextUpdate();
+
+	textOverlay->addText(title, 5.0f * UIOverlay.scale, 5.0f * UIOverlay.scale, TextOverlay::alignLeft);
+
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(2) << (frameTimer * 1000.0f) << "ms (" << lastFPS << " fps)";
+	textOverlay->addText(ss.str(), 5.0f * UIOverlay.scale, 25.0f * UIOverlay.scale, TextOverlay::alignLeft);
+
+	textOverlay->addText(deviceProperties.deviceName, 5.0f * UIOverlay.scale, 45.0f * UIOverlay.scale, TextOverlay::alignLeft);
+
+	// Display current model view matrix
+	textOverlay->addText("model view matrix", (float)width - 5.0f * UIOverlay.scale, 5.0f * UIOverlay.scale, TextOverlay::alignRight);
+
+	//for (uint32_t i = 0; i < 4; i++)
+	//{
+	//	ss.str("");
+	//	ss << std::fixed << std::setprecision(2) << std::showpos;
+	//	ss << uboVS.modelView[0][i] << " " << uboVS.modelView[1][i] << " " << uboVS.modelView[2][i] << " " << uboVS.modelView[3][i];
+	//	textOverlay->addText(ss.str(), (float)width - 5.0f * UIOverlay.scale, (25.0f + (float)i * 20.0f) * UIOverlay.scale, TextOverlay::alignRight);
+	//}
+
+	//glm::vec3 projected = glm::project(glm::vec3(0.0f), uboVS.modelView, uboVS.projection, glm::vec4(0, 0, (float)width, (float)height));
+	//textOverlay->addText("A cube", projected.x, projected.y, TextOverlay::alignCenter);
+
+
+	textOverlay->addText("Press \"space\" to toggle text overlay", 5.0f * UIOverlay.scale, 65.0f * UIOverlay.scale, TextOverlay::alignLeft);
+
+	textOverlay->endTextUpdate();
+}
+
+
+void VulkanExample::prepareTextOverlay()
+{
+	// Load the text rendering shaders
+	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+	shaderStages.push_back(loadShader(getShadersPath() + "textoverlay/text.vert.spv", VK_SHADER_STAGE_VERTEX_BIT));
+	shaderStages.push_back(loadShader(getShadersPath() + "textoverlay/text.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT));
+
+	 textOverlay = new TextOverlay(
+		vulkanDevice,
+		queue,
+		frameBuffers,
+		swapChain.colorFormat,
+		depthFormat,
+		&width,
+		&height,
+		UIOverlay.scale,
+		shaderStages
+	);
+	updateTextOverlay();
 }
 
 
@@ -65,8 +130,22 @@ void VulkanExample::renderFrame()
 	if (settings.overlay && UIOverlay.visible) {
 		buildCommandBuffers();
 	}
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &drawCmdBuffers[currentBuffer];
+
+	// 为text加一个cmd 现在有两个command
+	std::vector<VkCommandBuffer> commandBuffers = {
+		drawCmdBuffers[currentBuffer]
+	};
+
+	if (textOverlay->visible) {
+		commandBuffers.push_back(textOverlay->cmdBuffers[currentBuffer]);
+	}
+
+	//submitInfo.commandBufferCount = 1;
+	//submitInfo.pCommandBuffers = &drawCmdBuffers[currentBuffer];
+
+	submitInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
+	submitInfo.pCommandBuffers = commandBuffers.data();
+
 	VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
 	VulkanExample::submitFrame();
 }
@@ -81,6 +160,13 @@ void VulkanExample::render()
 	renderFrame();
 	if (camera.updated) {
 		updateUniformBuffers();
+	}
+
+	// 每一秒更新一次
+	if (frameCounter == 0)
+	{
+		vkDeviceWaitIdle(device);
+		updateTextOverlay();
 	}
 }
 
@@ -257,8 +343,6 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 
 
 
-
-
 	ImGui::Text(u8"光线信息");
 	ImGui::Text(u8"光照模型: Phong");
 	ImGui::SliderFloat3(u8"方向向量[XYZ]", &shaderData.values.lightPos.x, -90.0f, 90.0f);
@@ -334,11 +418,6 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 	}
 
 
-
-
-
-
-
 	if (UIOverlay.header(u8"模型信息")) {
 
 		if (UIOverlay.button(u8"显示所有")) {
@@ -350,7 +429,6 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 			std::for_each(glTFScene.nodes.begin(), glTFScene.nodes.end(), [](VulkanglTFScene::Node* node) { node->visible = false; });
 			buildCommandBuffers();
 		}
-		//ImGui::NewLine();
 		// POI: Create a list of glTF nodes for visibility toggle
 		//ImGui::BeginChild("#nodelist", ImVec2(200.0f * UIOverlay.scale, 340.0f * UIOverlay.scale), false);
 		for (auto& node : glTFScene.nodes)
@@ -435,36 +513,11 @@ void VulkanExample::OnUpdateUIOverlay(vks::UIOverlay* overlay)
 				ImGui::TreePop();
 			}
 		}
-		//ImGui::EndChild();
 	}
-
 
 	ImGui::End();
 
-	//if (overlay->header("Visibility")) {
 
-	//	if (overlay->button("All")) {
-	//		std::for_each(glTFScene.nodes.begin(), glTFScene.nodes.end(), [](VulkanglTFScene::Node* node) { node->visible = true; });
-	//		buildCommandBuffers();
-	//	}
-	//	ImGui::SameLine();
-	//	if (overlay->button("None")) {
-	//		std::for_each(glTFScene.nodes.begin(), glTFScene.nodes.end(), [](VulkanglTFScene::Node* node) { node->visible = false; });
-	//		buildCommandBuffers();
-	//	}
-	//	ImGui::NewLine();
-
-	//	// POI: Create a list of glTF nodes for visibility toggle
-	//	ImGui::BeginChild("#nodelist", ImVec2(200.0f * overlay->scale, 340.0f * overlay->scale), false);
-	//	for (auto& node : glTFScene.nodes)
-	//	{
-	//		if (overlay->checkBox(node->name.c_str(), &node->visible))
-	//		{
-	//			buildCommandBuffers();
-	//		}
-	//	}
-	//	ImGui::EndChild();
-	//}
 }
 
 
@@ -1043,6 +1096,8 @@ void VulkanExample::prepare() {
 	buildCommandBuffers();
 	std::cout << "准备CommandBuffers结束" << std::endl;
 	std::cout << "============================================================================================" << std::endl;
+
+	prepareTextOverlay();
 	prepared = true;
 
 

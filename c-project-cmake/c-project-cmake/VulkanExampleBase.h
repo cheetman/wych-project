@@ -118,6 +118,8 @@ public:
 	// Multiplier for speeding up (or slowing down) the global timer
 	float timerSpeed = 0.25f;
 
+    // 帧数 每一秒重置置为0计算
+	uint32_t frameCounter = 0;
 
 	// 摄像机
 	Camera camera;
@@ -223,6 +225,8 @@ public:
 	// 事件 - 相机改变
 	virtual void viewChanged();
 
+	virtual void keyPressed(uint32_t);
+
 protected:
 
 	// Vulkan Instance, stores all per-application states
@@ -303,8 +307,6 @@ protected:
 	// Active frame buffer index
 	uint32_t currentBuffer = 0;
 
-	// Frame counter to display fps
-	uint32_t frameCounter = 0;
 
 };
 

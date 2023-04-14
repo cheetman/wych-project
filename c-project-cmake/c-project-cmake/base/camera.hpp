@@ -127,6 +127,7 @@ public:
 
 	void updateAspectRatio(float aspect)
 	{
+		this->aspect = aspect;
 		matrices.perspective = glm::perspective(glm::radians(fov), aspect, znear, zfar);
 		if (flipY) {
 			matrices.perspective[1][1] *= -1.0f;

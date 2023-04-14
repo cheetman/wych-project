@@ -7,6 +7,8 @@ void VulkanExampleBase::mouseMoved(double x, double y, bool& handled) {}
 
 void VulkanExampleBase::windowResized() {}
 
+void VulkanExampleBase::keyPressed(uint32_t) {}
+
 void VulkanExampleBase::viewChanged() {}
 
 void VulkanExampleBase::buildCommandBuffers() {}
@@ -222,7 +224,7 @@ void VulkanExampleBase::handleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 			}
 		}
 
-		//keyPressed((uint32_t)wParam);
+		keyPressed((uint32_t)wParam);
 		break;
 	case WM_KEYUP:
 		if (camera.type == Camera::firstperson)

@@ -29,6 +29,13 @@ void VulkanExample::windowResized()
 	prepareTextOverlay();
 }
 
+void VulkanExample::viewChanged()
+{
+	updateUniformBuffers();
+	updateTextOverlay();
+}
+
+
 // 事件 - 键盘
 void VulkanExample::keyPressed(uint32_t keyCode)
 {
@@ -81,7 +88,7 @@ void VulkanExample::updateTextOverlay(void)
 	textOverlay->addText(deviceProperties.deviceName, 5.0f * UIOverlay.scale, 45.0f * UIOverlay.scale, TextOverlay::alignLeft);
 
 	// Display current model view matrix
-	textOverlay->addText("model view matrix", (float)width - 5.0f * UIOverlay.scale, 5.0f * UIOverlay.scale, TextOverlay::alignRight);
+	//textOverlay->addText("model view matrix", (float)width - 5.0f * UIOverlay.scale, 5.0f * UIOverlay.scale, TextOverlay::alignRight);
 
 	//for (uint32_t i = 0; i < 4; i++)
 	//{
@@ -91,12 +98,20 @@ void VulkanExample::updateTextOverlay(void)
 	//	textOverlay->addText(ss.str(), (float)width - 5.0f * UIOverlay.scale, (25.0f + (float)i * 20.0f) * UIOverlay.scale, TextOverlay::alignRight);
 	//}
 
-	//glm::vec3 projected = glm::project(glm::vec3(0.0f), uboVS.modelView, uboVS.projection, glm::vec4(0, 0, (float)width, (float)height));
-	//textOverlay->addText("A cube", projected.x, projected.y, TextOverlay::alignCenter);
 
+	for (auto& node : glTFScene.nodes) {
+		if (!node->visible) {
+			continue;
+		}
+
+		// z是深度，范围0~1 对应近平面和远平面
+		glm::vec3 projected = glm::project(glm::vec3(0.0f), shaderData.values.view * node->matrix, shaderData.values.projection, glm::vec4(0, 0, (float)width, (float)height));
+		if (projected.z > 0 && projected.z < 1) {
+			textOverlay->addText(node->name, projected.x, projected.y, TextOverlay::alignCenter);
+		}
+	}
 
 	textOverlay->addText("Press \"space\" to toggle text overlay", 5.0f * UIOverlay.scale, 65.0f * UIOverlay.scale, TextOverlay::alignLeft);
-
 	textOverlay->endTextUpdate();
 }
 
@@ -108,7 +123,7 @@ void VulkanExample::prepareTextOverlay()
 	shaderStages.push_back(loadShader(getShadersPath() + "textoverlay/text.vert.spv", VK_SHADER_STAGE_VERTEX_BIT));
 	shaderStages.push_back(loadShader(getShadersPath() + "textoverlay/text.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT));
 
-	 textOverlay = new TextOverlay(
+	textOverlay = new TextOverlay(
 		vulkanDevice,
 		queue,
 		frameBuffers,
@@ -150,10 +165,6 @@ void VulkanExample::renderFrame()
 	VulkanExample::submitFrame();
 }
 
-void VulkanExample::viewChanged()
-{
-	updateUniformBuffers();
-}
 
 void VulkanExample::render()
 {
@@ -657,7 +668,8 @@ void VulkanExample::loadglTFFile(std::string filename)
 void VulkanExample::loadAssets()
 {
 	std::cout << "开始导入gltf" << std::endl;
-	loadglTFFile("C:/WorkMe/gltf_export/test_ktx/origin2/vulakan.gltf");
+	loadglTFFile(getAssetPath() + "models/test/vulakan.gltf");
+	//loadglTFFile("C:/WorkMe/gltf_export/test_ktx/origin2/vulakan.gltf");
 	//loadglTFFile("D:/WorkGitbub3/Vulkan/data/models/sponza/sponza.gltf");
 
 	// 天空盒
@@ -852,7 +864,7 @@ void VulkanExample::setupDescriptors()
 
 	writeDescriptorSets2 = {
 			vks::initializers::writeDescriptorSet(descriptorSetCustomSet2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, &shaderDataCustom.buffer.descriptor),
-	        vks::initializers::writeDescriptorSet(descriptorSetCustomSet2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, &shaderDataCustom.buffer.descriptor)
+			vks::initializers::writeDescriptorSet(descriptorSetCustomSet2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, &shaderDataCustom.buffer.descriptor)
 	};
 	vkUpdateDescriptorSets(device, writeDescriptorSets2.size(), writeDescriptorSets2.data(), 0, nullptr);
 

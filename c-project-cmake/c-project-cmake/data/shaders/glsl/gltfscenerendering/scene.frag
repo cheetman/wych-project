@@ -23,7 +23,9 @@ layout (constant_id = 1) const float ALPHA_MASK_CUTOFF = 0.0f;
 
 void main() 
 {
-	vec4 color = texture(samplerColorMap, inUV) * vec4(inColor, 1.0);
+	vec4 color = texture(samplerColorMap, inUV);
+//	color.rgb = pow(color.rgb, vec3(1.0f / 2.2)); // 添加伽马校正
+	color *= vec4(inColor, 1.0); // 乘以颜色
 
 	if (ALPHA_MASK) {
 		if (color.a < ALPHA_MASK_CUTOFF) {

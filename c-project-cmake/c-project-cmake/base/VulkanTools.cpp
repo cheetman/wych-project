@@ -9,7 +9,7 @@
 #include "VulkanTools.h"
 
 
-#define VK_EXAMPLE_DATA_DIR "C:/WorkMe/wych-project/c-project-cmake/c-project-cmake/data/"
+//#define VK_EXAMPLE_DATA_DIR "C:/WorkMe/wych-project/c-project-cmake/c-project-cmake/data/"
 
 #if !(defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_MACOS_MVK))
 // iOS & macOS: VulkanExampleBase::getAssetPath() implemented externally to allow access to Objective-C components
